@@ -1,0 +1,17 @@
+{% extends "entry_div_edit.html" %}
+{% block body %}
+<div class="entry_div_text_edit" > 
+
+<form>
+<input type="text" name="title" value="{{rev.title}}"/><br />
+
+<textarea rows="10" cols="30" name="body">
+{{rev.body | safe}}
+
+</textarea>
+
+</form>
+
+</div> 
+
+{% endblock %}

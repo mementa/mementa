@@ -1,0 +1,18 @@
+{% extends "mementa.html" %}
+
+{% block javascript_includes %} 
+<script type="text/javascript" src="/static/entry_debug.js"></script>    
+{% endblock %} 
+
+{% block title %} Entry Debug Interface {% endblock %}
+{% block content %} 
+EntryID : {{entry._id}} <br>
+Head : {{entry.head}} <br>
+
+{{entry_div | safe}}
+
+<p> Click on me to hide! </p>
+
+
+
+{% endblock %}
