@@ -1,0 +1,65 @@
+Mementa 2 
+
+Technology: 
+
+Mathjax
+Aloha editor
+dotcloud deployment
+ google for auth
+
+
+Possible Editors: 
+TinyMCE
+CKEditor
+Aloha
+
+MongoDB
+Flask
+
+Goals: Never delete anything ever
+
+Interface actually looks quite a bit like tumblr
+
+How can we achieve disconnected operation? 
+How can we back up? 
+
+Crazy features we want: 
+
+Take a photo of the whiteboard
+
+
+
+
+Document model : 
+
+An "entry" is a thing that can be edited. Think a figure, a block of text, a link, etc. 
+
+a notebook is a collection of entries. 
+
+By default, a notebook has a list of entries. 
+
+------------------------------------------
+
+What does the create-edit-save update cycle look like? what portion of
+it lives on the client side, vs. the server side? What is safer? How
+does the client "know"?
+
+There are two states: 
+
+VIEW
+EDIT
+
+EDIT --> save --> VIEW
+VIEW --> change -> EDIT
+
+There is a python method where you give it a doc and a version, and it
+renders it into a div
+
+
+------------------------------------------
+To do : 
+
+Generate fake data in mongo
+Connect app to mongodb
+Write "view" renderer for single entry
+

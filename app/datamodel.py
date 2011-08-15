@@ -1,14 +1,14 @@
 import datetime
 
 
-def create_user(username, password, name=None, email=None):
+def user_create(username, password, name=None, email=None):
     return {'username' : username,
             'password' : password,
             'name' : name,
             'password' : password}
 
     
-def entry_version_create(author, date= None, parent=None):
+def revision_create(author, date= None, parent=None):
     """
     do smart things with date, parent, author 
 
@@ -22,17 +22,18 @@ def entry_version_create(author, date= None, parent=None):
 
 
 
-def create_entry(head, archived=False):
+def entry_create(head, dclass, archived=False, ):
     
     return {'head' : head,
+            'class' : dclass, 
             'archived' : archived}
 
 
-def text_entry_version_create(title, body, **kargs) :
-    print "THE BODY IS", body
+def text_entry_revision_create(title, body, **kargs) :
+
     return {'title' : title,
             'body' : body,
             'class' : "text"}
 
 
-version_class_create = {'text' : text_entry_version_create}
+revision_class_create = {'text' : text_entry_revision_create}

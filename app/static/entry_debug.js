@@ -30,10 +30,6 @@ var savers = {
 
 $(document).ready(
     function(){
-        
-        $("p").click(function(){
-                         $(this).hide();
-                     });
 
         //$('a[href="entryedit"]').live('click', 
         $('a[href="entry.edit"]').live('click', 

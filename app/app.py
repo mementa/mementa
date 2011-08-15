@@ -79,10 +79,10 @@ def entries():
 @app.route("/entry/debug/<entryid>")
 @login_required
 def entry(entryid):
-    entries = db['entries']
-    entryversions = db['versions']
+    col_entries = db['entries']
+    col_revisions = db['revisions']
      
-    doc = entries.find_one({"_id" : bson.objectid.ObjectId(entryid)})
+    doc = col_entries.find_one({"_id" : bson.objectid.ObjectId(entryid)})
 
     if not doc:
         return "COULD NOT FIND THAT DOCUMENT"
@@ -98,7 +98,7 @@ def entry(entryid):
         
     return render_template("entry_debug.html",
                            entry = doc, 
-                           head_version = head,
+                           head_revision = head,
                            entry_div = div)
 
 @app.route("/entry/render/view/<entryid>")
@@ -110,7 +110,7 @@ def entry_render_view(entryid):
     """
     
     entries = db['entries']
-    entryversions = db['versions']
+    entryrevisions = db['revisions']
      
     doc = entries.find_one({"_id" : bson.objectid.ObjectId(entryid)})
 
@@ -138,7 +138,7 @@ def entry_render_edit(entryid):
     """
 
     entries = db['entries']
-    entryversions = db['versions']
+    entryrevisions = db['revisions']
      
     doc = entries.find_one({"_id" : bson.objectid.ObjectId(entryid)})
 
@@ -165,7 +165,7 @@ def save_entry(entryid):
     
     if request.method == "POST":
         # extract the fields from post
-        print "STUFF WAS POSTED", request.form
+
         # add the fields 
 
         entry_class = request.form['entry_class']
@@ -177,27 +177,27 @@ def save_entry(entryid):
         for k in request.form:
             request_dict[k] = request.form[k]
                     
-        vdoc = dm.version_class_create[entry_class](**request_dict)
+        vdoc = dm.revision_class_create[entry_class](**request_dict)
         author = bson.dbref.DBRef(session["user_id"], "users")
-        entry_ver = dm.entry_version_create(author=author,
+        entry_ver = dm.revision_create(author=author,
                                             parent = request.form["rev_id"])
         vdoc.update(entry_ver)
         
         # create the doc, now insert it into mongo
         col_entries = db['entries']
-        col_versions = db['versions']
+        col_revisions = db['revisions']
 
-        oid = col_versions.insert(vdoc, safe=True)
-        print "SAVED with OID=", oid
+        oid = col_revisions.insert(vdoc, safe=True)
+
         
-        tref = bson.dbref.DBRef("versions", oid)
+        tref = bson.dbref.DBRef("revisions", oid)
 
         # FIXME FIXME FIXME USE COMPARE AND SWAP HERE
 
         col_entries.save({'_id' : bson.objectid.ObjectId(entry_id),
                           'head' : tref}, safe=True)
 
-        print "THE VDOC is", vdoc
+
         div = entry_divs.create[entry_class]({'_id' : entry_id,
                                               'head' : tref,
                                               'archived' : False}, vdoc) # FIXME archived
