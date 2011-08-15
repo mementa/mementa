@@ -1,4 +1,4 @@
-
+from functools import wraps
 from flask import Flask, session, redirect, url_for, escape, request, g, render_template
 import pymongo
 import bson
@@ -16,11 +16,20 @@ db = mongoconn[DATABASE]
 
 
 
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+    
+        if 'username' not in session or session['username'] is None:
+            return redirect(url_for('login', next=request.url))
+        return f(*args, **kwargs)
+    return decorated_function
+
 @app.route('/')
+@login_required
 def index():
-    if 'username' in session:
-        return 'Logged in as %s' % escape(session['username'])
-    return 'You are not logged in'
+    return "Hello World"
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -53,6 +62,7 @@ def listusers():
 
 
 @app.route("/entries")
+@login_required
 def entries():
     entries = db['entries']
     docs = entries.find()
@@ -64,6 +74,7 @@ def entries():
     
     
 @app.route("/entry/debug/<entryid>")
+@login_required
 def entry(entryid):
     entries = db['entries']
     entryversions = db['entryversions']
@@ -88,6 +99,7 @@ def entry(entryid):
                            entry_div = div)
 
 @app.route("/entry/render/view/<entryid>")
+@login_required
 def entry_render_view(entryid):
     """
     Return the div element associated with the HEAD of this entry
@@ -114,6 +126,7 @@ def entry_render_view(entryid):
     return div
     
 @app.route("/entry/render/edit/<entryid>")
+@login_required
 def entry_render_edit(entryid):
     """
     Return the div element associated with the HEAD of this entry,
@@ -143,7 +156,21 @@ def entry_render_edit(entryid):
 # set the secret key.  keep this really secret:
 app.secret_key = 'A0Zr98j/3kdshfkdsajhfasdkj239r12nc-95h1pi34r1143yX R~XHH!jmN]LWX/,?RT'
 
+@app.route('/entry/<entryid>', methods=['GET', 'POST'])
+@login_required
+def save_entry(entryid):
+    
+    if request.method == "POST":
+        # extract the fields from post
 
+        # add the fields 
+
+        
+        pass
+    else:
+        pass
+
+    
 
 if __name__ == '__main__':
     app.run()
