@@ -10,19 +10,20 @@ function save_entry_text(domobj, callback) {
 
 
     var  doc = {'entry_id' : entry_id, 
-           'rev_id' : rev_id, 
-           'entry_class' : entry_class, 
-           'title' : title, 
-           'body' : body};
+                'rev_id' : rev_id, 
+                'entry_class' : entry_class, 
+                'title' : title, 
+                'body' : body};
+    
+    var url = "/entry/" + entry_id; 
+    $.post(url, doc, callback); 
 
     
-
-    console.log("We should be saving: " + title)  ; 
-
+    
     
 }
 
-savers = {
+var savers = {
     'text' : save_entry_text
 }; 
 
@@ -85,22 +86,16 @@ $(document).ready(
                         // show throbber
                         
                         // extract the data
-                        savers[entry_class]($(this).parent()); 
-                        
-                        // post
-
-                        // $.get("/entry/render/edit/" + entry_id, 
-                        //       function(data, textStatus, jqXHR) { 
-                                  
-                        //           console.log("entry_id = " + entry_id); 
-                        //           console.log("rev_id = " + rev_id); 
-
-                        //           $("#" + entry_id).replaceWith(data); 
-                        //       }
-                        //       ); 
-
-                              
-
+                        savers[entry_class]($(this).parent(), 
+                                            function(data, textStatus, jqXHR)
+                                            {
+                                                console.log("HOLY CRAP DID THAT WORK?");
+                                                
+                                                $("#" + entry_id).replaceWith(data); 
+                                            }
+                                            
+                                           ); 
+                        console.log("Invoked savers"); 
                         return false; 
                     }); 
         

@@ -28,10 +28,11 @@ def create_entry(head, archived=False):
             'archived' : archived}
 
 
-def text_entry_version_create(title, body) :
+def text_entry_version_create(title, body, **kargs) :
+    print "THE BODY IS", body
     return {'title' : title,
             'body' : body,
             'class' : "text"}
 
 
-
+version_class_create = {'text' : text_entry_version_create}

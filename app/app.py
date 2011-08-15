@@ -3,6 +3,7 @@ from flask import Flask, session, redirect, url_for, escape, request, g, render_
 import pymongo
 import bson
 import entry_divs
+import datamodel as dm
 
 DEBUG = True
 SECRET_KEY = "Development key"
@@ -38,6 +39,8 @@ def login():
         password = request.form['password']
         
         session['username'] = request.form['username']
+        session['user_id'] = "112233"
+        
         return redirect(url_for('index'))
     return '''
         <form action="" method="post">
@@ -77,7 +80,7 @@ def entries():
 @login_required
 def entry(entryid):
     entries = db['entries']
-    entryversions = db['entryversions']
+    entryversions = db['versions']
      
     doc = entries.find_one({"_id" : bson.objectid.ObjectId(entryid)})
 
@@ -107,7 +110,7 @@ def entry_render_view(entryid):
     """
     
     entries = db['entries']
-    entryversions = db['entryversions']
+    entryversions = db['versions']
      
     doc = entries.find_one({"_id" : bson.objectid.ObjectId(entryid)})
 
@@ -135,7 +138,7 @@ def entry_render_edit(entryid):
     """
 
     entries = db['entries']
-    entryversions = db['entryversions']
+    entryversions = db['versions']
      
     doc = entries.find_one({"_id" : bson.objectid.ObjectId(entryid)})
 
@@ -162,11 +165,45 @@ def save_entry(entryid):
     
     if request.method == "POST":
         # extract the fields from post
-
+        print "STUFF WAS POSTED", request.form
         # add the fields 
 
+        entry_class = request.form['entry_class']
+        entry_id = request.form['entry_id']
+
+        request_dict = {}
+        # turn the multidict into a single dict
         
-        pass
+        for k in request.form:
+            request_dict[k] = request.form[k]
+                    
+        vdoc = dm.version_class_create[entry_class](**request_dict)
+        author = bson.dbref.DBRef(session["user_id"], "users")
+        entry_ver = dm.entry_version_create(author=author,
+                                            parent = request.form["rev_id"])
+        vdoc.update(entry_ver)
+        
+        # create the doc, now insert it into mongo
+        col_entries = db['entries']
+        col_versions = db['versions']
+
+        oid = col_versions.insert(vdoc, safe=True)
+        print "SAVED with OID=", oid
+        
+        tref = bson.dbref.DBRef("versions", oid)
+
+        # FIXME FIXME FIXME USE COMPARE AND SWAP HERE
+
+        col_entries.save({'_id' : bson.objectid.ObjectId(entry_id),
+                          'head' : tref}, safe=True)
+
+        print "THE VDOC is", vdoc
+        div = entry_divs.create[entry_class]({'_id' : entry_id,
+                                              'head' : tref,
+                                              'archived' : False}, vdoc) # FIXME archived
+        print "Saved document!" 
+        return div
+    
     else:
         pass
 
