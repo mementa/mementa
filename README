@@ -1,33 +1,8 @@
-Mementa 2 
-
-Technology: 
-
-Mathjax
-Aloha editor
-dotcloud deployment
- google for auth
-
-
-Possible Editors: 
-TinyMCE
-CKEditor
-Aloha
-
-MongoDB
-Flask
+Mementa
+====================
+see http://mementa.tumblr.com
 
 Goals: Never delete anything ever
-
-Interface actually looks quite a bit like tumblr
-
-How can we achieve disconnected operation? 
-How can we back up? 
-
-Crazy features we want: 
-
-Take a photo of the whiteboard
-
-
 
 
 Document model : 
@@ -55,14 +30,3 @@ There is a python method where you give it a doc and a version, and it
 renders it into a div
 
 
-------------------------------------------
-To do : 
-
-Primary page interface: 
-
-Create page
-Edit page title
-List all pages
-List all entries : 
-    By an author
-    
