@@ -5,6 +5,7 @@
     {% block head %}
 
     <script type="text/javascript" src="/static/vendor/jquery-1.6.2.js"></script>    
+    <script type="text/javascript" src="/static/vendor/jquery.layout-latest.js"></script>    
 
     {% block javascript_includes %} 
     {% endblock %}
@@ -16,15 +17,18 @@
 </head>
 <body>
   <div id="header"> 
-    </div> 
-    <div id="content">{% block content %}{% endblock %}</div>
-    <hr> 
-
-    <div id="footer">
-        {% block footer %}
-        &copy; Copyright 2011 by <a href="http://domain.invalid/">Mementa</a>.
-        {% endblock %}
-    </div>
-
-    
+    [Home] [<a href="/pages">pages </a>] [<a href="/entries">entries </a>] [Settings] Logged in as : Foo@bar.com  Search <input type="text" />
+  </div> 
+  <div id="content">{% block content %}{% endblock %}</div>
+  <hr> 
+  
+  <div id="footer">
+    {% block footer %}
+    &copy; Copyright 2011 by <a href="http://domain.invalid/">Mementa</a>.
+    {% endblock %}
+  </div>
+  
+  
 </body>
+
+</html>

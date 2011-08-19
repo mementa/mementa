@@ -75,10 +75,33 @@ def entries():
     
     return render_template("list_entries.html", entries=urls)
     
-    
-@app.route("/entry/debug/<entryid>")
+@app.route("/entries")
 @login_required
-def entry(entryid):
+def entries():
+    entries = db['entries']
+    docs = entries.find()
+    ids = [str(d["_id"]) for d in docs]
+    urls = [(id, url_for('entry', entryid=id)) for id in ids]
+
+    
+    return render_template("list_entries.html", entries=urls)
+    
+@app.route("/pages")
+@login_required
+def entries():
+    entries = db['entries']
+    docs = entries.find({u'class' : u'page'})
+    print docs
+    params = [(str(d["_id"]), "page") for d in docs]
+        
+    urls = [(id[0], id[1], url_for('page', entryid=id[0])) for id in params]
+
+    
+    return render_template("list_pages.html", pages=urls)
+    
+@app.route("/page/debug/<entryid>")
+@login_required
+def page(entryid):
     col_entries = db['entries']
     col_revisions = db['revisions']
      
@@ -90,16 +113,25 @@ def entry(entryid):
     head = doc['head']
     rev = db.dereference(head)
 
-    # THIS IS WHERE WE ADD THE EXTRA RENDERING STUFF
+    entry_refs = rev['entries']
 
-    doc_class = rev['class']
+    entry_docs = [db.dereference(ref) for ref in entry_refs]
 
-    div = entry_divs.create[doc_class](doc, rev)
+    outdivs = []
+    for e in entry_docs:
+        erev = db.dereference(e['head'])
+        doc_class = erev['class']
+
+        div = entry_divs.create[doc_class](e,  erev)
+
+        outdivs.append(div)
         
-    return render_template("entry_debug.html",
-                           entry = doc, 
-                           head_revision = head,
-                           entry_div = div)
+        
+    return render_template("page_debug.html",
+                           page_entry = doc, 
+                           page_head_revision = rev, 
+                           entry_divs = outdivs)
+
 
 @app.route("/entry/render/view/<entryid>")
 @login_required

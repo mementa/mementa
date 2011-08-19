@@ -32,11 +32,10 @@ Take a photo of the whiteboard
 
 Document model : 
 
-An "entry" is a thing that can be edited. Think a figure, a block of text, a link, etc. 
+An "entry" is a thing that can be edited. 
+Think a figure, a block of text, a link, etc. 
 
-a notebook is a collection of entries. 
-
-By default, a notebook has a list of entries. 
+A page is a collection of entries
 
 ------------------------------------------
 
@@ -59,7 +58,11 @@ renders it into a div
 ------------------------------------------
 To do : 
 
-Generate fake data in mongo
-Connect app to mongodb
-Write "view" renderer for single entry
+Primary page interface: 
 
+Create page
+Edit page title
+List all pages
+List all entries : 
+    By an author
+    

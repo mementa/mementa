@@ -1,0 +1,12 @@
+{% extends "mementa.html" %}
+
+{% block title %} Pages List interface Interface {% endblock %}
+{% block content %} 
+
+
+{%for id, name, url in pages %}
+<a href="{{url}}">{{name}} [{{id}}]</a> <br>
+
+{%endfor%}
+
+{% endblock %}

@@ -35,5 +35,11 @@ def text_entry_revision_create(title, body, **kargs) :
             'body' : body,
             'class' : "text"}
 
+def page_entry_revision_create(title, entries, tags, **kargs) :
+    return {'title' : title,
+            'entries' : entries,
+            'class' : "page"}
 
-revision_class_create = {'text' : text_entry_revision_create}
+
+revision_class_create = {'text' : text_entry_revision_create,
+                         'page' : page_entry_revision_create}

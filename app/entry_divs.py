@@ -12,5 +12,6 @@ def text_edit(entry, rev):
 
 create = {'text' : text_view}
 
+
 edit = {'text' : text_edit}
 
