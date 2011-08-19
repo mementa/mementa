@@ -41,5 +41,3 @@ example, if a user is editing an entry that another user removes from the page,
 the user will be given notification that "FOO has removed this entry from the page, 
 and upon save it will be hidden" Of course, the entry is not really lost. 
 
-
-
