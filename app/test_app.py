@@ -1,0 +1,95 @@
+import os
+import datamodel as dm
+from nose.tools import *
+import unittest
+import pymongo
+import mementa
+import simplejson as json
+
+
+class MementaTestCase(unittest.TestCase):
+        
+    def setUp(self):
+        mementa.app.config['DATABASE'] = "LALALA"
+        mementa.app.config['TESTING'] = True
+        self.conn = pymongo.Connection()
+        self.conn[mementa.app.config['DATABASE']].dummycol.insert({'dummydoc' : True})
+        self. app = mementa.app.test_client()
+
+    def teardown(self):
+        self.conn.drop_database(mementa.app.config['DATABASE'])
+
+        pass
+
+    def login(self, username, password):
+        return self.app.post('/login', data=dict(
+            username=username,
+            password=password
+        ), follow_redirects=True)
+
+    def logout(self):
+        return self.app.get('/logout', follow_redirects=True)
+
+
+    def test_hello(self):
+        self.login("eric", "test")
+        rv = self.app.get("/")
+        assert "Hello World" in rv.data
+
+
+    def post_json(self, url, data):
+
+        return self.app.post(url, data=json.dumps(data),
+                             content_type="application/json")
+
+    def test_create_text_entry(self):
+        self.login("eric", "test")
+
+        body = "11, 22, 33, 44"
+        title = "This is a title"
+        rv = self.post_json("/api/entry/text/new",
+                           {'title' : title,'body' : body})
+
+        
+        rv_json = json.loads(rv.data)
+        assert_equal(rv_json['revision']['body'], body)
+        assert_equal(rv_json['revision']['title'], title)
+        
+        
+    
+    def test_create_page(self):
+        """
+
+
+        """
+        
+        self.login("eric", "test")
+
+        # create empty page
+        title = "Empty Page"
+        rv = self.post_json("/api/page/new", data={'title' : title, 
+                                                  'entries' : None})
+
+        rv_json = json.loads(rv.data)
+
+        assert_equal(rv_json['revision']['title'], title)
+        
+        # create page with one doc
+
+        rv = self.post_json("/api/entry/text/new", data={'title' : "Page Title 1", 
+                                                        'body' : "Body Body"})
+        rv_json = json.loads(rv.data)
+
+        page_id = rv_json['entry']['_id']
+
+                
+        title = "non-Empty Page"
+        rv = self.post_json("/api/page/new",
+                           data={'title' : title, 
+                                 'entries' : [{'entry' : page_id,
+                                               'hidden' : True}] })
+        
+        rv_json = json.loads(rv.data)
+        
+        
+        

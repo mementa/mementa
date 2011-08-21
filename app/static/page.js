@@ -14,25 +14,10 @@
  * 
  */
 
-function construct_page_doc()
-{
-    /* where does the page keep track of the canonical ordering?
-     * 
-     * 
-     */
-    console.log("Constructing page doc"); 
-    _.map($("#entries").children(".entry"), 
-          function(entry) {
-              console.log(entry); 
-          }
-         ); 
-
-}
 
 function save_page()
 {
     var doc = construct_page_doc();
-    
 
 }
 
@@ -51,5 +36,10 @@ $(document).ready(
                                  
                              }); 
         
+        $("#debuglink").click(function() 
+                              {
+                                  console.log(page_docs_ids_json); 
+                                  return false; 
+                              }); 
         
     });

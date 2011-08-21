@@ -24,7 +24,7 @@ print u2oid
 
 docs_to_create = {'Hello World 1' : 3,
                   'Goodbye World' : 2,
-                  'THis is a test' : 5}
+                  'This is a test' : 5}
 
 entries = []
 
@@ -36,29 +36,27 @@ for title, revisions in docs_to_create.iteritems():
         t = dm.text_entry_revision_create(title,
                                           "This is some <b>EXCITING TEXT</b> %d" % r)
         
-        u1ref = bson.dbref.DBRef("users", u1oid)
-
-        t.update(dm.revision_create(u1ref, parent=parent))
+        t.update(dm.revision_create(u1oid, parent=parent))
 
         toid = col_revisions.insert(t)
 
-        tref = bson.dbref.DBRef("revisions", toid)
-        parent = tref
+        parent = toid
         
-    e = dm.entry_create(tref, t['class'])
+    e = dm.entry_create(toid, t['class'])
     eoid = col_entries.insert(e)
-    entries.append(bson.dbref.DBRef("entries", eoid))
-                   
+    entries.append({'doc' : bson.dbref.DBRef("entries", eoid),
+                    'hidden' : False})
 
 
-p = dm.page_entry_revision_create("This is a title for a page", entries, [])
-p.update(dm.revision_create(u1ref))
+p = dm.page_entry_revision_create("This is a title for a page", entries)
+p.update(dm.revision_create(u1))
 
 poid = col_revisions.insert(p)
-
-tref = bson.dbref.DBRef("revisions", poid)
         
-e = dm.entry_create(tref, p['class'])
+e = dm.entry_create(poid, p['class'])
 eoid = col_entries.insert(e)
 
 
+
+
+                           

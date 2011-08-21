@@ -4,6 +4,13 @@
 <head>
     {% block head %}
 
+
+
+    <script type="text/javascript">
+      var page_docs_ids_json = {{page_docs_ids_json | safe}}; 
+
+    </script> 
+
     <script type="text/javascript" src="/static/vendor/jquery-1.6.2.js"></script>    
     <script type="text/javascript" src="/static/vendor/jquery.layout-latest.js"></script> 
     <script type="text/javascript" src="/static/vendor/jquery.toggleEdit.js"></script> 
@@ -34,6 +41,7 @@
   EntryID : {{page_entry._id}} <br>
   Head : {{page_entry.head}} <br>
 
+  <a href="foo" id="debuglink">DEbug click </a>
 </div> 
 
 </body>

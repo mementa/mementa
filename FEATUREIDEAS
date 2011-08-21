@@ -26,6 +26,14 @@ Paper Citation
 =================
 
 
+Page Interface
+==================
+Each page should work well for up to ~200 entries
+
+Super-condensed view of entries, ala gmail, for bulk hide/show? 
+Real-time search? 
+Dynamic "view most recent N"? 
+
 
 ---------------------------
 Say "Add this paper from zotero or instapaper" 
@@ -33,4 +41,7 @@ Say "Add this paper from zotero or instapaper"
 make comments on it
 Extract figures from it, comment on them
 
-
+Miscellaneous
+======================
+"home page"? 
+How do we handle ACLs? 
