@@ -2,7 +2,7 @@ Mementa
 ====================
 see http://mementa.tumblr.com
 
-Goals: Never delete anything ever
+Goals: An electronic lab notebook that doesn't suck. Never delete anything ever
 
 
 Document model : 
@@ -12,21 +12,5 @@ Think a figure, a block of text, a link, etc.
 
 A page is a collection of entries
 
-------------------------------------------
-
-What does the create-edit-save update cycle look like? what portion of
-it lives on the client side, vs. the server side? What is safer? How
-does the client "know"?
-
-There are two states: 
-
-VIEW
-EDIT
-
-EDIT --> save --> VIEW
-VIEW --> change -> EDIT
-
-There is a python method where you give it a doc and a version, and it
-renders it into a div
 
 
