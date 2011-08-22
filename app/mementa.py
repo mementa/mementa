@@ -426,8 +426,11 @@ def api_page_mutate(page_entryid):
     if str(true_latest_page_ref.id) != old_rev_id:
         print "Incorrect latest"
         latest_page_rev_doc = g.db.dereference(true_latest_page_ref)
-        return jsonify({'reason' : "Incorrect latest",
+        resp = jsonify({'reason' : "Incorrect latest",
                         'doc' : dm.page_rev_to_json(latest_page_rev_doc)})
+        resp.status = "400"
+        return resp
+
 
     # otherwise, at least as of this moment, things are correct
 
@@ -467,9 +470,11 @@ def api_page_mutate(page_entryid):
         latest_page_rev = g.db.dereference(true_latest_page_ref)
         latest_page_rev_json = dm.page_rev_to_json(latest_doc)
         
-        return jsonify({"reason" : "out of date", 
-                        "latest_page_revision_doc" : latest_page_rev_json})
-
+        resp =  jsonify({"reason" : "out of date", 
+                         "latest_page_revision_doc" : latest_page_rev_json})
+        resp.status = "400"
+        return resp
+    
 
 if __name__ == '__main__':
     app.run()
