@@ -1,5 +1,5 @@
 from functools import wraps
-from flask import Flask, session, redirect, url_for, escape, request, g, render_template, jsonify
+from flask import Flask, session, redirect, url_for, escape, request, g, render_template, jsonify, make_response
 import simplejson as json
 import pymongo
 import bson
@@ -43,7 +43,7 @@ def login():
         password = request.form['password']
         
         session['username'] = request.form['username']
-        session['user_id'] = "112233"
+        session['user_id'] = "112233111122331111223311"
         
         return redirect(url_for('index'))
     return '''
@@ -225,7 +225,7 @@ def save_entry(entryid):
             request_dict[k] = request.form[k]
                     
         vdoc = dm.revision_class_create[entry_class](**request_dict)
-        author = bson.dbref.DBRef(session["user_id"], "users")
+        author = bson.dbref.DBRef("users", bson.objectid.ObjectID(session["user_id"]))
         entry_ver = dm.revision_create(author=author,
                                             parent = request.form["rev_id"])
         vdoc.update(entry_ver)
@@ -306,14 +306,15 @@ def api_page_new():
             entries.append(edict)
 
     page_rev = dm.page_entry_revision_create(title, entries)
-    page_rev.update(dm.revision_create(bson.dbref.DBRef("users",
-                                                        session["user_id"])))
+    author = bson.dbref.DBRef("users", bson.objectid.ObjectId(session["user_id"]))
+    page_rev.update(dm.revision_create(author))
 
     revid = g.db.revisions.insert(page_rev, safe=True)
 
     ent_dict = dm.entry_create(bson.dbref.DBRef("revisions", revid), 'page')
     
     entid = g.db.entries.insert(ent_dict, safe=True)
+
     ent_dict["_id"] = entid
 
     page_rev["_id"] = revid
@@ -365,7 +366,7 @@ def api_entry_text_new():
 
     rev = dm.text_entry_revision_create(title, body)
     rev.update(dm.revision_create(bson.dbref.DBRef("users",
-                                                   session["user_id"])))
+                                                   bson.objectid.ObjectId(session["user_id"]))))
 
     revid = g.db.revisions.insert(rev, safe=True)
 
@@ -378,7 +379,6 @@ def api_entry_text_new():
     rev["_id"] = revid
 
     rev_json = dm.entry_text_rev_to_json(rev)
-    
     return jsonify({'entry' : {'class' : 'text',
                                'head' : str(revid),
                                '_id' : str(entid)},
@@ -392,77 +392,84 @@ def api_page_mutate(page_entryid):
     """
     Primary page mutation interface
 
+    Part of me is concerned that we're pushing a full-new entry doc
+    every time, but that's a later optimization -- we could always send a diff
+
+    input : { 'old_rev_id' : The old revision (that is, what the sender thinks as current',
+              'doc' : { 'title' : ,
+                        'archived' :,
+                        'entries' : }}
+
+    response:
+       OK: Ok, with updated doc
+       ERROR : no, you were wrong, the latest rev is XXX, here it is!
+
+    thus the client must do the compare-and-swap
+
     """
 
-    COMMIT_ATTEMPTS = 30 # otherwise something is pretty wrong!
+
+    if request.mimetype != "application/json":
+        return "Invalid request type, must be application/json", 400
     
+    request_data = request.json
+
+    old_rev_id = request_data['old_rev_id']
+
+    submitted_doc = request_data['doc']
+
+    entry_ref = bson.dbref.DBRef("entries", bson.objectid.ObjectId(page_entryid))
+    latest_entry_doc = g.db.dereference(entry_ref)
+
+    true_latest_page_ref = latest_entry_doc['head']
+    print type(true_latest_page_ref.id), type(old_rev_id)
+    if str(true_latest_page_ref.id) != old_rev_id:
+        print "Incorrect latest"
+        latest_page_rev_doc = g.db.dereference(true_latest_page_ref)
+        return jsonify({'reason' : "Incorrect latest",
+                        'doc' : dm.page_rev_to_json(latest_page_rev_doc)})
+
+    # otherwise, at least as of this moment, things are correct
+
+    # create the new doc:
+    new_page_doc = dm.page_entry_revision_create(submitted_doc['title'],
+                                                 submitted_doc['entries'])
+
+    author = bson.dbref.DBRef("users", bson.objectid.ObjectId(session["user_id"]))
+
+    new_page_doc.update(dm.revision_create(author,
+                                      parent=old_rev_id))
+            
+    new_page_doc_oid = g.db.revisions.insert(new_page_doc, safe=True)
+
+    new_page_doc['_id'] = str(new_page_doc_oid)
     
-    action = request.form('action')
-    page_ver_id = request.form('page_ver_id')
-
-    for commit_attempt in range(COMMIT_ATTEMPTS):
-
-        latest_page_entry_doc = db_get_entry_doc(page_entryid)
-
-        if str(latest_page_entry_doc.head) != page_ver_id:
-            print "Page has been updated since this edit"
-
-
-        latest_page_rev_doc  = g.db.dereference(latest_page_entry_doc.head)
-
-        if can_mutate_page(action, latest_page_rev_doc,
-                      action_data) :
-            new_doc = mutate_page(action, latest_page_rev_doc,
-                                  action_data)
-            author = bson.dbref.DBRef(session["user_id"], "users")
-
-            new_doc.update(dm.revision_create(author,
-                                              parent=latest_page_rev))
+    new_entry_doc = dm.entry_create(bson.dbref.DBRef('revisions', new_page_doc_oid), 
+                                    'page')
+    
+    res = g.db.entries.update(latest_entry_doc,
+                              new_entry_doc, safe=True)
             
-            new_doc_oid = revisions.insert(new_doc, safe=True)
-
-            # create new, updated entry doc pointing to this doc
-
-            new_entry_doc = dm.entry_create(bson.dbref.DBRef(new_doc_oid,  'revisions'),
-                                           latest_page_entry_doc['class'])
-
-            # compare-and-swap
-            res = entries.update(latest_page_entry_doc,
-                                 new_entry_doc, safe=True)
-            
-            if res['updatedExisting'] == True:
-                # success!
-                return jsonify({"latest_page_revision_doc" : new_doc})
+    if res['updatedExisting'] == True:
+        # success!
+        new_page_doc_json = dm.page_rev_to_json(new_page_doc)
+        return jsonify({"latest_page_revision_doc" : new_page_doc_json})
                               
             
-            else:
-                # failed to update, meaning someone else updated the entry ahead of us
-                revisions.remove({'_id' : new_doc_oid})
+    else:
+        # failed to update, meaning someone else updated the entry ahead of us
+        revisions.remove({'_id' : new_page_doc_oid})
                 
-                # then loop
+        entry_ref = bson.dbref.DBRef("entries", page_entryid)
+        latest_entry_doc = g.db.dereference(entry_ref)
+        
+        true_latest_page_ref = latest_entry_doc.head
+        latest_page_rev = g.db.dereference(true_latest_page_ref)
+        latest_page_rev_json = dm.page_rev_to_json(latest_doc)
+        
+        return jsonify({"reason" : "out of date", 
+                        "latest_page_revision_doc" : latest_page_rev_json})
 
-        else:
-            # couldn't actually perform mutation,
-            # return latst doc along with status "Invalid mutation"
-            
-            return jsonify({"reason" : "invalid mutation" ,
-                            "latest_page_revision_doc" : latest_page_rev_doc}), 400
-
-        return jsonify({"reason" : "too much contention"}), 400
-
-            
-def can_mutate_page(action, latest_page_rev_doc, action_data):
-    """
-    Is this mutation possible? on this doc
-
-    """
-
-def mutate_page(action, latest_page_rev_doc, action_data):
-    """
-    Perform the mutation
-    return the updated doc
-    """
-    
 
 if __name__ == '__main__':
     app.run()

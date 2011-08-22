@@ -29,9 +29,13 @@ def revision_create(author, date= None, parent=None):
         date = datetime.datetime.utcnow()
 
     if not isinstance(author, bson.dbref.DBRef):
+        if not isinstance(author, bson.objectid.ObjectId):
+            author = bson.objectid.ObjectId(author)
         author = bson.dbref.DBRef("users", author)
 
     if parent != None and not isinstance(parent, bson.dbref.DBRef):
+        if not isinstance(parent, bson.objectid.ObjectId):
+            parent = bson.objectid.ObjectId(parent)
         parent = bson.dbref.DBRef("revisions", parent)
         
     return {'author' : author,
@@ -40,6 +44,9 @@ def revision_create(author, date= None, parent=None):
 
 def entry_create(head, dclass):
     if not isinstance(head, bson.dbref.DBRef):
+        if not isinstance(head, bson.objectid.ObjectId):
+            head = bson.objectid.ObjectId(head)
+
         head = bson.dbref.DBRef("revisions", head)
         
     return {'head' : head,
@@ -78,16 +85,16 @@ def page_rev_to_json(page):
                 ed = {}
                 for ke, kv in e:
                     if ke == 'entry':
-                        ed[ke] = kv.id
+                        ed[ke] = str(kv.id)
                     else:
                         ed[ke] = kv
                 entries.append(ed)
             new_page_json['entries'] =  entries
         elif k == "author":
-            new_page_json['author'] = v.id
+            new_page_json['author'] = str(v.id)
         elif k == "parent":
             if v:
-                new_page_json['parent'] = v.id
+                new_page_json['parent'] = str(v.id)
         elif k == "_id":
             new_page_json['_id'] = str(v)
         elif k == "date":
@@ -101,10 +108,10 @@ def entry_text_rev_to_json(text):
     new_entry_json = {}
     for k, v in text.iteritems():
         if k == "author":
-            new_entry_json['author'] = v.id
+            new_entry_json['author'] = str(v.id)
         elif k == "parent":
             if v:
-                new_entry_json['parent'] = v.id
+                new_entry_json['parent'] = str(v.id)
         elif k == "_id":
             new_entry_json['_id'] = str(v)
         elif k == "date":

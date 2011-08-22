@@ -14,10 +14,8 @@ The interface here is as follows [single user case]
 
 1. When looking at a page, the user makes a change
 2. the element is greyed out / some sort of pending visual indication is given
-3. put the change request to the server. 
-4. wait for the server to return a full update of the new doc. The server handles
-synchronization of all the mutate requests, and returns its understanding of the 
-current state
+3. put the change request to the server, in the form of an updated doc
+4. This is a compare-and-swap operation
 5. the page is updated to reflect its understanding of the current state. 
 
 

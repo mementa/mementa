@@ -93,3 +93,32 @@ class MementaTestCase(unittest.TestCase):
         
         
         
+    def test_page_mutate(self):
+        """
+        Simple page mutation tests. No concurrency tests.
+
+        """
+
+
+        # create the page with one entry
+        # 
+
+        self.login("eric", "test")
+
+        # create empty page
+        title = "Empty Page One"
+        rv = self.post_json("/api/page/new", data={'title' : title, 
+                                                  'entries' : None})
+
+        rv_json = json.loads(rv.data)
+        page_rev_id = rv_json['entry']['head']
+        entry_id = rv_json['entry']['_id']
+
+        print "going to page", entry_id
+        # try and do an update
+        rv = self.post_json("/api/page/%s" % entry_id,
+                            data = {'old_rev_id' : page_rev_id,
+                                    'doc' : {'title':  "THIS IS A NEW TITLE", 
+                                             'entries' : []}})
+        
+        rv_json = json.loads(rv.data)
