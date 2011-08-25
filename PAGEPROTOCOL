@@ -39,3 +39,27 @@ example, if a user is editing an entry that another user removes from the page,
 the user will be given notification that "FOO has removed this entry from the page, 
 and upon save it will be hidden" Of course, the entry is not really lost. 
 
+-------------------------------------
+
+You cannot use entry id / head as UUID because you could have the same
+entry multiple times on a page!
+
+
+
+What is the unique ID for each Div? Do we render into pages or do we 
+
+To edit the page, don't over-optimize right now: 
+
+for adding an entry: 
+
+1. tell the server to create the new entry
+2. when you get the response, then perform the add operation to the doc
+3. compare-and-swap the updates, once it goes through, render
+4. broadcast the updates to the page doc
+5. set the entry status to edit -- and possibly focus
+
+
+
+
+
+

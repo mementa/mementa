@@ -120,6 +120,14 @@ def entry_text_rev_to_json(text):
             new_entry_json[k] = v
             
     return new_entry_json    
-    
-revision_class_create = {'text' : text_entry_revision_create,
-                         'page' : page_entry_revision_create}
+
+def entry_to_json(entry_doc):
+    return {'_id' : str(entry_doc['_id']),
+            'head' : str(entry_doc['head'].id),
+            'class' : entry_doc['class']}
+
+
+   
+rev_to_json = {'page' : page_rev_to_json,
+               'text' : entry_text_rev_to_json }
+

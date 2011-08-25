@@ -7,7 +7,9 @@
 
 
     <script type="text/javascript">
-      var page_docs_ids_json = {{page_docs_ids_json | safe}}; 
+      var page_entries_canonical = {{page_docs_ids_json | safe}}; 
+      var page_entry = {'_id' : "{{page_entry._id}}", 
+                        'head' : "{{page_entry.head.id}}"};
 
     </script> 
 
@@ -15,6 +17,7 @@
     <script type="text/javascript" src="/static/vendor/jquery.layout-latest.js"></script> 
     <script type="text/javascript" src="/static/vendor/jquery.toggleEdit.js"></script> 
     <script type="text/javascript" src="/static/vendor/underscore.js"></script> 
+    <script type="text/javascript" src="/static/vendor/jquery.mustache.js"></script> 
     <script type="text/javascript" src="/static/page.js"></script>    
 
 
@@ -28,11 +31,14 @@
 </head>
 <body>
 
-<div id="entries" class="ui-layout-center"> 
-{% for entry_div in entry_divs %}
-    {{entry_div | safe}}
-{% endfor %}
-
+<div id="entry_side" class="ui-layout-center"> 
+  <div id="entries" >
+    
+  </div>
+  <hr>
+  <button id="button_add_entry_text"> Add Text Entry </button> 
+  <button id="button_add_entry_figure"> Add Figure Entry </button> 
+  <button id="button_add_entry_github"> Add Github Entry </button> 
 </div> 
 
 <div id="control" class="ui-layout-west" > 

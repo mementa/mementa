@@ -55,6 +55,9 @@ class MementaTestCase(unittest.TestCase):
         assert_equal(rv_json['revision']['body'], body)
         assert_equal(rv_json['revision']['title'], title)
         
+        rv = self.app.get("/api/entry/%s" % rv_json['entry']['_id'])
+        rv_json = json.loads(rv.data)
+        assert_equal(rv_json['revision']['body'], body)
         
     
     def test_create_page(self):
@@ -128,9 +131,9 @@ class MementaTestCase(unittest.TestCase):
                             data = {'old_rev_id' : page_rev_id,
                                     'doc' : {'title':  "THIS IS A NEW TITLE 2", 
                                              'entries' : []}})
-        assert_equal(rv.status, 400)
+        assert_equal(rv.status, '400')
         print "RESPONSE IS:",rv
         rv_json = json.loads(rv.data)
-        assert_equal(rv_json['reason', "out of date"))
+        assert_equal(rv_json['reason'], "Incorrect latest")
         
                      

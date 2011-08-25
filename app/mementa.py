@@ -107,34 +107,28 @@ def entries():
 def page(entryid):
     col_entries = g.db['entries']
     col_revisions = g.db['revisions']
-     
+    print "entryid =", entryid
     doc = col_entries.find_one({"_id" : bson.objectid.ObjectId(entryid)})
 
     if not doc:
         return "COULD NOT FIND THAT DOCUMENT"
 
     head = doc['head']
+    print "The HEAD is", head
+    
     rev = g.db.dereference(head)
-
+    print "rev=", rev
     entry_refs = rev['entries']
 
-    entry_docs = [g.db.dereference(ref) for ref in entry_refs]
-    entry_docs_ids = [str(ed['_id']) for ed in entry_docs]
-    outdivs = []
-    for e in entry_docs:
-        erev = g.db.dereference(e['head'])
-        doc_class = erev['class']
-
-        div = entry_divs.create[doc_class](e,  erev)
-
-        outdivs.append(div)
-        
+    entry_docs = [g.db.dereference(ref['doc']) for ref in entry_refs]
+    entry_docs_ids = [{'_id' : str(ed['_id']),
+                       'hidden' : ed.get('hidden', False), 
+                       'rev' : ed.get('rev', None)} for ed in entry_docs]
         
     return render_template("page.html",
                            page_docs_ids_json = json.dumps(entry_docs_ids),
                            page_entry = doc, 
-                           page_head_revision = rev, 
-                           entry_divs = outdivs)
+                           page_head_revision = rev)
 
 
 @app.route("/entry/render/view/<entryid>")
@@ -474,6 +468,24 @@ def api_page_mutate(page_entryid):
                          "latest_page_revision_doc" : latest_page_rev_json})
         resp.status = "400"
         return resp
+    
+@app.route('/api/entry/<entryid>')
+@login_required
+def api_entry_get(entryid):
+    """
+    Get an entry and the associated doc
+    """
+
+    entry_ref = bson.dbref.DBRef("entries", bson.objectid.ObjectId(entryid))
+    entry_doc = g.db.dereference(entry_ref)
+
+    latest_page_ref = entry_doc['head']
+
+    latest_page_rev = g.db.dereference(latest_page_ref)
+
+
+    return jsonify({"entry" : dm.entry_to_json(entry_doc),
+                    "revision" : dm.rev_to_json[entry_doc['class']](latest_page_rev)})
     
 
 if __name__ == '__main__':
