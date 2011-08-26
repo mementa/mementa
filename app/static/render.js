@@ -8,8 +8,8 @@ function compute_entry_diff(old_entries, new_entries)
      * This is all positional, and the list of deltas MUST BE APPLIED IN ORDER
      * for the position values to make sense
      * 
-     * add: insert a new entry (possibly pinned, etc)
-     * remove: remove an entry
+     * add: insert a new entry (possibly pinned, etc) : position is the entry to insert BEFORE. So to insert at head of the list, pos = 0
+     * remove: remove an entry. position is the entry # to remove
      * hide: the hidden state on an entry has changed
      * pin: the pinned status on an entry has changed
      * 
@@ -29,14 +29,14 @@ function compute_entry_diff(old_entries, new_entries)
     var sm  = new difflib.SequenceMatcher(old_entries_array, 
                                           new_entries_array); 
     var opcodes = sm.get_opcodes(); 
-    // console.log("Opcodes are:"); 
-    // console.log(opcodes); 
+
     // console.log("Old entries:"); 
     // console.log(old_entries); 
     // console.log("new entries:"); 
     // console.log(new_entries); 
     var results = []; 
     var length = opcodes.length; 
+    var running_mutation_delta = 0; 
     for(i = 0; i < length; i++) {
         var opcode = opcodes[i]; 
         var tag = opcode[0]; 
@@ -47,31 +47,61 @@ function compute_entry_diff(old_entries, new_entries)
         switch(tag) {
         case 'replace': 
             // a[i1:i2] should be replaced by b[j1:j2].
-            var a_pos = i1; 
-            for(b_pos = j1; b_pos < j2; b_pos++) {
-                // This might possibly be a hide delta or a pin delta
-                if(old_entries[a_pos].entry == new_entries[b_pos].entry) { 
-                    if(old_entries[a_pos].hidden != new_entries[b_pos].hidden) { 
-                        results.push(['hide', a_pos, new_entries[b_pos]])
-                    }
+            // note that the length of these replace chunks might 
+            // not be equal, in which case we're copying a "chunk" 
+            // of strings over, which is a bit infuriating. 
+            // 
+            // We really need a better diff algorithm we actually understand
 
-                    if(old_entries[a_pos].rev != new_entries[b_pos].rev) { 
-                        results.push(['pin', a_pos, new_entries[b_pos]])
+            if((j2-j1) == (i2-i1)) {
+                // identical length sequences
+                var a_pos = i1; 
+                for(b_pos = j1; b_pos < j2; b_pos++) {
+                    // This might possibly be a hide delta or a pin delta
+                    if(old_entries[a_pos].entry == new_entries[b_pos].entry) { 
+                        if(old_entries[a_pos].hidden != new_entries[b_pos].hidden) { 
+                            results.push(['hide', a_pos + running_mutation_delta, 
+                                          new_entries[b_pos]])
+                        }
+                        
+                        if(old_entries[a_pos].rev != new_entries[b_pos].rev) { 
+                            results.push(['pin', a_pos + running_mutation_delta, 
+                                          new_entries[b_pos]])
+                        }
+                        
+                    } else {
+                        results.push(['remove', a_pos + running_mutation_delta, 
+                                      old_entries[a_pos]]); 
+                        results.push(['add', a_pos + running_mutation_delta,
+                                      new_entries[b_pos]]); 
+                        
                     }
-
-                } else {
-                    results.push(['remove', a_pos, old_entries[a_pos]]); 
-                    results.push(['add', a_pos, new_entries[b_pos]]); 
+                    a_pos++; 
+                }
+            } else {
+                // different length sequences
+                for(a_pos = i1; a_pos < i2; a_pos++) {
+                    results.push(['remove', a_pos + running_mutation_delta, 
+                                 old_entries[a_pos]]); 
+                    //running_mutation_delta--; 
                     
                 }
-                a_pos++; 
+
+                for(b_pos = j1; b_pos < j2; b_pos++) {
+                    results.push(['add', i1 + running_mutation_delta, 
+                                 new_entries[b_pos]]); 
+                    running_mutation_delta++; 
+                }
+                running_mutation_delta -= ((j2-j1)  - (i2 -i1)); 
             }
             break; 
 
         case 'delete': 
             // a[i1:i2] should be deleted. Note that j1 == j2 in this case.
             for(a_pos = i1; a_pos < i2; a_pos++) {
-                results.push(['remove', i1, old_entries[a_pos]]); 
+                results.push(['remove', a_pos + running_mutation_delta,
+                              old_entries[a_pos]]); 
+                running_mutation_delta--; 
             }
             break; 
 
@@ -79,22 +109,29 @@ function compute_entry_diff(old_entries, new_entries)
             //b[j1:j2] should be inserted at a[i1:i1]. 
             var a_pos = i1; 
             for(b_pos = j1; b_pos < j2; b_pos++) {
-                results.push(['add', a_pos, new_entries[b_pos]]); 
-                a_pos++; 
+                results.push(['add', a_pos + running_mutation_delta,
+                              new_entries[b_pos]]); 
+                running_mutation_delta++; 
             }
+            //running_mutation_pos ++; 
+            
             break; 
 
         case 'equal' : // don't do anything
+            //a[i1:i2] == b[j1:j2] (the sub-sequences are equal).
+            
             break; 
             
         }
     }
+
     return results; 
     
 
 }
 
-function render_simple(old_entries, new_entries, targetdiv)
+function render_simple(old_entries, new_entries, targetdiv, 
+                       create_entry_view_div)
 {
     /* Render the entries into the target div collection
      * 
@@ -110,10 +147,65 @@ function render_simple(old_entries, new_entries, targetdiv)
      * taking place. 
      * 
      * entries is the standard list-of-entries collection
+     * 
+     * FIXME Things to do: 
+     *   - handle edit state
+     *   - possibly cache divs? 
+     *   
      */
 
+    // debug asserts for safety tests
+    var old_entries_length = old_entries.length; 
+//    assert(old_entries_length === targetdiv.children().length); 
+    
     var entry_diff = compute_entry_diff(old_entries, new_entries); 
 
-    
+    // go through and perform the delta operations
+
+     _.each(entry_diff, function(op) {
+                var action = op[0]; 
+                var pos = op[1]; 
+                var entry = op[2]; 
+                var elt = $(".active", targetdiv).eq(pos); 
+
+                switch(action) {
+                case 'add': 
+
+                    var newdiv = create_entry_view_div(entry); 
+                    if($(elt).length === 0) {
+                        $(targetdiv).append(newdiv); 
+                    } else {
+                        $(elt).before(newdiv);                          
+                    }
+
+                    $(newdiv).addClass("active"); 
+                    $(newdiv).attr('state', 'view'); 
+
+                    break; 
+
+                case 'remove':
+                    if(elt.attr('state') === 'edit') {
+                        $(elt).removeClass("active"); 
+                    } else {
+                        $(elt).remove();                          
+                    }
+
+                    break; 
+                    
+                case 'hide' :
+                    if(entry.hidden) {
+                        $(elt).addClass("hidden");
+                    }  else { 
+                        $(elt).removeClass("hidden");
+                    }
+                    
+                    break; 
+                case 'pin': 
+                    var newdiv = create_entry_view_div(entry); 
+                    $(elt).replace(newdiv); 
+                    break; 
+
+                }
+            }); 
     
 }
