@@ -330,7 +330,34 @@ $(document)
                      
                  }); 
 
+          test("do not remove nodes with state = edit", function()
+               {
+                   var entries = generate_fake_entries_char("ABCDEF"); 
+                   var entrydiv = $("<div/>"); 
+                   render_simple([], entries, entrydiv, 
+                                 create_entry_view_div_debug); 
+                
+                   same($(entrydiv).children().length, entries.length); 
+                   
+                   var entries2 = generate_fake_entries_char("ABDEF"); 
+                   
+                   
+                   $("div[entryid='entryidC']", entrydiv).attr("state", "edit");
 
+                   render_simple(entries, entries2,  entrydiv, 
+                              create_entry_view_div_debug); 
+
+                   $("div.active", entrydiv)
+                       .each(function(index, elt) {
+                                 same($(elt).attr('entryid'), 
+                                      entries2[index].entry); 
+                             }); 
+                   
+                   same(6, $("div", entrydiv).length); 
+
+                   
+                   
+               }); 
             
         }
     ); 

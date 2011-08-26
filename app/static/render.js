@@ -148,6 +148,8 @@ function render_simple(old_entries, new_entries, targetdiv,
      * 
      * entries is the standard list-of-entries collection
      * 
+     * active entries are those that are "equivalent to the current entry list"
+     * "state" is either "edit" or "view" 
      * FIXME Things to do: 
      *   - handle edit state
      *   - possibly cache divs? 
@@ -184,6 +186,7 @@ function render_simple(old_entries, new_entries, targetdiv,
                     break; 
 
                 case 'remove':
+
                     if(elt.attr('state') === 'edit') {
                         $(elt).removeClass("active"); 
                     } else {
