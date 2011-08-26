@@ -93,7 +93,13 @@ $(document).ready(
         $("#button_add_entry_text")
             .click(function() {
                        //create an empty doc and push it to the server
-                       
+                       $.post("/api/entry/text/new", {'title' : "Dummy title", 
+                                                      'body' : "this is the body"}, 
+                             function(resp) {
+                                 var entry_id = resp.entry._id; 
+                                 
+
+                             }); 
                        // when you get the response, insert it at the bottom 
                            
                        // make the state editable
