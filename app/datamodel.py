@@ -83,7 +83,7 @@ def page_rev_to_json(page):
             entries = []
             for e in v:
                 ed = {}
-                for ke, kv in e:
+                for ke, kv in e.iteritems():
                     if ke == 'entry':
                         ed[ke] = str(kv.id)
                     else:

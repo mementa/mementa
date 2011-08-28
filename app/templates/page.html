@@ -7,9 +7,8 @@
 
 
     <script type="text/javascript">
-      var page_entries_canonical = {{page_docs_ids_json | safe}}; 
-      var page_entry = {'_id' : "{{page_entry._id}}", 
-                        'head' : "{{page_entry.head.id}}"};
+      var init_page_rev = {{page_rev_json | safe }}
+      var init_page_entry = {{page_entry_json | safe}}
 
     </script> 
 
@@ -18,6 +17,10 @@
     <script type="text/javascript" src="/static/vendor/jquery.toggleEdit.js"></script> 
     <script type="text/javascript" src="/static/vendor/underscore.js"></script> 
     <script type="text/javascript" src="/static/vendor/jquery.mustache.js"></script> 
+    <script type="text/javascript" src="/static/vendor/difflib.js"></script> 
+    <script type="text/javascript" src="/static/vendor/json2.js"></script>  
+
+    <script type="text/javascript" src="/static/render.js"></script>    
     <script type="text/javascript" src="/static/page.js"></script>    
 
 
@@ -43,11 +46,11 @@
 
 <div id="control" class="ui-layout-west" > 
 
-  <input id="pagetitle" value="{{page_head_revision.title}}" initvalue="{{page_head_revision.title}}"/>
-  EntryID : {{page_entry._id}} <br>
-  Head : {{page_entry.head}} <br>
+  <input id="pagetitle" value="{{page_rev_json.title}}" initvalue="{{page_rev_json.title}}"/>
+  EntryID : <span id="page_entry_id"> {{page_entry_json._id}} </span><br>
+  Head : <span id="page_head"> {{page_entry_json.head}} </span> <br>
 
-  <a href="foo" id="debuglink">DEbug click </a>
+  <a href="#" id="debuglink">DEbug click </a>
 </div> 
 
 </body>

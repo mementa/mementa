@@ -114,49 +114,12 @@ def page(entryid):
         return "COULD NOT FIND THAT DOCUMENT"
 
     head = doc['head']
-    print "The HEAD is", head
     
     rev = g.db.dereference(head)
-    print "rev=", rev
-    entry_refs = rev['entries']
-
-    entry_docs = [g.db.dereference(ref['doc']) for ref in entry_refs]
-    entry_docs_ids = [{'_id' : str(ed['_id']),
-                       'hidden' : ed.get('hidden', False), 
-                       'rev' : ed.get('rev', None)} for ed in entry_docs]
-        
+    print rev
     return render_template("page.html",
-                           page_docs_ids_json = json.dumps(entry_docs_ids),
-                           page_entry = doc, 
-                           page_head_revision = rev)
-
-
-@app.route("/entry/render/view/<entryid>")
-@login_required
-def entry_render_view(entryid):
-    """
-    Return the div element associated with the HEAD of this entry
-
-    """
-    
-    entries = g.db['entries']
-    entryrevisions = g.db['revisions']
-     
-    doc = entries.find_one({"_id" : bson.objectid.ObjectId(entryid)})
-
-    if not doc:
-        return "COULD NOT FIND THAT DOCUMENT"
-
-    head = doc['head']
-    rev = g.db.dereference(head)
-
-    # THIS IS WHERE WE ADD THE EXTRA RENDERING STUFF
-
-    doc_class = rev['class']
-
-    div = entry_divs.create[doc_class](doc, rev)
-        
-    return div
+                           page_entry_json = json.dumps(dm.entry_to_json(doc)), 
+                           page_rev_json = json.dumps(dm.page_rev_to_json(rev))); 
 
 
 def db_get_entry(id):
@@ -165,34 +128,6 @@ def db_get_entry(id):
 
     return doc
 
-
-@app.route("/entry/render/edit/<entryid>")
-@login_required
-def entry_render_edit(entryid):
-    """
-    Return the div element associated with the HEAD of this entry,
-    for editing
-    
-    """
-
-
-    entryrevisions = g.db['revisions']
-     
-    doc = db_get_entry(entryid)
-
-    if not doc:
-        return "COULD NOT FIND THAT DOCUMENT"
-
-    head = doc['head']
-    rev = g.db.dereference(head)
-
-    # THIS IS WHERE WE ADD THE EXTRA RENDERING STUFF
-
-    doc_class = rev['class']
-
-    div = entry_divs.edit[doc_class](doc, rev)
-        
-    return div
 
 # set the secret key.  keep this really secret:
 app.secret_key = 'A0Zr98j/3kdshfkdsajhfasdkj239r12nc-95h1pi34r1143yX R~XHH!jmN]LWX/,?RT'
@@ -344,12 +279,12 @@ def api_entry_text_new():
     or 400 if an invalid request
 
     """
-
+    
     if request.mimetype != "application/json":
         return "Invalid request type, must be application/json", 400
-    
+
     request_data = request.json
-    
+
     if 'title' not in request_data:
         return "'title' not present in request",  400
     if 'body' not in request_data:
@@ -402,7 +337,7 @@ def api_page_mutate(page_entryid):
 
     """
 
-
+    
     if request.mimetype != "application/json":
         return "Invalid request type, must be application/json", 400
     
@@ -428,10 +363,20 @@ def api_page_mutate(page_entryid):
 
     # otherwise, at least as of this moment, things are correct
 
+    # convert entries:
+    new_entries = []
+    for e in submitted_doc['entries']:
+        ne = {'entry' : bson.dbref.DBRef("entries",
+                                         bson.objectid.ObjectId(e['entry'])),
+              'hidden' : e['hidden']}
+        if 'rev' in e:
+            ne['rev'] = bson.dbref.DBRef("revisions",
+                                         bson.objectid.ObjectId(e['rev']))
+        new_entries.append(ne)
     # create the new doc:
     new_page_doc = dm.page_entry_revision_create(submitted_doc['title'],
-                                                 submitted_doc['entries'])
-
+                                                 new_entries)
+    
     author = bson.dbref.DBRef("users", bson.objectid.ObjectId(session["user_id"]))
 
     new_page_doc.update(dm.revision_create(author,
@@ -450,7 +395,8 @@ def api_page_mutate(page_entryid):
     if res['updatedExisting'] == True:
         # success!
         new_page_doc_json = dm.page_rev_to_json(new_page_doc)
-        return jsonify({"latest_page_revision_doc" : new_page_doc_json})
+        return jsonify({
+                        "latest_page_revision_doc" : new_page_doc_json})
                               
             
     else:

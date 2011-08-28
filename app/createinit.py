@@ -44,12 +44,12 @@ for title, revisions in docs_to_create.iteritems():
         
     e = dm.entry_create(toid, t['class'])
     eoid = col_entries.insert(e)
-    entries.append({'doc' : bson.dbref.DBRef("entries", eoid),
+    entries.append({'entry' : bson.dbref.DBRef("entries", eoid),
                     'hidden' : False})
 
 
 p = dm.page_entry_revision_create("This is a title for a page", entries)
-p.update(dm.revision_create(u1))
+p.update(dm.revision_create(u1oid))
 
 poid = col_revisions.insert(p)
         
