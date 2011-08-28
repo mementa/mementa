@@ -1,38 +1,19 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
-<html lang="en">
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head>
-    {% block head %}
+{% extends "mementa.html" %}
 
+{% block javascript_includes %}
 
+<script type="text/javascript">
+  var init_page_rev = {{page_rev_json | safe }}
+  var init_page_entry = {{page_entry_json | safe}}
+  
+</script> 
 
-    <script type="text/javascript">
-      var init_page_rev = {{page_rev_json | safe }}
-      var init_page_entry = {{page_entry_json | safe}}
+<script type="text/javascript" src="/static/render.js"></script>    
+<script type="text/javascript" src="/static/page.js"></script>    
 
-    </script> 
+{% endblock %}
 
-    <script type="text/javascript" src="/static/vendor/jquery-1.6.2.js"></script>    
-    <script type="text/javascript" src="/static/vendor/jquery.layout-latest.js"></script> 
-    <script type="text/javascript" src="/static/vendor/jquery.toggleEdit.js"></script> 
-    <script type="text/javascript" src="/static/vendor/underscore.js"></script> 
-    <script type="text/javascript" src="/static/vendor/jquery.mustache.js"></script> 
-    <script type="text/javascript" src="/static/vendor/difflib.js"></script> 
-    <script type="text/javascript" src="/static/vendor/json2.js"></script>  
-
-    <script type="text/javascript" src="/static/render.js"></script>    
-    <script type="text/javascript" src="/static/page.js"></script>    
-
-
-    {% block javascript_includes %} 
-    {% endblock %}
-
-    <title>{% block title %}{% endblock %} - Mementa</title>
-
-
-    {% endblock %}
-</head>
-<body>
+{% block body %}
 
 <div id="entry_side" class="ui-layout-center"> 
   <div id="entries" >
@@ -50,9 +31,14 @@
   EntryID : <span id="page_entry_id"> {{page_entry_json._id}} </span><br>
   Head : <span id="page_head"> {{page_entry_json.head}} </span> <br>
 
-  <a href="#" id="debuglink">DEbug click </a>
-</div> 
+  <hr>
+  <a href="#" id="new_page"> Create New Page </a>
 
-</body>
-</html> 
+  <hr>
+  <a href="/pages"> All Pages </a> <br>
+
+  <a href="#" id="debuglink">DEbug click </a>
+
+</div> 
+{% endblock %}
 

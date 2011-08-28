@@ -5,8 +5,14 @@
     {% block head %}
 
     <script type="text/javascript" src="/static/vendor/jquery-1.6.2.js"></script>    
-    <script type="text/javascript" src="/static/vendor/jquery.layout-latest.js"></script>    
-    <script type="text/javascript" src="/static/vendor/jquery.mustache.js"></script>    
+    <script type="text/javascript" src="/static/vendor/jquery.layout-latest.js"></script> 
+    <script type="text/javascript" src="/static/vendor/jquery.toggleEdit.js"></script> 
+    <script type="text/javascript" src="/static/vendor/underscore.js"></script> 
+    <script type="text/javascript" src="/static/vendor/jquery.mustache.js"></script> 
+    <script type="text/javascript" src="/static/vendor/difflib.js"></script> 
+    <script type="text/javascript" src="/static/vendor/json2.js"></script>  
+
+
 
     {% block javascript_includes %} 
     {% endblock %}
@@ -17,6 +23,7 @@
     {% endblock %}
 </head>
 <body>
+{% block body %}
   <div id="header"> 
     [Home] [<a href="/pages">pages </a>] [<a href="/entries">entries </a>] [Settings] Logged in as : Foo@bar.com  Search <input type="text" />
   </div> 
@@ -29,7 +36,7 @@
     {% endblock %}
   </div>
   
-  
+{%endblock%}  
 </body>
 
 </html>

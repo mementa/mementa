@@ -31,7 +31,7 @@ function render_entry(entry_doc, revision_doc)
 
     
     return $(entry_div).append(render_entry_rev_view[entry_doc['class']](revision_doc)); 
-    console.log(entry_div); 
+
     return entry_div; 
 }
 
@@ -53,7 +53,9 @@ function create_entry_view_div(entptr)
     
 
     /* debug function to create the div */ 
-    var newelt = $("<div/>"); 
+    var newelt = $("<div><hr><div class='entry-container'/>"
+                   + "[<a href='#' class='entry-edit-click'>edit</a>]"
+                   + " [<a href='#' class='entry-remove-click'>remove</a>]</div>"); 
     $(newelt).attr("entryid", entptr.entry); 
     
     if (entptr.hidden) {
@@ -67,8 +69,9 @@ function create_entry_view_div(entptr)
     $.getJSON("/api/entry/" + entptr.entry, 
               function(data) { 
                   var div = render_entry(data.entry, data.revision);
-                  $(newelt).append(div); 
+                  $(".entry-container", newelt).append(div); 
               }); 
+
     return newelt; 
              
 }
@@ -107,6 +110,18 @@ function append_entry_to_page(page_rev_doc, entryid)
 
 }
 
+function remove_entry_from_page(page_rev_doc, position)
+{
+    
+    // deep copy? 
+    
+    var newobj = $.extend(true, {}, page_rev_doc);
+    newobj.entries.splice(position, 1); 
+
+    return newobj; 
+
+}
+
 $(document).ready(
     function () {
 
@@ -126,7 +141,7 @@ $(document).ready(
                          }); 
 
 
-
+        
         update_page_docs(init_page_entry, init_page_rev); 
 
 
@@ -138,6 +153,62 @@ $(document).ready(
                                   console.log(page_entries_canonical); 
                                   return false; 
                               }); 
+
+        $("#new_page").click(function() {
+                               // FIXME : check if edit state and possibly abort
+                      $.ajax({'type' : "POST", 
+                              'url' : "/api/page/new",
+                              contentType:"application/json",
+                              dataType : "json" , 
+                              data : JSON.stringify(
+                                  {  title : "New Page", 
+                                     entries: []
+                                      
+                                  }), 
+                              success : function(resp) {
+                                  window.location.replace("/page/" + resp.entry._id); 
+
+                              }})}); 
+
+        $("a.entry-remove-click")
+            .live('click', function() {
+                      var spos = $(this).parent().attr("entry-pos");
+                      var pos = parseFloat(spos); 
+                      console.log("removing" + pos); 
+                      var current_page_docs = get_current_page_docs(); 
+                      
+                      var new_page_rev = 
+                          remove_entry_from_page(current_page_docs.rev, pos); 
+                      
+                      console.log(new_page_rev); 
+
+                      $.ajax({'type' : "POST", 
+                              'url' : "/api/page/" + 
+                              current_page_docs.entry._id,
+                              contentType:"application/json",
+                              dataType : "json", 
+                              data : JSON.stringify(
+                                  {old_rev_id : current_page_docs.rev._id, 
+                                   doc: new_page_rev}), 
+                              success: 
+                              function(resp) {
+                                  var latest_page_revision_doc = 
+                                      resp.latest_page_revision_doc; 
+                                  var entry = get_current_page_docs().entry; 
+                                  entry.head = latest_page_revision_doc._id; 
+                                  
+                                  update_page_docs(entry, 
+                                                   latest_page_revision_doc); 
+                                  
+                                  
+                              }, 
+                              }); 
+                      
+                      
+                      return false; 
+                  }
+                  
+                 );
 
         $("#button_add_entry_text")
             .click(function() {

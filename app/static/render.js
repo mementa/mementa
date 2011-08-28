@@ -177,7 +177,7 @@ function render_simple(old_entries, new_entries, targetdiv,
                     if($(elt).length === 0) {
                         $(targetdiv).append(newdiv); 
                     } else {
-                        $(elt).before(newdiv);                          
+                        $(elt).before(newdiv);
                     }
 
                     $(newdiv).addClass("active"); 
@@ -190,7 +190,7 @@ function render_simple(old_entries, new_entries, targetdiv,
                     if(elt.attr('state') === 'edit') {
                         $(elt).removeClass("active"); 
                     } else {
-                        $(elt).remove();                          
+                        $(elt).remove();    
                     }
 
                     break; 
@@ -210,5 +210,8 @@ function render_simple(old_entries, new_entries, targetdiv,
 
                 }
             }); 
-    
+    $(targetdiv).children().each(
+        function(index, elt) {
+            $(elt).attr("entry-pos", index); 
+        }); 
 }

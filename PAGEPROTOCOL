@@ -60,6 +60,19 @@ for adding an entry:
 
 
 
+-----------------------------------------------------------
+Entries organization
 
+create_entry_view_div
+  render_entry
+    render_entry_rev_view
+
+Think about this somewhat carefully: 
+<entry-wrapper>
+<entry> 
+<revision> 
+
+
+<div entry_id = foo centry_class = bar rev_id = baz class='entry>
 
 
