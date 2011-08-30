@@ -33,7 +33,7 @@ Each page should work well for up to ~200 entries
 Super-condensed view of entries, ala gmail, for bulk hide/show? 
 Real-time search? 
 Dynamic "view most recent N"? 
-
+"only show me entries of type N"
 
 ---------------------------
 Say "Add this paper from zotero or instapaper" 
@@ -41,7 +41,20 @@ Say "Add this paper from zotero or instapaper"
 make comments on it
 Extract figures from it, comment on them
 
+User Accounts
+====================
+New user signup
+User edit gravitar
+
+
 Miscellaneous
 ======================
 "home page"? 
 How do we handle ACLs? 
+
+Store docs / entries in client-side cache so that we don't have to hit
+the network so hard?
+
+Autosave in client-side storage so you never-really-lose-anything? 
+
+

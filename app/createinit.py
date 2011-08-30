@@ -1,7 +1,7 @@
 import pymongo
 import bson
 import datamodel as dm
-
+import randomtext
 
 DATABASE = 'testdb'
 mongoconn = pymongo.Connection()
@@ -24,18 +24,20 @@ print u2oid
 
 docs_to_create = {'Hello World 1' : 3,
                   'Goodbye World' : 2,
-                  'This is a test' : 5}
+                  'This is a test' : 5,
+                  "And here is some more": 4}
 
 entries = []
+
 
 for title, revisions in docs_to_create.iteritems():
 
     parent = None
     for r in range(revisions):
-        
+
+        rt = randomtext.text[revisions]
         t = dm.text_entry_revision_create(title,
-                                          "This is some <b>EXCITING TEXT</b> %d" % r)
-        
+                                          rt)        
         t.update(dm.revision_create(u1oid, parent=parent))
 
         toid = col_revisions.insert(t)
