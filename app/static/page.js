@@ -7,6 +7,14 @@
  * 
  */
 
+var uuid_pos = 0; 
+function generate_uuid()
+{
+    var x = uuid_pos; 
+    uuid_pos ++; 
+    return x; 
+}
+
 function render_entry_view(entry_doc, revision_doc)
 {
     /* return a div for this entry and revision */ 
@@ -65,6 +73,15 @@ var post_edit_dom_insert = {
                                           plugins : "autoresize",
                                          });         
         
+    }
+    
+}; 
+
+var post_view_dom_insert = {
+    text : function(entry_div) {
+        var uuid =  "uuid" + generate_uuid(); 
+        $(entry_div).attr('id', uuid)
+        MathJax.Hub.Queue(["Typeset",MathJax.Hub, uuid]);
     }
     
 }; 
@@ -137,7 +154,8 @@ function set_entry_state(entrydom, editstate)
         var entry_div = render_entry_view(entry_doc, rev_doc); 
         $(".entrydiv", entrydom).replaceWith(entry_div); 
         
-        
+        post_view_dom_insert[entry_doc['class']](entry_div); 
+
     } else if (editstate === 'edit') {
         $(".state-view", entrydom).hide();
         $(".state-edit", entrydom).show(); 
@@ -158,7 +176,7 @@ function set_entry_state(entrydom, editstate)
 
         // this is just a hack because you can only tinymce
         // on an elementa already inserted into the dom
-        post_edit_dom_insert[entry_doc['class']]()
+        post_edit_dom_insert[entry_doc['class']](entry_div);
         
         
     } else {
