@@ -51,21 +51,21 @@ def index():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    nexturl = "/"
+    if "next" in request.args:
+        nexturl = request.args['next']
+        
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
+        nexturl = request.form['nexturl']
         
-        session['username'] = request.form['username']
+        session['username'] = username
         session['user_id'] = "112233111122331111223311"
         
-        return redirect(url_for('index'))
-    return '''
-        <form action="" method="post">
-            <p><input type=text name=username>
-            <o><input type=text name=password>
-            <p><input type=submit value=Login>
-        </form>
-    '''
+        return redirect(nexturl)
+    
+    return render_template("login.html", nexturl=nexturl)
 
 @app.route('/logout')
 def logout():
