@@ -1,0 +1,21 @@
+body {
+  font-family: Verdana,  sans-serif;
+  font-size: small; }
+
+.entry .text-title {
+  font-size: medium; }
+
+table {
+  width: 100%;
+  vertical-align: top;
+  border-collapse: collapse; }
+
+td.meta {
+  width: 70px;
+  vertical-align: top;
+  border-right: 1px solid gray;
+  border-bottom: 1px solid gray; }
+
+td.contents {
+  vertical-align: top;
+  border-bottom: 1px solid gray; }
