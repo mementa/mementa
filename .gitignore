@@ -1,3 +1,6 @@
 *.pyc
 *.*~
 *~
+.sass-cache
+app/static/.sass-cache
+
