@@ -132,7 +132,58 @@ class MementaTestCase(unittest.TestCase):
                                     'doc' : {'title':  "THIS IS A NEW TITLE 2", 
                                              'entries' : []}})
         assert_equal(rv.status, '400')
-        print "RESPONSE IS:",rv
+
+        rv_json = json.loads(rv.data)
+        assert_equal(rv_json['reason'], "Incorrect latest")
+        
+                     
+    def test_entry_text_mutate(self):
+        """
+        Simple text entry mutation tests. No concurrency tests.
+
+        """
+
+
+        # create the page with one entry
+        # 
+
+        self.login("eric", "test")
+
+        # create empty page
+        title = "Test text entry"
+        body = "test body"
+        rv = self.post_json("/api/entry/text/new",
+                            data={'title' : title, 
+                                  'body' : body})
+
+        rv_json = json.loads(rv.data)
+        page_rev_id = rv_json['entry']['head']
+        entry_id = rv_json['entry']['_id']
+        print "created entry", entry_id
+        rv = self.app.get("/api/entry/%s" % entry_id)
+        rv_json =  json.loads(rv.data)
+        assert_equal(rv_json['revision']['title'], title)
+
+        
+        # try and do an update
+        rv = self.post_json("/api/entry/%s" % entry_id,
+                            data = {'parent' : page_rev_id,
+                                    'title':  "THIS IS A NEW TITLE",
+                                    'class' : 'text', 
+                                    'body' : "NEW BODY"})
+        print "THE RESP IS", rv
+        rv_json = json.loads(rv.data)
+        assert(rv_json['latest_revision_doc']['title'] == "THIS IS A NEW TITLE")
+
+        # now this update should fail; out of date rev
+        rv = self.post_json("/api/entry/%s" % entry_id,
+                            data = {'parent' : page_rev_id,
+                                    'title':  "THIS IS A NEW TITLE 2",
+                                    'body' : "wooo",
+                                    'class' : 'text'})
+                                    
+        assert_equal(rv.status, '400')
+
         rv_json = json.loads(rv.data)
         assert_equal(rv_json['reason'], "Incorrect latest")
         
