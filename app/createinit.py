@@ -4,8 +4,20 @@ import datamodel as dm
 import randomtext
 import mementa
 
+import sys
+
+if len(sys.argv) > 1:
+    dburl = sys.argv[1]
+else:
+    dburl = None
+    
+
 DATABASE = 'testdb'
-mongoconn = pymongo.Connection()
+if dburl:
+    mongoconn = pymongo.Connection(dburl)
+else:
+    mongoconn = pymongo.Connection()
+    
 mongoconn.drop_database(DATABASE)
 
 db = mongoconn[DATABASE]
