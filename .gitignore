@@ -4,3 +4,4 @@
 .sass-cache
 app/static/.sass-cache
 
+/app/static/vendor/JSON-js/
