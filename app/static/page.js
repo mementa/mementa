@@ -155,6 +155,7 @@ function set_entry_state(entrydom, editstate)
         $(".entrydiv", entrydom).replaceWith(entry_div); 
         
         post_view_dom_insert[entry_doc['class']](entry_div); 
+        update_outer_entry(entry_doc, rev_doc, entrydom); 
 
     } else if (editstate === 'edit') {
         $(".state-view", entrydom).hide();
@@ -181,7 +182,6 @@ function set_entry_state(entrydom, editstate)
         
     } else {
         console.log("invalid state"); 
-
     }
 
 }
@@ -199,6 +199,7 @@ function create_entry_view_div(entptr)
         + "<div class='entrycontainer'/>"
     
         + "<div class='entrycontrol'>"
+        + "<span class='lasteditdate'> 42 minutes ago </span>"
         + "<span class='state-view'> [<a href='#' class='entry-edit-click'>edit</a>]" 
         + " [<a href='#' class='entry-remove-click'>remove</a>] </span>"
         + " <span class='state-edit'><button class='entry-save-click state-edit'>Save </button>"
@@ -208,7 +209,7 @@ function create_entry_view_div(entptr)
         + "</div>"; 
     
     var newelt = $(entry_template); 
-    console.log(newelt); 
+
     $(newelt).attr("entryid", entptr.entry); 
     $(".state-edit", newelt).hide(); 
 
@@ -225,13 +226,25 @@ function create_entry_view_div(entptr)
               function(data) { 
                   var div = render_entry_view(data.entry, data.revision);
 
-
                   $(".entrycontainer", newelt).append(div); 
+                  update_outer_entry(data.entry, data.revision, newelt); 
               }); 
 
     return newelt; 
              
 }
+
+function update_outer_entry(entrydoc, revdoc, newelt)
+{
+    /* Crude hack to modify the _outer_ entry element after it's been created
+     * to set things like user icon, etc. 
+     */
+    var date = new Date(revdoc.date + "Z"); 
+
+    $("span.lasteditdate", newelt).removeAttr("data-timestamp").html(date.toLocaleString()).cuteTime(); 
+    
+}
+
 
 function get_current_page_docs()
 {
@@ -438,6 +451,8 @@ $(document).ready(
                        
                        return false; 
                    }); 
+        
+        $.fn.cuteTime.settings.refresh = 10000;
         
     });
 
