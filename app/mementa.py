@@ -8,9 +8,13 @@ import datamodel as dm
 import hashlib
 
 
-DEBUG = True
-SECRET_KEY = "Development key"
-DATABASE = 'testdb'
+DEBUG = True # FIXME SHOULD BE FALSE FOR REAL DEPLOYMENT
+SECRET_KEY = "Development key" # fixme in general hide this
+
+
+DB_DATABASE = 'testdb'
+DB_HOST = "127.0.0.1"
+DB_PORT = 27017
 
 PASSWORDSALT = "3wSnElYBSaphFAB76f78"
 
@@ -20,9 +24,10 @@ app.config.from_object(__name__)
 @app.before_request
 def before_request():
     
-    #mongoconn = pymongo.Connection()
-    #g.db = mongoconn[app.config['DATABASE']]
-    pass
+    mongoconn = pymongo.Connection(app.config['DB_HOST'],
+                                   app.config['DB_PORT'])
+    g.db = mongoconn[app.config['DB_DATABASE']]
+
 
 def dbref(collection, oid):
     """

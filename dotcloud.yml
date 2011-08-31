@@ -1,2 +1,5 @@
 www:
   type: python
+
+data:
+  type: mongodb
