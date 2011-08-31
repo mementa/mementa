@@ -5,10 +5,14 @@ import pymongo
 import bson
 import entry_divs
 import datamodel as dm
+import hashlib
+
 
 DEBUG = True
 SECRET_KEY = "Development key"
 DATABASE = 'testdb'
+
+PASSWORDSALT = "3wSnElYBSaphFAB76f78"
 
 app = Flask(__name__)
 app.config.from_object(__name__)
@@ -32,7 +36,11 @@ def dbref(collection, oid):
 
     return bson.dbref.DBRef(collection, oid)
 
-
+def saltpassword(password, salt):
+    m = hashlib.sha512()
+    m.update(password)
+    m.update(salt)
+    return m.hexdigest()
 
 def login_required(f):
     @wraps(f)
@@ -52,6 +60,7 @@ def index():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     nexturl = "/"
+    loginfail = False
     if "next" in request.args:
         nexturl = request.args['next']
         
@@ -59,13 +68,29 @@ def login():
         username = request.form['username']
         password = request.form['password']
         nexturl = request.form['nexturl']
-        
-        session['username'] = username
-        session['user_id'] = "112233111122331111223311"
-        
-        return redirect(nexturl)
+
+        u = g.db.users.find_one({'username' : username})
+        if u:
+            # check password
+            sp = saltpassword(password, app.config['PASSWORDSALT'])
+            if u['password'] == sp:
+                # successful login
+                
+                
+                session['username'] = username
+                session['user_id'] = u['_id']
+                session['name'] = u['name']
+
+
+                return redirect(nexturl)
+            else:
+                loginfail = True
+        else:
+            loginfail = True
+            
     
-    return render_template("login.html", nexturl=nexturl)
+    return render_template("login.html", nexturl=nexturl,
+                           loginfail = loginfail)
 
 @app.route('/logout')
 def logout():
@@ -102,7 +127,24 @@ def entries():
 
     
     return render_template("list_entries.html", entries=urls)
+
+
+@app.route("/settings", methods=['GET', 'POST'])
+@login_required
+def settings():
+
+    if request.method == "GET":
+        userref = dbref("users", session["user_id"])
+        user = g.db.dereference(userref)
+        return render_template("usersettings.html", user=user)
     
+    else:
+        pass
+
+    
+
+
+        
 @app.route("/pages")
 @login_required
 def entries():
@@ -169,7 +211,7 @@ def save_entry(entryid):
                     
         vdoc = dm.revision_class_create[entry_class](**request_dict)
         author = bson.dbref.DBRef("users", bson.objectid.ObjectID(session["user_id"]))
-        entry_ver = dm.revision_create(author=author,
+        Entry_ver = dm.revision_create(author=author,
                                             parent = request.form["rev_id"])
         vdoc.update(entry_ver)
         

@@ -2,6 +2,7 @@ import pymongo
 import bson
 import datamodel as dm
 import randomtext
+import mementa
 
 DATABASE = 'testdb'
 mongoconn = pymongo.Connection()
@@ -14,11 +15,14 @@ col_entries = db['entries']
 col_revisions = db['revisions']
 
 
-u1 = dm.user_create("eric", "test", "Eric Jonas", "jonas@ericjonas.com")
+pw = mementa.saltpassword("password", mementa.PASSWORDSALT)
+
+u1 = dm.user_create("eric", pw, "Eric Jonas", "jonas@ericjonas.com", twitter="stochastician")
+
 u1oid = col_user.insert(u1)
 print u1oid
 
-u2 = dm.user_create("cap", "test", "Cap Petschulat", "zfcd21@gmail.com")
+u2 = dm.user_create("cap", pw, "Cap Petschulat", "zfcd21@gmail.com")
 u2oid = col_user.insert(u2)
 print u2oid
 

@@ -13,11 +13,27 @@ revisions live in a collection named "revisions"
 """
 
 
-def user_create(username, password, name=None, email=None):
+def user_create(username, password, name=None, email=None,
+                twitter = None, avatar = (None, None)):
+    """
+    username: globally-unique username
+    name : ideally real name. used for display porpoises
+    email : preferred e-mail address
+    twitter : twitter handle
+    avatar : ('uploaded', location),
+             ('gravitar', gravatarhash),
+             ('url', arbitrary URL)
+
+    """
+
+    
     return {'username' : username,
             'password' : password,
             'name' : name,
-            'password' : password}
+            'password' : password,
+            'email' : email,
+            'twitter' : twitter,
+            'avatar' : avatar}
 
     
 def revision_create(author, date= None, parent=None):
