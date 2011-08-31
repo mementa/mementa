@@ -341,6 +341,13 @@ $(document).ready(
                       save_entry_revision[entry_class](entry_div); 
                   }); 
 
+        $("div.entry button.entry-cancel-click")
+            .live('click', function() {
+                      var entry_div = $(this).closest("div.entry"); 
+                      set_entry_state(entry_div, 'view'); 
+                      
+                  }); 
+
         $("#new_page").click(function() {
                                // FIXME : check if edit state and possibly abort
                       $.ajax({'type' : "POST", 
