@@ -29,3 +29,11 @@ Ohh, I like Proper
 
 https://github.com/michael/proper/branches
 
+TODO
+=========
+Try getting the correct tinyMCE toolbar in there, with headings
+TinyMCE using correct CSS
+How does tinyMCE handle links? Do I really need the ugly widget thing? 
+
+Actually try aloha, see if you can get around it's horrible UI decisions
+

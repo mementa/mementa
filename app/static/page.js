@@ -199,11 +199,11 @@ function create_entry_view_div(entptr)
         + "<div class='entrycontainer'/>"
     
         + "<div class='entrycontrol'>"
-        + "<span class='lasteditdate'> 42 minutes ago </span>"
-        + "<span class='state-view'> [<a href='#' class='entry-edit-click'>edit</a>]" 
-        + " [<a href='#' class='entry-remove-click'>remove</a>] </span>"
-        + " <span class='state-edit'><button class='entry-save-click state-edit'>Save </button>"
-        + " <button class='entry-cancel-click state-edit'>Cancel </button> </span>"
+        + "<span class='lasteditdate'> 42 minutes ago </span> &nbsp;&nbsp;&nbsp; "
+        + "<span class='state-view'> <a href='#' class='entry-edit-click'>edit</a>" 
+        + " &nbsp; &nbsp; &nbsp; <a href='#' class='entry-remove-click'>remove</a> </span>"
+        + " <span class='state-edit'><button class='entry-save-click state-edit btn'>Save </button>"
+        + " <button class='entry-cancel-click state-edit btn'>Cancel </button> </span>"
         + "</div>"
         + "</div>"
         + "</div>"; 
