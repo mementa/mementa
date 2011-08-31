@@ -1,8 +1,31 @@
 
-TExt
+Text
 
 =========
-Using TinyMCE, mathjax
-http://www.tinymce.com/wiki.php/Configuration
 
+WYSIWYG editors: 
+
+http://www.tinymce.com/wiki.php/Configuration
 http://www.tinymce.com/wiki.php/jQuery_Plugin
+
+Aloha seems immature
+
+Wymeditor: 
+
+There's wymeditor, but it's ugly and I'm not sure how actively
+maintained it is. I do like the idea of some modicum of semantic
+mark-up though
+
+CLEditor: 
+clean, quick, on github
+https://github.com/cleditor/cleditor
+last updated at the beginning of 2011?
+
+YUI rich text? 
+Still no YUI3 widget
+
+
+Ohh, I like Proper
+
+https://github.com/michael/proper/branches
+

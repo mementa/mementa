@@ -24,8 +24,15 @@ print u2oid
 
 docs_to_create = {'Hello World 1' : 3,
                   'Goodbye World' : 2,
-                  'This is a test' : 5,
-                  "And here is some more": 4}
+                  'This is a test 1' : 5,
+                  "And here is some more": 4,
+                  'Goodbye World 2' : 2,
+                  'This is a test 3 ' : 5,
+                  "And here is some more 4": 4,
+                  'Goodbye World 5' : 2,
+                  'This is a test 6' : 5,
+                  "And here is some more 7": 4,
+                  }
 
 entries = []
 

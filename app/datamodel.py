@@ -100,6 +100,7 @@ def page_rev_to_json(page):
         elif k == "date":
             new_page_json['date'] = v.isoformat()
         else:
+            print "k=", k, "v=", v
             new_page_json[k] = v
 
     return new_page_json

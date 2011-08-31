@@ -129,10 +129,11 @@ def page(entryid):
     head = doc['head']
     
     rev = g.db.dereference(head)
-
+    s =  dm.page_rev_to_json(rev)
     return render_template("page.html",
                            page_entry_json = json.dumps(dm.entry_to_json(doc)), 
-                           page_rev_json = json.dumps(dm.page_rev_to_json(rev))); 
+                           page_rev_json = json.dumps(s),
+                           page_rev = s)
 
 
 def db_get_entry(id):

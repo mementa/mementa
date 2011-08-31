@@ -29,7 +29,7 @@ function render_entry_view(entry_doc, revision_doc)
 
 var render_entry_rev_view =  {
     'text' : function(doc) { 
-        return $.mustache("<div ><div class='text-title'>{{title}} </div> "
+        return $.mustache("<h3>{{title}}</h3> "
                           + "<div class='text-body'>{{{body}}}</div></div> ", doc); 
         
     }
@@ -50,7 +50,7 @@ function render_entry_edit(entry_doc, revision_doc)
 var render_entry_rev_edit =  {
     'text' : function(doc) { 
 
-        var retdiv = $($.mustache("<div><input  class='title' value='{{title}}'> </input><p> <textarea style='width:100%'>{{{body}}}</textarea></div>", doc)); 
+        var retdiv = $($.mustache("<div><input  class='title' value='{{title}}' style='width:100%'> </input><p> <textarea style='width:100%'>{{{body}}}</textarea></div>", doc)); 
         $("textarea", retdiv ).attr('id', "TESTTEXTAREA"); 
         $("textarea", retdiv).addClass("tinymce");
 
@@ -190,21 +190,25 @@ function create_entry_view_div(entptr)
 {
     
 
-    /* debug function to create the div */ 
-    var newelt = $("<div class='entry'><table>"
-                   + "<tr><td class='meta'><div class='meta'>"
-                   + "<img src='http://www.gravatar.com/avatar/205e460b479e2e5b48aec07710c08d50?s=50'/><br>"
-                    + "<span class='state-view'> [<a href='#' class='entry-edit-click'>edit</a>]<br>" 
-                   + " [<a href='#' class='entry-remove-click'>remove</a>] </span>"
-                   + " <span class='state-edit'><button class='entry-save-click state-edit'>Save </button>"
-                   + " <button class='entry-cancel-click state-edit'>Cancel </button> </span>"
-                   + "</div></td>"
-                   + "<td class='contents'><div class='container'/></td>"
-                   // + "<div class='control'>"
-                   // + "</div>" 
-
-                   + "</tr></table><br></div>"); 
-
+    var entry_template = 
+        "<div class='entry'>"
+        + "<div class='meta'>"
+        + "<img src='http://www.gravatar.com/avatar/205e460b479e2e5b48aec07710c08d50?s=50' class='avatar'/>"
+        + "</div>"
+        + "<div class='entrybody'>" 
+        + "<div class='entrycontainer'/>"
+    
+        + "<div class='entrycontrol'>"
+        + "<span class='state-view'> [<a href='#' class='entry-edit-click'>edit</a>]" 
+        + " [<a href='#' class='entry-remove-click'>remove</a>] </span>"
+        + " <span class='state-edit'><button class='entry-save-click state-edit'>Save </button>"
+        + " <button class='entry-cancel-click state-edit'>Cancel </button> </span>"
+        + "</div>"
+        + "</div>"
+        + "</div>"; 
+    
+    var newelt = $(entry_template); 
+    console.log(newelt); 
     $(newelt).attr("entryid", entptr.entry); 
     $(".state-edit", newelt).hide(); 
 
@@ -215,13 +219,14 @@ function create_entry_view_div(entptr)
     if (entptr.rev) {
         $(newelt).attr("rev", entptr.rev); 
     }
+
     
     $.getJSON("/api/entry/" + entptr.entry, 
               function(data) { 
                   var div = render_entry_view(data.entry, data.revision);
 
 
-                  $(".container", newelt).append(div); 
+                  $(".entrycontainer", newelt).append(div); 
               }); 
 
     return newelt; 
@@ -297,9 +302,6 @@ $(document).ready(
         update_page_docs(init_page_entry, init_page_rev); 
 
 
-        $('body').layout({ applyDefaultStyles: true });
-        
-        
         $("#debuglink").click(function() 
                               {
                                   console.log(page_entries_canonical); 

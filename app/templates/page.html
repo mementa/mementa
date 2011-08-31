@@ -17,34 +17,48 @@
   src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
 </script>
 
+
 {% endblock %}
 
-{% block body %}
+{% block bodywithtoolbar %}
 
-<div id="entry_side" class="ui-layout-center"> 
-  <div id="entries" >
+
+
+
+<div class="container-fluid"> 
+  
+  <div id="control" class="sidebar" style="position:fixed"> 
     
-  </div>
-  <hr>
-  <button id="button_add_entry_text"> Add Text Entry </button> 
-  <button id="button_add_entry_figure"> Add Figure Entry </button> 
-  <button id="button_add_entry_github"> Add Github Entry </button> 
-</div> 
+    <h1>{{page_rev.title}}</h1>
+    EntryID : <span id="page_entry_id"> {{page_entry_json._id}} </span><br>
+    Head : <span id="page_head"> {{page_entry_json.head}} </span> <br>
+    
+    <hr>
+    <a href="#" id="new_page"> Create New Page </a>
+    
+    <hr>
+    <a href="/pages"> All Pages </a> <br>
+    
+    <a href="#" id="debuglink">DEbug click </a>
+    
+  </div> 
+  
+  <div id="entry_side" class="content"> 
+    <div id="entries" >
+      
+    </div>
+    <hr>
+   <div class="well" style="padding: 14px 19px;">
+     Add : 
+     <button class="btn" id="button_add_entry_text"> Text Entry </button> 
+     <button class="btn" id="button_add_entry_figure"> Figure Entry </button> 
+     <button class="btn" id="button_add_entry_github"> Github Entry </button> 
+     <button class="btn" id="button_add_entry_github"> Citation Entry </button> 
+     
+   </div> 
 
-<div id="control" class="ui-layout-west" > 
+  </div> 
+</div>
 
-  <input id="pagetitle" value="{{page_rev_json.title}}" initvalue="{{page_rev_json.title}}"/>
-  EntryID : <span id="page_entry_id"> {{page_entry_json._id}} </span><br>
-  Head : <span id="page_head"> {{page_entry_json.head}} </span> <br>
-
-  <hr>
-  <a href="#" id="new_page"> Create New Page </a>
-
-  <hr>
-  <a href="/pages"> All Pages </a> <br>
-
-  <a href="#" id="debuglink">DEbug click </a>
-
-</div> 
 {% endblock %}
 
