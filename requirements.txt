@@ -1,0 +1,13 @@
+Flask==0.7.2
+Flask-OpenID==1.0.1
+Jinja2==2.6
+Werkzeug==0.7.1
+anyjson==0.3.1
+dotcloud==0.4.3
+dotcloud.cli==0.4.3
+nose==1.1.2
+pymongo==2.0
+python-openid
+simplejson==2.1.6
+virtualenv==1.5.1
+wsgiref==0.1.2

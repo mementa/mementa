@@ -52,7 +52,6 @@ def login_required(f):
     return decorated_function
 
 @app.route('/')
-@login_required
 def index():
     return "Hello World"
 

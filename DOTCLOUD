@@ -1,0 +1,8 @@
+My notes on using dotcloud
+
+pip install dotcloud
+
+http://flask.pocoo.org/snippets/48/
+
+then
+dotcloud create mementa
