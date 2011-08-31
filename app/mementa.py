@@ -20,9 +20,9 @@ app.config.from_object(__name__)
 @app.before_request
 def before_request():
     
-    mongoconn = pymongo.Connection()
-    g.db = mongoconn[app.config['DATABASE']]
-    
+    #mongoconn = pymongo.Connection()
+    #g.db = mongoconn[app.config['DATABASE']]
+    pass
 
 def dbref(collection, oid):
     """
