@@ -115,19 +115,9 @@ def entries():
     urls = [(id, url_for('entry', entryid=id)) for id in ids]
 
     
-    return render_template("list_entries.html", entries=urls)
+    return render_template("list_entries.html", entries=urls,
+                           session = session)
     
-@app.route("/entries")
-@login_required
-def entries():
-    entries = g.db['entries']
-    docs = entries.find()
-    ids = [str(d["_id"]) for d in docs]
-    urls = [(id, url_for('entry', entryid=id)) for id in ids]
-
-    
-    return render_template("list_entries.html", entries=urls)
-
 
 @app.route("/settings", methods=['GET', 'POST'])
 @login_required
@@ -136,10 +126,46 @@ def settings():
     if request.method == "GET":
         userref = dbref("users", session["user_id"])
         user = g.db.dereference(userref)
-        return render_template("usersettings.html", user=user)
-    
+        return render_template("usersettings.html", user=user,
+                               session = session)
+
+    elif request.method == "POST":
+        # FIXME add password changing
+        
+        userref = dbref("users", session["user_id"])
+        user = g.db.dereference(userref)
+        
+        if request.form['form'] == 'password' :
+            print "CHANGING THE PASSWORD"
+            return render_template("usersettings.html", user=user,
+                                   session = session,
+                                   action='password',
+                                   success = True)
+            
+        elif request.form['form'] == 'settings' :
+            print "CHANGING SETTINGS"
+
+            user['name'] = request.form['name']
+            user['email'] = request.form['email']
+            user['twitter'] =  request.form['twitter']
+
+            g.db.users.update({'_id' : user['_id'], },
+                              user)
+            session['name'] = user['name']
+            
+            return render_template("usersettings.html", user=user,
+                                   session = session,
+                                   action='settings',
+                                   success = True)
+        else:
+            print "UNKNOWN FORM" # FIXME throw real error
+
+        
+        #user['name'] = request.form('username')
     else:
-        pass
+        raise "Invalid method"
+    
+        
 
     
 
@@ -155,7 +181,8 @@ def entries():
     urls = [(id[0], id[1], url_for('page', entryid=id[0])) for id in params]
 
     
-    return render_template("list_pages.html", pages=urls)
+    return render_template("list_pages.html", pages=urls,
+                           session = session)
     
 @app.route("/page/<entryid>")
 @login_required
@@ -175,7 +202,8 @@ def page(entryid):
     return render_template("page.html",
                            page_entry_json = json.dumps(dm.entry_to_json(doc)), 
                            page_rev_json = json.dumps(s),
-                           page_rev = s)
+                           page_rev = s,
+                           session = session)
 
 
 def db_get_entry(id):

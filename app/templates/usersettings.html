@@ -6,7 +6,7 @@
 <div class="container">
   <H1> User settings for {{user.username}}</h1>
 
-  <form> 
+  <form method="POST"> 
     <fieldset> 
       <legend>User Settings</legend> 
 
@@ -33,12 +33,28 @@
           </div> 
         </div> 
       </div><!-- /clearfix --> 
-      
+
+      {% if action == 'settings' %} 
+      {% if success %} 
+      <div class="alert-message success"> 
+        <a class="close" href="#">&times;</a> 
+        <p><strong>Successfully updated settings</strong></p>
+      </div> 
+      {% else %} 
+      <div class="alert-message error"> 
+        <a class="close" href="#">&times;</a> 
+        <p><strong>Error updating  settings</strong></p>
+      </div> 
+      {% endif %}
+      {% endif%}      
       <div class="actions"> 
-        <button type="submit" class="btn primary">Save Changes</button>&nbsp;<button type="reset" class="btn">Cancel</button> 
+        <input type='hidden' name='form' value='settings'/>
+        <button type="submit" class="btn primary">Save Changes</button name="save_changes">&nbsp;<button type="reset" class="btn">Cancel</button> 
+
       </div> 
     </fieldset>
-
+  </form>
+  </form method="POST"> 
     <fieldset> 
       <legend> Change Password</legend> 
 
@@ -57,7 +73,8 @@
       </div><!-- /clearfix --> 
 
       <div class="actions"> 
-        <button type="submit" class="btn primary">Change Password</button>&nbsp;
+        <input type='hidden' name='form' value='password'/>
+        <button type="submit" class="btn primary" name="change_password">Change Password</button>&nbsp;
       </div> 
 
     </fieldset>
