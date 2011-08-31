@@ -15,6 +15,8 @@ SECRET_KEY = "Development key" # fixme in general hide this
 DB_DATABASE = 'testdb'
 DB_HOST = "127.0.0.1"
 DB_PORT = 27017
+DB_URL = "mongodb://127.0.0.1:27017"
+
 
 PASSWORDSALT = "3wSnElYBSaphFAB76f78"
 
@@ -24,8 +26,8 @@ app.config.from_object(__name__)
 @app.before_request
 def before_request():
     
-    mongoconn = pymongo.Connection(app.config['DB_HOST'],
-                                   app.config['DB_PORT'])
+    mongoconn = pymongo.Connection(app.config['DB_URL'])
+    
     g.db = mongoconn[app.config['DB_DATABASE']]
 
 
