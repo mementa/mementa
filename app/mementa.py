@@ -58,6 +58,28 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+def lookup_user(userid):
+    """
+    FIXME: cache this eventually
+
+    Take in a userid and return
+    {'username' : ,
+     'name' :}
+     
+     """
+    if isinstance(userid, bson.dbref.DBRef):
+        ref = userid
+    else:
+        ref = dbref('users', userid)
+
+    doc = g.db.dereference(ref)
+    print "Looking up ", ref, "doc=", doc
+
+    return {'_id' : str(ref.id),
+            'username' : doc['username'],
+            'name' : doc['name']}
+    
+
 @app.route('/')
 def index():
     return "Hello World"
@@ -178,16 +200,16 @@ def settings():
 @app.route("/pages")
 @login_required
 def entries():
-    entries = g.db['entries']
-    docs = entries.find({u'class' : u'page'})
-    params = [(str(d["_id"]), "page") for d in docs]
-        
-    urls = [(id[0], id[1], url_for('page', entryid=id[0])) for id in params]
+    docs = g.db.entries.find({u'class' : u'page'})
 
-    
-    return render_template("list_pages.html", pages=urls,
+    pages = [{'title' : d[u'revdoc']['title'],
+              'date' : d[u'revdoc']['date'],
+              '_id' : d['_id'],
+              'author' : lookup_user(d[u'revdoc']['author'])} for d in docs]
+    print pages
+    return render_template("list_pages.html", pages=pages,
                            session = session)
-    
+
 @app.route("/page/<entryid>")
 @login_required
 def page(entryid):
