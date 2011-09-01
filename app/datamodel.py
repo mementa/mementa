@@ -58,7 +58,16 @@ def revision_create(author, date= None, parent=None):
             'parent' : parent,
             'date' : date}
 
-def entry_create(head, dclass):
+def entry_create(head, dclass, revdoc):
+    """
+    An entry contains:
+    class: the class of the entry [text, etc]
+    head: a dbref to the most recent head document
+    revdoc: the included head document, for denormalization / query
+
+    """
+
+    
     if not isinstance(head, bson.dbref.DBRef):
         if not isinstance(head, bson.objectid.ObjectId):
             head = bson.objectid.ObjectId(head)
@@ -66,7 +75,8 @@ def entry_create(head, dclass):
         head = bson.dbref.DBRef("revisions", head)
         
     return {'head' : head,
-            'class' : dclass}
+            'class' : dclass,
+            'revdoc' : revdoc}
 
 
 def text_entry_revision_create(title, body, **kargs) :
@@ -116,7 +126,6 @@ def page_rev_to_json(page):
         elif k == "date":
             new_page_json['date'] = v.isoformat()
         else:
-            print "k=", k, "v=", v
             new_page_json[k] = v
 
     return new_page_json
@@ -139,6 +148,9 @@ def entry_text_rev_to_json(text):
     return new_entry_json    
 
 def entry_to_json(entry_doc):
+    """
+    Does not currently return the included (denormed) doc
+    """
     return {'_id' : str(entry_doc['_id']),
             'head' : str(entry_doc['head'].id),
             'class' : entry_doc['class']}

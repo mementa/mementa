@@ -142,14 +142,12 @@ def settings():
         user = g.db.dereference(userref)
         
         if request.form['form'] == 'password' :
-            print "CHANGING THE PASSWORD"
             return render_template("usersettings.html", user=user,
                                    session = session,
                                    action='password',
                                    success = True)
             
         elif request.form['form'] == 'settings' :
-            print "CHANGING SETTINGS"
 
             user['name'] = request.form['name']
             user['email'] = request.form['email']
@@ -193,6 +191,9 @@ def entries():
 @app.route("/page/<entryid>")
 @login_required
 def page(entryid):
+
+    # fixme in denormalized land, we don't need to do the double-query
+    
     col_entries = g.db['entries']
     col_revisions = g.db['revisions']
 
@@ -225,52 +226,52 @@ app.secret_key = 'A0Zr98j/3kdshfkdsajhfasdkj239r12nc-95h1pi34r1143yX R~XHH!jmN]L
 
 
 
-@app.route('/entry/<entryid>', methods=['GET', 'POST'])
-@login_required
-def save_entry(entryid):
+# @app.route('/entry/<entryid>', methods=['GET', 'POST'])
+# @login_required
+# def save_entry(entryid):
     
-    if request.method == "POST":
-        # extract the fields from post
+#     if request.method == "POST":
+#         # extract the fields from post
 
-        # add the fields 
+#         # add the fields 
 
-        entry_class = request.form['entry_class']
-        entry_id = request.form['entry_id']
+#         entry_class = request.form['entry_class']
+#         entry_id = request.form['entry_id']
 
-        request_dict = {}
-        # turn the multidict into a single dict
+#         request_dict = {}
+#         # turn the multidict into a single dict
         
-        for k in request.form:
-            request_dict[k] = request.form[k]
+#         for k in request.form:
+#             request_dict[k] = request.form[k]
                     
-        vdoc = dm.revision_class_create[entry_class](**request_dict)
-        author = bson.dbref.DBRef("users", bson.objectid.ObjectID(session["user_id"]))
-        Entry_ver = dm.revision_create(author=author,
-                                            parent = request.form["rev_id"])
-        vdoc.update(entry_ver)
+#         vdoc = dm.revision_class_create[entry_class](**request_dict)
+#         author = bson.dbref.DBRef("users", bson.objectid.ObjectID(session["user_id"]))
+#         Entry_ver = dm.revision_create(author=author,
+#                                             parent = request.form["rev_id"])
+#         vdoc.update(entry_ver)
         
-        # create the doc, now insert it into mongo
-        col_entries = g.db['entries']
-        col_revisions = g.db['revisions']
+#         # create the doc, now insert it into mongo
+#         col_entries = g.db['entries']
+#         col_revisions = g.db['revisions']
 
-        oid = col_revisions.insert(vdoc, safe=True)
+#         oid = col_revisions.insert(vdoc, safe=True)
 
         
-        tref = bson.dbref.DBRef("revisions", oid)
+#         tref = bson.dbref.DBRef("revisions", oid)
 
-        # FIXME FIXME FIXME USE COMPARE AND SWAP HERE
+#         # FIXME FIXME FIXME USE COMPARE AND SWAP HERE
 
-        col_entries.save({'_id' : bson.objectid.ObjectId(entry_id),
-                          'head' : tref}, safe=True)
+#         col_entries.save({'_id' : bson.objectid.ObjectId(entry_id),
+#                           'head' : tref}, safe=True)
 
 
-        div = entry_divs.create[entry_class]({'_id' : entry_id,
-                                              'head' : tref,
-                                              'archived' : False}, vdoc) # FIXME archived
-        return div
+#         div = entry_divs.create[entry_class]({'_id' : entry_id,
+#                                               'head' : tref,
+#                                               'archived' : False}, vdoc) # FIXME archived
+#         return div
     
-    else:
-        pass
+#     else:
+#         pass
 
 @app.route("/api/page/new", methods=["POST"])
 @login_required
@@ -329,14 +330,13 @@ def api_page_new():
     page_rev.update(dm.revision_create(author))
 
     revid = g.db.revisions.insert(page_rev, safe=True)
-
-    ent_dict = dm.entry_create(bson.dbref.DBRef("revisions", revid), 'page')
+    page_rev["_id"] = revid
+    
+    ent_dict = dm.entry_create(dbref("revisions", revid), 'page', page_rev)
     
     entid = g.db.entries.insert(ent_dict, safe=True)
 
     ent_dict["_id"] = entid
-
-    page_rev["_id"] = revid
 
     page_rev_json = dm.page_rev_to_json(page_rev)
 
@@ -388,14 +388,15 @@ def api_entry_text_new():
     rev.update(dm.revision_create(dbref("users", session["user_id"])))
 
     revid = g.db.revisions.insert(rev, safe=True)
-
+    rev["_id"] = revid
+    
     ent_dict = dm.entry_create(dbref("revisions", revid),
-                               'text')
+                               'text', rev)
 
     entid = g.db.entries.insert(ent_dict, safe=True)
     ent_dict["_id"] = entid
 
-    rev["_id"] = revid
+
 
     rev_json = dm.entry_text_rev_to_json(rev)
     return jsonify({'entry' : {'class' : 'text',
@@ -463,24 +464,27 @@ def api_page_mutate(page_entryid):
             ne['rev'] = bson.dbref.DBRef("revisions",
                                          bson.objectid.ObjectId(e['rev']))
         new_entries.append(ne)
+
     # create the new doc:
     new_page_doc = dm.page_entry_revision_create(submitted_doc['title'],
                                                  new_entries)
     
-    author = bson.dbref.DBRef("users", bson.objectid.ObjectId(session["user_id"]))
+    author = dbref("users", session["user_id"])
 
     new_page_doc.update(dm.revision_create(author,
-                                      parent=old_rev_id))
+                                           parent=old_rev_id))
             
     new_page_doc_oid = g.db.revisions.insert(new_page_doc, safe=True)
 
-    new_page_doc['_id'] = str(new_page_doc_oid)
+    new_page_doc['_id'] = new_page_doc_oid
     
-    new_entry_doc = dm.entry_create(bson.dbref.DBRef('revisions', new_page_doc_oid), 
-                                    'page')
-    
-    res = g.db.entries.update(latest_entry_doc,
+    new_entry_doc = dm.entry_create(dbref('revisions', new_page_doc_oid), 
+                                    'page', new_page_doc)
+
+    res = g.db.entries.update({"_id" : latest_entry_doc['_id'],
+                               "head" : latest_entry_doc['head']}, 
                               new_entry_doc, safe=True)
+
             
     if res['updatedExisting'] == True:
         # success!
@@ -491,14 +495,14 @@ def api_page_mutate(page_entryid):
             
     else:
         # failed to update, meaning someone else updated the entry ahead of us
-        revisions.remove({'_id' : new_page_doc_oid})
+        g.db.revisions.remove({'_id' : new_page_doc_oid})
                 
         entry_ref = dbref("entries", page_entryid)
         latest_entry_doc = g.db.dereference(entry_ref)
         
         true_latest_page_ref = latest_entry_doc['head']
         latest_page_rev = g.db.dereference(true_latest_page_ref)
-        latest_page_rev_json = dm.page_rev_to_json(latest_doc)
+        latest_page_rev_json = dm.page_rev_to_json(latest_page_rev)
         
         resp =  jsonify({"reason" : "out of date", 
                          "latest_page_revision_doc" : latest_page_rev_json})
@@ -536,10 +540,10 @@ def api_entry_get_post(entryid):
 
         # save the revision
         new_rev_oid = g.db.revisions.insert(rev, safe=True)
-        
+        rev["_id"] = new_rev_oid
 
         new_entry_doc = dm.entry_create(dbref('revisions', new_rev_oid),
-                                        dclass)
+                                        dclass, rev)
 
         
         res = g.db.entries.update({'_id' : bson.objectid.ObjectId(entryid),
@@ -630,9 +634,10 @@ def api_entry_text_new():
                                                    bson.objectid.ObjectId(session["user_id"]))))
 
     revid = g.db.revisions.insert(rev, safe=True)
-
-    ent_dict = dm.entry_create(bson.dbref.DBRef("revisions", revid),
-                               'text')
+    rev["_id"] = revid
+    
+    ent_dict = dm.entry_create(dbref("revisions", revid),
+                               'text', rev)
 
     entid = g.db.entries.insert(ent_dict, safe=True)
     ent_dict["_id"] = entid
