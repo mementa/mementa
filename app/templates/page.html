@@ -29,17 +29,38 @@
   
   <div id="control" class="sidebar" style="position:fixed"> 
     
-    <h1>{{page_rev.title}}</h1>
+    <div id='pagetitle'> 
+      <div class='view'> 
+        <h1 id='page_title_view'>{{page_rev.title}}</h1>
+      </div>  
+      <div class='edit'>
+        <h1 id='page_title_edit' contentEditable >{{page_rev.title}}</h1>
+
+        <button id="page_title_save" class='btn primary'>save </button> 
+        <button id="page_title_cancel" class='btn'> cancel </button>
+      </div> 
+      <div class='hovering view'> 
+        <a href="#" id="editpagetitle" class='hovertarget'> edit title</a>
+      </div>
+    </div>
+    
+    <div class="page-header"> 
+      <h3> Recent Entries </h3>
+    </div>
+
+    Page last modified : date and time <br>
+    
     EntryID : <span id="page_entry_id"> {{page_entry_json._id}} </span><br>
     Head : <span id="page_head"> {{page_entry_json.head}} </span> <br>
     
-    <hr>
-    <a href="#" id="new_page"> Create New Page </a>
+    <div class="page-header"> 
+      <h3> Recent Entries </h3> Yours | All
+    </div>
     
-    <hr>
-    <a href="/pages"> All Pages </a> <br>
+    <div class="page-header"> 
+      <h3> Recent Pages </h3> Yours | All
+    </div>
     
-    <a href="#" id="debuglink">DEbug click </a>
     
   </div> 
   
@@ -54,6 +75,8 @@
      <button class="btn" id="button_add_entry_figure"> Figure Entry </button> 
      <button class="btn" id="button_add_entry_github"> Github Entry </button> 
      <button class="btn" id="button_add_entry_github"> Citation Entry </button> 
+     <button class="btn" id="button_add_entry_existing">Existing Entry </button> 
+
      
    </div> 
 

@@ -84,6 +84,11 @@ def lookup_user(userid):
 def index():
     return "Hello World"
 
+@app.route('/home')
+def home():
+    return render_template("home.html",
+                           session = session)
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():

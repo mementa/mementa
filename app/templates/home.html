@@ -1,0 +1,50 @@
+{% extends "mementa.html" %}
+
+{% block javascript_includes %}
+<script type="text/javascript" src="/static/home.js"></script>    
+
+{%endblock %}
+{% block title %} Welcome to Mementa {% endblock %}
+{% block content %} 
+
+<div class="container">
+  <H1> Welcome to Mementa </H1>
+  
+  <div class="page-header"> 
+    <h2>Recent Pages </h2>
+  </div> 
+  
+  <div class="row show-grid"> 
+    <div class="span6 columns offset1">
+      <H3>Yours</H3>
+      <div class="twipsies well"> 
+        This contains a time-sorted list of your most recent pages
+      </div>
+    </div> 
+    <div class="span6 columns offset2">
+      <H3> All </h3> 
+      <div class="twipsies well"> 
+        This contains a time-sorted list of all recently-edited pages
+      </div>
+    </div>
+  </div><!-- /row --> 
+  <div class="page-header"> 
+    <h2>Recent Entries </h2>
+  </div> 
+  <div class="row show-grid"> 
+    <div class="span6 columns offset1">
+      <H3> Yours</H3>
+      <div class="twipsies well"> 
+        This contains a time-sorted list of your recently-edited entries
+      </div>
+    </div> 
+    <div class="span6 columns offset2">
+      <H3> All </h3> 
+      <div class="twipsies well"> 
+        This contains a time-sorted list of all recently-edited entries
+      </div>
+    </div>
+  </div><!-- /row --> 
+</div>
+
+{% endblock %}

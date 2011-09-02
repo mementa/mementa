@@ -292,6 +292,18 @@ function remove_entry_from_page(page_rev_doc, position)
 
 }
 
+function change_page_title(page_rev_doc, newtitle)
+{
+    
+    // deep copy? 
+    
+    var newobj = $.extend(true, {}, page_rev_doc);
+    newobj.title = newtitle; 
+
+    return newobj; 
+
+}
+
 $(document).ready(
     function () {
 
@@ -307,6 +319,8 @@ $(document).ready(
                                            new_rev.entries,
                                            $("#entries"), 
                                            create_entry_view_div); 
+                             
+                             $("#page_title_view").html(new_rev.title);
                              
                          }); 
 
@@ -460,6 +474,69 @@ $(document).ready(
                    }); 
         
         $.fn.cuteTime.settings.refresh = 10000;
+        
+
+        $("#pagetitle").hover(function(e) {
+                                  console.log("enter"); 
+                                  $("#editpagetitle").addClass("hovertargetvisible");
+                              }, 
+                              function(e) { 
+                                  $("#editpagetitle").removeClass("hovertargetvisible");
+                              });
+
+        $("#editpagetitle")
+            .click(function(e) {
+                       $("#pagetitle > .view").hide(); 
+                       $("#page_title_edit").html($("#page_title_view").html()); 
+                       $("#pagetitle > .edit").show();
+                       $("#page_title_edit").focus(); 
+                   });
+
+        $("#pagetitle > .edit").hide();
+
+        $("#page_title_cancel")
+            .click(function(e) {
+                       $("#pagetitle > .edit").hide();
+                       $("#pagetitle > .view").show(); 
+                   }); 
+
+        $("#page_title_save")
+            .click(function(e) {
+                       var current_page_docs = get_current_page_docs(); 
+                       
+                       var new_page_rev = 
+                           change_page_title(current_page_docs.rev, 
+                                             $("#page_title_edit").html()); 
+
+
+                      $.ajax({'type' : "POST", 
+                              'url' : "/api/page/" + 
+                              current_page_docs.entry._id,
+                              contentType:"application/json",
+                              dataType : "json", 
+                              data : JSON.stringify(
+                                  {old_rev_id : current_page_docs.rev._id, 
+                                   doc: new_page_rev}), 
+                              success: 
+                              function(resp) {
+                                  var latest_page_revision_doc = 
+                                      resp.latest_page_revision_doc; 
+                                  var entry = get_current_page_docs().entry; 
+                                  entry.head = latest_page_revision_doc._id; 
+                                  
+                                  update_page_docs(entry, 
+                                                   latest_page_revision_doc); 
+                                  
+                                  
+                                  $("#pagetitle > .edit").hide();
+                                  $("#pagetitle > .view").show(); 
+
+                              }, 
+                             }); 
+                      
+                      
+                      return false; 
+                   }); 
         
     });
 
