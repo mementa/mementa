@@ -29,7 +29,7 @@ function render_entry_view(entry_doc, revision_doc)
 
 var render_entry_rev_view =  {
     'text' : function(doc) { 
-        return $.mustache("<h3>{{title}}</h3> "
+        return $.mustache("<h3>{{{title}}}</h3> "
                           + "<div class='text-body'>{{{body}}}</div></div> ", doc); 
         
     }
@@ -50,7 +50,7 @@ function render_entry_edit(entry_doc, revision_doc)
 var render_entry_rev_edit =  {
     'text' : function(doc) { 
 
-        var retdiv = $($.mustache("<div><input  class='title' value='{{title}}' style='width:100%'> </input><p> <textarea style='width:100%'>{{{body}}}</textarea></div>", doc)); 
+        var retdiv = $($.mustache("<div><input  class='title' value='{{{title}}}' style='width:100%'> </input><p> <textarea style='width:100%'>{{{body}}}</textarea></div>", doc)); 
         $("textarea", retdiv ).attr('id', "TESTTEXTAREA"); 
         $("textarea", retdiv).addClass("tinymce");
 
@@ -81,7 +81,7 @@ var post_view_dom_insert = {
     text : function(entry_div) {
         var uuid =  "uuid" + generate_uuid(); 
         $(entry_div).attr('id', uuid)
-        MathJax.Hub.Queue(["Typeset",MathJax.Hub, uuid]);
+        MathJax.Hub.Queue(["Typeset", MathJax.Hub, uuid]);
     }
     
 }; 
