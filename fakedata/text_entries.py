@@ -1,3 +1,6 @@
+from BeautifulSoup import BeautifulSoup          # For processing HTML
+import urllib2
+
 
 entries = [{'title' : "Welcome to Mementa",
             'body' : """
@@ -11,3 +14,24 @@ entries = [{'title' : "Welcome to Mementa",
             $$\int_a^b \sin(x)$$
             """}]
 
+
+
+def mathjax():
+    """
+    Return entries representing the mathjax examples
+    """
+    
+    page = urllib2.urlopen("http://www.mathjax.org/demos/tex-samples/")
+    soup = BeautifulSoup(page)
+
+    md = soup.findAll("div", {"class" : "math-header"})
+
+    entries = []
+    for d in md:
+        title =  d.contents[0]
+        ns = d.nextSibling
+        body = ns
+        entries.append({'title' : title,
+                        'body' : body})
+
+    return entries
