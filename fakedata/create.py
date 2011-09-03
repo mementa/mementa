@@ -11,6 +11,7 @@ sys.path.append("..")
 
 
 import text_entries
+import wikipediatest
 
 from app import mementa
 from app import datamodel as dm
@@ -93,3 +94,28 @@ mathjax_entries = [simple_text_entry(db, users['eric'], e['title'], e['body']) f
 
 # now create a page with these entries
 simple_page_create(db, users['eric'], "MathJax Examples", mathjax_entries)
+
+
+wikipedia_articles = [
+    "Bayes'_theorem",
+    "Stochastic_process",
+    "Markov_chain_Monte_Carlo",
+    "Particle_filter",
+    "Monte_Carlo_method",
+    "Nicholas_Metropolis",
+    "Abelian_group",
+    "Mathematical_joke",
+    "Probability",
+    "Linear_algebra",
+    "Eigenvalues_and_eigenvectors",
+    "Momentum_operator",
+    "Fourier_transform"
+    ]
+for wikipedia_title in wikipedia_articles:
+    print "Creating page for", wikipedia_title, "="*40
+    
+    page_title = wikipedia_title.replace("_", " ")
+    
+    entries = [simple_text_entry(db, users['eric'], e['title'], e['body']) for e in wikipediatest.get_page(wikipedia_title)]
+
+    simple_page_create(db, users['eric'], page_title, entries)

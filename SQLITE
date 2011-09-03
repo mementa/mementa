@@ -1,0 +1,26 @@
+build the autoconf'd sqlite lib and install it in the virtualenv
+
+
+
+CPPFLAGS="-DSQLITE_ENABLE_FTS3 -DSQLITE_ENABLE_FTS3_PARENTHESIS" ./configure --prefix=$VIRTUAL_ENV
+
+make
+make install
+
+then try and get the dynamic lib setup 
+   - add LIBDIR to the `DYLD_LIBRARY_PATH' environment variable
+     during execution
+
+
+Hmm, that didn't work -- it's hard to get it to link to the latest version
+
+instead trying apsw
+
+python setup.py fetch --sqlite
+python setup.py build --enable-all-extensions
+python setup.py install
+
+
+--------------
+Testing full-text search
+
