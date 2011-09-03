@@ -80,11 +80,9 @@ def lookup_user(userid):
             'name' : doc['name']}
     
 
-@app.route('/')
-def index():
-    return "Hello World"
 
-@app.route('/home')
+@app.route('/')
+@login_required
 def home():
     return render_template("home.html",
                            session = session)
