@@ -311,6 +311,14 @@ $(document).ready(
                          function(event, old_entry, old_rev, 
                                   new_entry, new_rev)
                          {
+
+                             $("#page_title_view").html(new_rev.title);
+                             var date = new Date(new_rev.date + "Z"); 
+
+                             $("#page_date").removeAttr("data-timestamp").html(date.toLocaleString()).cuteTime(); 
+
+                             
+
                              var old_entries = []
                              if(old_rev) {
                               old_entries = old_rev.entries; 
@@ -320,7 +328,6 @@ $(document).ready(
                                            $("#entries"), 
                                            create_entry_view_div); 
                              
-                             $("#page_title_view").html(new_rev.title);
                              
                          }); 
 
@@ -477,12 +484,13 @@ $(document).ready(
         
 
         $("#pagetitle").hover(function(e) {
-                                  console.log("enter"); 
+
                                   $("#editpagetitle").addClass("hovertargetvisible");
                               }, 
                               function(e) { 
                                   $("#editpagetitle").removeClass("hovertargetvisible");
                               });
+
 
         $("#editpagetitle")
             .click(function(e) {
