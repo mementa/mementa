@@ -42,7 +42,7 @@ for user, pw, name, email, twitter in \
      ('astronut', 'password', 'Erica Peterson', 'astronut@mit.edu', 'probabilistic')]:
 
     pwsalt = mementa.saltpassword(pw, mementa.PASSWORDSALT)
-    u1 = dm.user_create(user, pw, name, email, twitter=twitter)
+    u1 = dm.user_create(user, pwsalt, name, email, twitter=twitter)
     u1oid = db.users.insert(u1)
     users[user] = u1oid
     
