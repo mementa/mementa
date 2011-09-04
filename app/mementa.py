@@ -73,12 +73,17 @@ def lookup_user(userid):
         ref = dbref('users', userid)
 
     doc = g.db.dereference(ref)
-    print "Looking up ", ref, "doc=", doc
+
 
     return {'_id' : str(ref.id),
             'username' : doc['username'],
             'name' : doc['name']}
     
+
+@app.route('/test')
+@login_required
+def logintest():
+    return "login successful"
 
 
 @app.route('/')
@@ -90,23 +95,28 @@ def home():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+
     nexturl = "/"
     loginfail = False
     if "next" in request.args:
         nexturl = request.args['next']
         
     if request.method == 'POST':
+
+        
         username = request.form['username']
         password = request.form['password']
-        nexturl = request.form['nexturl']
+        if 'nextur' in request.form:
+            nexturl = request.form['nexturl']
 
+        
         u = g.db.users.find_one({'username' : username})
+        
         if u:
             # check password
             sp = saltpassword(password, app.config['PASSWORDSALT'])
             if u['password'] == sp:
                 # successful login
-                
                 
                 session['username'] = username
                 session['user_id'] = u['_id']
@@ -127,7 +137,8 @@ def login():
 def logout():
     # remove the username from the session if its there
     session.pop('username', None)
-    return redirect(url_for('index'))
+    session.pop('user_id', None)
+    return redirect(url_for('login'))
 
 @app.route('/users')
 def listusers():
@@ -209,7 +220,7 @@ def entries():
               'date' : d[u'revdoc']['date'],
               '_id' : d['_id'],
               'author' : lookup_user(d[u'revdoc']['author'])} for d in docs]
-    print pages
+
     return render_template("list_pages.html", pages=pages,
                            session = session)
 
@@ -675,6 +686,47 @@ def api_entry_text_new():
                                '_id' : str(entid)},
                     
                     'revision' : rev_json})
+
+@app.route('/api/list/entries', methods=["POST"])
+@login_required
+def list_entries():
+    """
+    Generic listing interface for entries, always returns the latest.
+
+    query string:
+    class: [page, notpage, text]
+    author: specific author (none returns all)
+    # right now we always sort by date
+    limit: number to show
+
+    # fixme implement offset
+    
+    """
+    query = {}
+
+    if 'author' in request.args:
+        query['revdoc.author'] = dbref('users', request.args['arthor'])
+    
+    if 'class' in request.args:
+        if request.args['class'] == 'page':
+            query['class'] = "page"
+        elif request.args['class'] == 'notpage':
+            query['class'] = {"$ne" : "page"}
+        elif request.args['class'] == 'text':
+            query['class'] = "text"
+
+    limit = 100
+    if 'limit' in request.args:
+        limit = int(request.args['limit'])
+        
+    results = db.entries.find(query, {'class' : 1,
+                                      'head' : 1,
+                                      'revdoc.title' : 1,
+                                      'revdoc.author' : 1,
+                                      'revdoc.date' : 1}).sort({'revdoc.date': -1}).limit(limit)
+    
+    
+
 
 if __name__ == '__main__':
     app.run()

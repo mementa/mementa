@@ -4,20 +4,33 @@ from nose.tools import *
 import unittest
 import pymongo
 import mementa
+import datamodel as dm
+
 import simplejson as json
 
 
 class MementaTestCase(unittest.TestCase):
         
     def setUp(self):
-        mementa.app.config['DATABASE'] = "LALALA"
+        mementa.app.config['DB_DATABASE'] = "LALALA"
         mementa.app.config['TESTING'] = True
         self.conn = pymongo.Connection()
-        self.conn[mementa.app.config['DATABASE']].dummycol.insert({'dummydoc' : True})
+        self.conn[mementa.app.config['DB_DATABASE']].dummycol.insert({'dummydoc' : True})
+
+        self.user_name = "eric"
+        self.user_password = "testing"
+        pw_hash = mementa.saltpassword(self.user_password, mementa.PASSWORDSALT)
+        
+        user = dm.user_create(self.user_name, pw_hash)
+        
+        db = self.conn[mementa.app.config['DB_DATABASE']]
+        db.users.insert(user)
+
+        
         self. app = mementa.app.test_client()
 
     def teardown(self):
-        self.conn.drop_database(mementa.app.config['DATABASE'])
+        self.conn.drop_database(mementa.app.config['DB_DATABASE'])
 
         pass
 
@@ -31,10 +44,6 @@ class MementaTestCase(unittest.TestCase):
         return self.app.get('/logout', follow_redirects=True)
 
 
-    def test_hello(self):
-        self.login("eric", "test")
-        rv = self.app.get("/")
-        assert "Hello World" in rv.data
 
 
     def post_json(self, url, data):
@@ -42,8 +51,15 @@ class MementaTestCase(unittest.TestCase):
         return self.app.post(url, data=json.dumps(data),
                              content_type="application/json")
 
+    def test_login(self):
+        self.login(self.user_name, self.user_password)
+        
+        rv = self.app.get("/test")
+
+        assert "login successful" in rv.data
+
     def test_create_text_entry(self):
-        self.login("eric", "test")
+        self.login(self.user_name, self.user_password)
 
         body = "11, 22, 33, 44"
         title = "This is a title"
@@ -66,7 +82,7 @@ class MementaTestCase(unittest.TestCase):
 
         """
         
-        self.login("eric", "test")
+        self.login(self.user_name, self.user_password)
 
         # create empty page
         title = "Empty Page"
@@ -106,7 +122,7 @@ class MementaTestCase(unittest.TestCase):
         # create the page with one entry
         # 
 
-        self.login("eric", "test")
+        self.login(self.user_name, self.user_password)
 
         # create empty page
         title = "Empty Page One"
@@ -147,7 +163,7 @@ class MementaTestCase(unittest.TestCase):
         # create the page with one entry
         # 
 
-        self.login("eric", "test")
+        self.login(self.user_name, self.user_password)
 
         # create empty page
         title = "Test text entry"
@@ -159,7 +175,7 @@ class MementaTestCase(unittest.TestCase):
         rv_json = json.loads(rv.data)
         page_rev_id = rv_json['entry']['head']
         entry_id = rv_json['entry']['_id']
-        print "created entry", entry_id
+
         rv = self.app.get("/api/entry/%s" % entry_id)
         rv_json =  json.loads(rv.data)
         assert_equal(rv_json['revision']['title'], title)
@@ -171,7 +187,7 @@ class MementaTestCase(unittest.TestCase):
                                     'title':  "THIS IS A NEW TITLE",
                                     'class' : 'text', 
                                     'body' : "NEW BODY"})
-        print "THE RESP IS", rv
+
         rv_json = json.loads(rv.data)
         assert(rv_json['latest_revision_doc']['title'] == "THIS IS A NEW TITLE")
 
