@@ -28,6 +28,8 @@
       var $li = $(this).parent("li").toggleClass('open');
       return false;
       });
+
+
     </script>
     {% block javascript_includes %} 
     {% endblock %}
@@ -48,7 +50,7 @@
             <li class="active"><a href="/">Home</a></li> 
             <li><a href="/pages">All Pages</a></li> 
             <li><a href="/entries">All Entries</a></li> 
-            <li><a href="#">New Page</a></li> 
+            <li><a href="/page/new">New Page</a></li> 
           </ul> 
           <form action=""> 
             <input type="text" placeholder="Search" /> 

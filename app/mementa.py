@@ -91,7 +91,26 @@ def logintest():
 @app.route('/')
 @login_required
 def home():
-    return render_template("home.html",
+    LIMIT = 7
+    
+    my_pages = list_entries_query({'class' : 'page',
+                                   'author' : session['user_id'],
+                                   'limit' : LIMIT})
+    
+    for p in my_pages:
+        p['author'] = lookup_user(p['author'])
+
+
+    all_pages = list_entries_query({'class' : 'page',
+                                   'limit' : LIMIT})
+    
+    for p in all_pages:
+        p['author'] = lookup_user(p['author'])
+
+
+    
+    return render_template("home.html", my_pages = my_pages,
+                           all_pages = all_pages, 
                            session = session)
 
 
@@ -215,14 +234,23 @@ def settings():
         
 @app.route("/pages")
 @login_required
+def pages():
+
+    pages = list_entries_query({'class' : 'page'})
+    for p in pages:
+        p['author'] = lookup_user(p['author'])
+        
+    return render_template("list_pages.html", pages=pages,
+                           session = session)
+
+@app.route("/entries")
+@login_required
 def entries():
-    docs = g.db.entries.find({u'class' : u'page'})
 
-    pages = [{'title' : d[u'revdoc']['title'],
-              'date' : d[u'revdoc']['date'],
-              '_id' : d['_id'],
-              'author' : lookup_user(d[u'revdoc']['author'])} for d in docs]
-
+    pages = list_entries_query({'class' : 'notpage'})
+    for p in pages:
+        p['author'] = lookup_user(p['author'])
+        
     return render_template("list_pages.html", pages=pages,
                            session = session)
 
@@ -759,6 +787,30 @@ def list_entries():
     return jsonify({'results' : results_data})
 
 
+
+@app.route("/page/new")
+@login_required
+def page_new():
+    """
+    
+    """
+ 
+    title = "New Page"
+    entries = []
+
+    page_rev = dm.page_entry_revision_create(title, entries)
+    author = dbref("users", session["user_id"])
+    
+    page_rev.update(dm.revision_create(author))
+
+    revid = g.db.revisions.insert(page_rev, safe=True)
+    page_rev["_id"] = revid
+    
+    ent_dict = dm.entry_create(dbref("revisions", revid), 'page', page_rev)
+    
+    entid = g.db.entries.insert(ent_dict, safe=True)
+    
+    return redirect("/page/%s" % entid)
 
 
 if __name__ == '__main__':
