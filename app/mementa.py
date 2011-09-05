@@ -6,6 +6,8 @@ import bson
 import entry_divs
 import datamodel as dm
 import hashlib
+import time
+
 
 
 DEBUG = True # FIXME SHOULD BE FALSE FOR REAL DEPLOYMENT
@@ -687,7 +689,7 @@ def api_entry_text_new():
                     
                     'revision' : rev_json})
 
-@app.route('/api/list/entries', methods=["POST"])
+@app.route('/api/list/entries')
 @login_required
 def list_entries():
     """
@@ -703,9 +705,11 @@ def list_entries():
     
     """
     query = {}
-
+    
     if 'author' in request.args:
-        query['revdoc.author'] = dbref('users', request.args['arthor'])
+        #FIXME debug
+        r = dbref('users', request.args['author'])
+        query['revdoc.author'] = r
     
     if 'class' in request.args:
         if request.args['class'] == 'page':
@@ -718,14 +722,34 @@ def list_entries():
     limit = 100
     if 'limit' in request.args:
         limit = int(request.args['limit'])
+
+
+    tgt_fields = {'class' : 1,
+                  'head' : 1,
+                  'revdoc.title' : 1,
+                  'revdoc.author' : 1,
+                  'revdoc.date' : 1}
+    
+    if query == {}:
+        results = g.db.entries.find(fields=tgt_fields).sort('revdoc.date', -1).limit(limit)
+    else:
+        results = g.db.entries.find(query, fields=tgt_fields).sort('revdoc.date', -1).limit(limit)
         
-    results = db.entries.find(query, {'class' : 1,
-                                      'head' : 1,
-                                      'revdoc.title' : 1,
-                                      'revdoc.author' : 1,
-                                      'revdoc.date' : 1}).sort({'revdoc.date': -1}).limit(limit)
-    
-    
+    results_data = []
+    for r in results:
+        # fixme add date
+        rd = {'_id' : str(r['_id']),
+              'class' : r['class'],
+              'head' : str(r['head'].id),
+              'title' : str(r['revdoc']['title']),
+              'author' : str(r['revdoc']['author'].id),
+              'date' : str(r['revdoc']['date'].isoformat())}
+        
+        results_data.append(rd)
+
+    return jsonify({'results' : results_data})
+
+
 
 
 if __name__ == '__main__':

@@ -5,34 +5,60 @@ import unittest
 import pymongo
 import mementa
 import datamodel as dm
+import iso8601
 
 import simplejson as json
+import time
 
 
+user_password = "testing"
+    
+def create_users(conn):
+
+
+
+    users = ['eric', 'cap', 'vimal', 'chicken']
+    user_oids = {}
+    
+    for u in users:
+
+        pw_hash = mementa.saltpassword(user_password,
+                                       mementa.PASSWORDSALT)
+        
+        user = dm.user_create(u, pw_hash)
+        
+        db = conn[mementa.app.config['DB_DATABASE']]
+        uoid = db.users.insert(user)
+        
+        user_oids[u] = uoid
+    return user_oids
+
+
+    
 class MementaTestCase(unittest.TestCase):
+
+    def __init__(self, otherarg):
+        unittest.TestCase.__init__(self, otherarg)
+        
         
     def setUp(self):
         mementa.app.config['DB_DATABASE'] = "LALALA"
         mementa.app.config['TESTING'] = True
+        
+
         self.conn = pymongo.Connection()
-        self.conn[mementa.app.config['DB_DATABASE']].dummycol.insert({'dummydoc' : True})
+        self.user_oids = create_users(self.conn)
+        
 
+        self.user_password = user_password
         self.user_name = "eric"
-        self.user_password = "testing"
-        pw_hash = mementa.saltpassword(self.user_password, mementa.PASSWORDSALT)
-        
-        user = dm.user_create(self.user_name, pw_hash)
-        
-        db = self.conn[mementa.app.config['DB_DATABASE']]
-        db.users.insert(user)
 
         
-        self. app = mementa.app.test_client()
+        self.app = mementa.app.test_client()
 
-    def teardown(self):
+    def tearDown(self):
         self.conn.drop_database(mementa.app.config['DB_DATABASE'])
-
-        pass
+        
 
     def login(self, username, password):
         return self.app.post('/login', data=dict(
@@ -204,3 +230,89 @@ class MementaTestCase(unittest.TestCase):
         assert_equal(rv_json['reason'], "Incorrect latest")
         
                      
+    def test_query_sort(self):
+        """
+        Create a bunch of entries and pages and then validate that search works
+        correctly on them
+
+        """
+
+        text_entries_all = {}
+        page_entries_all = {}
+
+        ENTRY_N = 40
+        PAGE_N = 20
+
+        for user, oid  in self.user_oids.iteritems():
+            self.login(user, self.user_password)
+
+            text_entries = []
+            for d in range(ENTRY_N):
+                title = "Text entry title %s %d" % (user, d)
+                rv = self.post_json("/api/entry/text/new", data={'title' : title,
+                                                                 'body' : "Body Body"})
+                rv_json = json.loads(rv.data)
+
+                id = rv_json['entry']['_id']
+
+                text_entries.append(id)
+
+            text_entries_all[user] = text_entries
+            
+            
+            page_entries = []
+            
+            for d in range(PAGE_N):
+                title = "Page entry title %s %d" % (user, d)
+                
+                rv = self.post_json("/api/page/new", data={'title' : title, 
+                                                  'entries' : text_entries})
+
+                rv_json = json.loads(rv.data)
+
+                page_entries.append(rv_json['entry']['_id'])
+
+            page_entries_all[user] = page_entries
+
+        # now test
+
+        url = "/api/list/entries"
+        for user, oid in self.user_oids.iteritems():
+            rv = self.app.get(url + "?author=%s" % str(oid ))
+            rv_json = json.loads(rv.data)
+            assert_equal(len(rv_json['results']), ENTRY_N + PAGE_N)
+            
+            rv = self.app.get(url + "?author=%s&class=page" % str(oid ))
+            rv_json = json.loads(rv.data)
+            assert_equal(len(rv_json['results']), PAGE_N)
+
+            rv = self.app.get(url + "?author=%s&class=notpage" % str(oid ))
+            rv_json = json.loads(rv.data)
+            assert_equal(len(rv_json['results']), ENTRY_N)
+
+            rv = self.app.get(url + "?author=%s&class=text" % str(oid ))
+            rv_json = json.loads(rv.data)
+            assert_equal(len(rv_json['results']), ENTRY_N)
+
+
+            rv = self.app.get(url + "?author=%s&limit=17" % str(oid ))
+            rv_json = json.loads(rv.data)
+            assert_equal(len(rv_json['results']), 17)
+
+            # assert ordering
+
+            
+            # check ordering
+        rv = self.app.get(url)
+        rv_data = json.loads(rv.data)
+        last = None
+        for d in rv_data['results']:
+            dt = iso8601.parse_date(d['date'] + "Z")
+            if last != None:
+                ok_(dt < last)
+                
+            last = dt
+
+        #time.sleep(1000)
+                
+            
