@@ -689,39 +689,29 @@ def api_entry_text_new():
                     
                     'revision' : rev_json})
 
-@app.route('/api/list/entries')
-@login_required
-def list_entries():
+def list_entries_query(req):
     """
-    Generic listing interface for entries, always returns the latest.
-
-    query string:
-    class: [page, notpage, text]
-    author: specific author (none returns all)
-    # right now we always sort by date
-    limit: number to show
-
-    # fixme implement offset
+    Reusable function
+    """
     
-    """
     query = {}
     
-    if 'author' in request.args:
+    if 'author' in req:
         #FIXME debug
-        r = dbref('users', request.args['author'])
+        r = dbref('users', req['author'])
         query['revdoc.author'] = r
     
-    if 'class' in request.args:
-        if request.args['class'] == 'page':
+    if 'class' in req:
+        if req['class'] == 'page':
             query['class'] = "page"
-        elif request.args['class'] == 'notpage':
+        elif req['class'] == 'notpage':
             query['class'] = {"$ne" : "page"}
-        elif request.args['class'] == 'text':
+        elif req['class'] == 'text':
             query['class'] = "text"
 
     limit = 100
-    if 'limit' in request.args:
-        limit = int(request.args['limit'])
+    if 'limit' in req:
+        limit = int(req['limit'])
 
 
     tgt_fields = {'class' : 1,
@@ -746,7 +736,26 @@ def list_entries():
               'date' : str(r['revdoc']['date'].isoformat())}
         
         results_data.append(rd)
+    return results_data
+    
 
+@app.route('/api/list/entries')
+@login_required
+def list_entries():
+    """
+    Generic listing interface for entries, always returns the latest.
+
+    query string:
+    class: [page, notpage, text]
+    author: specific author (none returns all)
+    # right now we always sort by date
+    limit: number to show
+
+    # fixme implement offset
+    
+    """
+    results_data = list_entries_query(request.args)
+    
     return jsonify({'results' : results_data})
 
 
