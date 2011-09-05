@@ -79,7 +79,8 @@ def lookup_user(userid):
 
     return {'_id' : str(ref.id),
             'username' : doc['username'],
-            'name' : doc['name']}
+            'name' : doc['name'],
+            'email' : doc['email']}
     
 
 @app.route('/test')
@@ -785,6 +786,22 @@ def list_entries():
     results_data = list_entries_query(request.args)
     
     return jsonify({'results' : results_data})
+
+@app.route('/api/user/<userid>/avatar/<size>')
+@login_required
+def user_get_avatar(userid, size=80):
+    """
+    """
+    size = int(size)
+    
+    u =  lookup_user(userid)
+    email = u['email']
+    m = hashlib.md5()
+    m.update(email)
+    url = "http://www.gravatar.com/avatar/%s.jpg?s=%d" % (m.hexdigest(), size)
+    
+        
+    return redirect(url)
 
 
 

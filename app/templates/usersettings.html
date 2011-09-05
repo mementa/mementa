@@ -1,39 +1,54 @@
 {% extends "mementa.html" %}
 
-{% block title %} User settings for FIXME {% endblock %}
+{% block javascript_includes %}
+<script type="text/javascript" src="/static/usersettings.js"></script>    
+
+{% endblock %}
+{% block title %} User settings for {{user.username}} {% endblock %}
 {% block content %} 
 
 <div class="container">
-  <H1> User settings for {{user.username}}</h1>
 
+  <H1> User settings for {{user.username}}</h1>
+  
   <form method="POST"> 
     <fieldset> 
       <legend>User Settings</legend> 
-
-      <div class="clearfix"> 
-        <label for="name">Name</label> 
-        <div class="input"> 
-          <input class="xlarge" id="name" name="name" size="30" type="text" value="{{user.name}}" /> 
-        </div> 
-      </div><!-- /clearfix --> 
-
-      <div class="clearfix"> 
-        <label for="email">e-mail</label> 
-        <div class="input"> 
-          <input class="xlarge" id="email" name="email" size="30" type="text" value="{{user.email}}"/> 
-        </div> 
-      </div><!-- /clearfix --> 
-
-      <div class="clearfix"> 
-        <label for="twitter">Twitter Handle</label> 
-        <div class="input"> 
-          <div class="input-prepend"> 
-            <span class="add-on">@</span> 
-            <input class="medium" id="twitter" name="twitter" size="16" type="text" value="{{user.twitter}}"/> 
-          </div> 
-        </div> 
-      </div><!-- /clearfix --> 
-
+      <div class="row">
+        <div class="span6 columns">
+          
+          <div class="clearfix"> 
+            <label for="name">Name</label> 
+            <div class="input"> 
+              <input class="xlarge" id="name" name="name" size="30" type="text" value="{{user.name}}" /> 
+            </div> 
+          </div><!-- /clearfix --> 
+          
+          <div class="clearfix"> 
+            <label for="email">e-mail</label> 
+            <div class="input"> 
+              <input class="xlarge" id="email" name="email" size="30" type="text" value="{{user.email}}"/> 
+            </div> 
+          </div><!-- /clearfix --> 
+          
+          <div class="clearfix"> 
+            <label for="twitter">Twitter Handle</label> 
+            <div class="input"> 
+              <div class="input-prepend"> 
+                <span class="add-on">@</span> 
+                <input class="medium" id="twitter" name="twitter" size="16" type="text" value="{{user.twitter}}"/> 
+              </div> 
+            </div> 
+          </div><!-- /clearfix --> 
+        </div>
+        <div class="span4 columns offset2">
+          Mementa uses <a href="http://www.gravatar.com">Gravatar </a> for user images, which 
+          are keyed to your e-mail address. Based on the entered e-mail address, your avatar is:
+          <img src="" id="gravatar_img" />
+        </div>
+        
+        
+      </div>
       {% if action == 'settings' %} 
       {% if success %} 
       <div class="alert-message success"> 

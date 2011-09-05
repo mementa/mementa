@@ -193,7 +193,7 @@ function create_entry_view_div(entptr)
     var entry_template = 
         "<div class='entry'>"
         + "<div class='meta'>"
-        + "<img src='http://www.gravatar.com/avatar/205e460b479e2e5b48aec07710c08d50?s=50' class='avatar'/>"
+        + "<img src='' class='avatar'/>"
         + "</div>"
         + "<div class='entrybody'>" 
         + "<div class='entrycontainer'/>"
@@ -242,6 +242,8 @@ function update_outer_entry(entrydoc, revdoc, newelt)
     var date = new Date(revdoc.date + "Z"); 
 
     $("span.lasteditdate", newelt).removeAttr("data-timestamp").html(date.toLocaleString()).cuteTime(); 
+    $("img.avatar", newelt).attr("src", "/api/user/" + revdoc.author + "/avatar/48"); 
+
     
 }
 
