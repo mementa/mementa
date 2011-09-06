@@ -291,8 +291,6 @@ def db_get_entry(id):
 app.secret_key = 'A0Zr98j/3kdshfkdsajhfasdkj239r12nc-95h1pi34r1143yX R~XHH!jmN]LWX/,?RT'
 
 
-
-
 # @app.route('/entry/<entryid>', methods=['GET', 'POST'])
 # @login_required
 # def save_entry(entryid):
@@ -539,7 +537,8 @@ def api_page_mutate(page_entryid):
     author = dbref("users", session["user_id"])
 
     new_page_doc.update(dm.revision_create(author,
-                                           parent=old_rev_id))
+                                           parent=old_rev_id,
+                                           archived = submitted_doc['archived']))
             
     new_page_doc_oid = g.db.revisions.insert(new_page_doc, safe=True)
 
@@ -738,6 +737,18 @@ def list_entries_query(req):
         elif req['class'] == 'text':
             query['class'] = "text"
 
+    if 'archived' in req:
+        # three values: yes, no, all
+        if req['archived'] == 'all':
+            pass
+        elif req['archived'] == 'yes':
+            query['revdoc.archived'] = True
+        elif req['archived'] == 'no':
+            query['revdoc.archived'] = False
+    else:
+        query['revdoc.archived'] = False
+        
+    
     limit = 100
     if 'limit' in req:
         limit = int(req['limit'])

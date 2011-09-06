@@ -201,7 +201,7 @@ function create_entry_view_div(entptr)
         + "<div class='entrycontrol'>"
         + "<span class='lasteditdate'> 42 minutes ago </span> &nbsp;&nbsp;&nbsp; "
         + "<span class='state-view'> <a href='#' class='entry-edit-click'>edit</a>" 
-        + " &nbsp; &nbsp; &nbsp; <a href='#' class='entry-remove-click'>remove</a> </span>"
+        + " &nbsp; &nbsp; &nbsp; <a href='#' class='entry-remove-click'>remove</a> &nbsp; &nbsp; &nbsp; <a href='#' class='entry-archive-click'>archive</a>    </span>"
         + " <span class='state-edit'><button class='entry-save-click state-edit btn'>Save </button>"
         + " <button class='entry-cancel-click state-edit btn'>Cancel </button> </span>"
         + "</div>"
@@ -306,6 +306,18 @@ function change_page_title(page_rev_doc, newtitle)
 
 }
 
+function change_page_archive(page_rev_doc, archive)
+{
+    
+    // deep copy? 
+    
+    var newobj = $.extend(true, {}, page_rev_doc);
+    newobj.archived = archive; 
+
+    return newobj; 
+
+}
+
 $(document).ready(
     function () {
 
@@ -330,6 +342,17 @@ $(document).ready(
                                            $("#entries"), 
                                            create_entry_view_div); 
                              
+                             if(new_rev.archived) {
+                                 console.log("ARCHIVED"); 
+                                 $("#archive_status").show(); 
+                                 $("#page_archive_toggle").html("unarchive"); 
+                             } else {
+                                 console.log("NOT ARCHIVED"); 
+                                 
+                                 $("#archive_status").hide(); 
+                                 $("#page_archive_toggle").html("archive"); 
+
+                             }
                              
                          }); 
 
@@ -488,9 +511,12 @@ $(document).ready(
         $("#pagetitle").hover(function(e) {
 
                                   $("#editpagetitle").addClass("hovertargetvisible");
+                                  $("#page_archive_toggle").addClass("hovertargetvisible");
+
                               }, 
                               function(e) { 
                                   $("#editpagetitle").removeClass("hovertargetvisible");
+                                  $("#page_archive_toggle").removeClass("hovertargetvisible");
                               });
 
 
@@ -548,6 +574,51 @@ $(document).ready(
                       return false; 
                    }); 
         
+        $("#page_archive_toggle")
+            .click(function(e) {
+                       var current_page_docs = get_current_page_docs(); 
+                       
+                       var new_page_rev; 
+                       if($("#page_archive_toggle").html() === "unarchive") {
+                           console.log("unarchiving"); 
+                           new_page_rev = 
+                               change_page_archive(current_page_docs.rev, 
+                                                   false); 
+                       } else {
+                           console.log("Creating archive update"); 
+                           new_page_rev = 
+                               change_page_archive(current_page_docs.rev, 
+                                                   true); 
+                       }
+                       console.log(new_page_rev.archived)
+
+
+                      $.ajax({'type' : "POST", 
+                              'url' : "/api/page/" + 
+                              current_page_docs.entry._id,
+                              contentType:"application/json",
+                              dataType : "json", 
+                              data : JSON.stringify(
+                                  {old_rev_id : current_page_docs.rev._id, 
+                                   doc: new_page_rev}), 
+                              success: 
+                              function(resp) {
+                                  var latest_page_revision_doc = 
+                                      resp.latest_page_revision_doc; 
+                                  var entry = get_current_page_docs().entry; 
+                                  entry.head = latest_page_revision_doc._id; 
+                                  
+                                  update_page_docs(entry, 
+                                                   latest_page_revision_doc); 
+                                 console.log("page status updated");  
+                              }, 
+                             }); 
+                      
+                      
+                      return false; 
+                   }); 
+
+
     });
 
 

@@ -36,7 +36,7 @@ def user_create(username, password, name=None, email=None,
             'avatar' : avatar}
 
     
-def revision_create(author, date= None, parent=None):
+def revision_create(author, date= None, parent=None, archived=False):
     """
     do smart things with date, parent, author 
 
@@ -56,7 +56,8 @@ def revision_create(author, date= None, parent=None):
         
     return {'author' : author,
             'parent' : parent,
-            'date' : date}
+            'date' : date,
+            'archived' : archived}
 
 def entry_create(head, dclass, revdoc):
     """
