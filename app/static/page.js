@@ -198,10 +198,10 @@ function create_entry_view_div(entptr)
         + "<div class='entrybody'>" 
         + "<div class='entrycontainer'/>"
     
-        + "<div class='entrycontrol'>"
-        + "<span class='lasteditdate'> 42 minutes ago </span> &nbsp;&nbsp;&nbsp; "
+        + "<div class='entrycontrol hovertarget'>"
+        + "<span class='lasteditdate'> 42 minutes ago </span> <span class='status'/> &nbsp;&nbsp;&nbsp; "
         + "<span class='state-view'> <a href='#' class='entry-edit-click'>edit</a>" 
-        + " &nbsp; &nbsp; &nbsp; <a href='#' class='entry-remove-click'>remove</a> &nbsp; &nbsp; &nbsp; <a href='#' class='entry-archive-click'>archive</a>    </span>"
+        + " &nbsp; &nbsp; &nbsp; <a href='#' class='entry-remove-click'>remove</a> &nbsp; &nbsp; &nbsp; <a href='#' class='entry-archive-click'>archive</a> &nbsp; &nbsp; &nbsp; <a href='#' class='entry-hide-click'>hide</a>    </span>"
         + " <span class='state-edit'><button class='entry-save-click state-edit btn'>Save </button>"
         + " <button class='entry-cancel-click state-edit btn'>Cancel </button> </span>"
         + "</div>"
@@ -212,14 +212,48 @@ function create_entry_view_div(entptr)
 
     $(newelt).attr("entryid", entptr.entry); 
     $(".state-edit", newelt).hide(); 
-
     if (entptr.hidden) {
-        $(newelt).addClass("hidden"); 
+        $(".entry-hide-click", newelt).html("unhide"); 
+        $(".status", newelt).html("hidden"); 
+        $(newelt).attr("page-hidden", true); 
+
+        if($(document).data("show_hidden_entries")) {
+        } else {
+
+            $(newelt).addClass("entry-hidden");
+        }
+
+    } else {
+        $(".entry-hide-click", newelt).html("hide"); 
+        
+
     }
     
+
     if (entptr.rev) {
         $(newelt).attr("rev", entptr.rev); 
     }
+
+    // this is here instead of simply being a live selector on .entry
+    // because hoverintent doesn't support live
+
+    $(newelt)
+        .hoverIntent(function(e) {
+                         $(".entrycontrol", this)
+                             .hide().css({visibility: "visible"})
+                             .fadeIn("fast");                             
+
+                         
+                     }, 
+                     function(e) { 
+                         $(".entrycontrol", this)
+                             .fadeOut("fast", 
+                                      function() {
+                                          $(this).show()
+                                              .css({visibility: "hidden"});
+                                      });
+                     }); 
+    
 
     
     $.getJSON("/api/entry/" + entptr.entry, 
@@ -243,7 +277,6 @@ function update_outer_entry(entrydoc, revdoc, newelt)
 
     $("span.lasteditdate", newelt).removeAttr("data-timestamp").html(date.toLocaleString()).cuteTime(); 
     $("img.avatar", newelt).attr("src", "/api/user/" + revdoc.author + "/avatar/48"); 
-
     
 }
 
@@ -294,6 +327,26 @@ function remove_entry_from_page(page_rev_doc, position)
 
 }
 
+function toggle_hide_entry_on_page(page_rev_doc, position)
+{
+    
+    // deep copy? 
+    
+    var newobj = $.extend(true, {}, page_rev_doc);
+    console.log("Setting doc pos=" + position + " to " + !newobj.entries[position].hidden);
+
+    if( newobj.entries[position].hidden) {
+        newobj.entries[position].hidden = false;         
+    } else {
+        newobj.entries[position].hidden = true;         
+
+    }
+
+
+    return newobj; 
+
+}
+
 function change_page_title(page_rev_doc, newtitle)
 {
     
@@ -321,6 +374,8 @@ function change_page_archive(page_rev_doc, archive)
 $(document).ready(
     function () {
 
+        $(document).data("show_hidden_entries", false); 
+
         $(document).bind('page-docs-update', 
                          function(event, old_entry, old_rev, 
                                   new_entry, new_rev)
@@ -337,17 +392,16 @@ $(document).ready(
                              if(old_rev) {
                               old_entries = old_rev.entries; 
                              }
+
                              render_simple(old_entries,
                                            new_rev.entries,
                                            $("#entries"), 
                                            create_entry_view_div); 
                              
                              if(new_rev.archived) {
-                                 console.log("ARCHIVED"); 
                                  $("#archive_status").show(); 
                                  $("#page_archive_toggle").html("unarchive"); 
                              } else {
-                                 console.log("NOT ARCHIVED"); 
                                  
                                  $("#archive_status").hide(); 
                                  $("#page_archive_toggle").html("archive"); 
@@ -387,6 +441,15 @@ $(document).ready(
                       save_entry_revision[entry_class](entry_div); 
                   }); 
 
+        $("div.entry a.entry-archive-click")
+            .live('click', function() {
+                      var entry_div = $(this).closest("div.entry"); 
+                      var entry_class = $("div[entry_class]", entry_div ).attr("entry_class"); 
+                      save_entry_revision[entry_class](entry_div); 
+                  }); 
+
+
+
         $("div.entry button.entry-cancel-click")
             .live('click', function() {
                       var entry_div = $(this).closest("div.entry"); 
@@ -410,16 +473,25 @@ $(document).ready(
 
                               }})}); 
 
-        $("a.entry-remove-click")
+        $("a.entry-remove-click, a.entry-hide-click")
             .live('click', function() {
                       var spos = $(this).closest("div.entry").attr("entry-pos");
                       var pos = parseFloat(spos); 
 
                       var current_page_docs = get_current_page_docs(); 
+
+                      var new_page_rev; 
                       
-                      var new_page_rev = 
-                          remove_entry_from_page(current_page_docs.rev, pos); 
-                      
+                      if ($(this).hasClass("entry-remove-click")) {
+                          console.log("Removing entry" + pos); 
+                          new_page_rev = 
+                              remove_entry_from_page(current_page_docs.rev, pos);                            
+                      } else if ($(this).hasClass("entry-hide-click")) {
+                          console.log("hiding entry" + pos ); 
+                          new_page_rev = 
+                              toggle_hide_entry_on_page(current_page_docs.rev, pos); 
+                          console.log(new_page_rev); 
+                      }
 
 
                       $.ajax({'type' : "POST", 
@@ -509,14 +581,11 @@ $(document).ready(
         
 
         $("#pagetitle").hover(function(e) {
-
-                                  $("#editpagetitle").addClass("hovertargetvisible");
-                                  $("#page_archive_toggle").addClass("hovertargetvisible");
+                                  $("#page_title_edit_click").addClass("hovertargetvisible");
 
                               }, 
                               function(e) { 
-                                  $("#editpagetitle").removeClass("hovertargetvisible");
-                                  $("#page_archive_toggle").removeClass("hovertargetvisible");
+                                  $("#page_title_edit_click").removeClass("hovertargetvisible");
                               });
 
 
@@ -618,6 +687,22 @@ $(document).ready(
                       return false; 
                    }); 
 
+
+        
+        $("#showhidden").change(function(e) {
+                                    if($(this).attr('checked')) {
+                                        console.log("showing hidden entries"); 
+                                        $(document).data("show_hidden_entries", true); 
+                                        $("div.entry[page-hidden]").removeClass("entry-hidden");
+                                        
+                                    } else {
+                                        $(document).data("show_hidden_entries", false); 
+                                        $("div.entry[page-hidden]").addClass("entry-hidden"); 
+
+
+                                    }
+                                    
+                                }); 
 
     });
 

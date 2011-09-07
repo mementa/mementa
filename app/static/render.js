@@ -131,7 +131,8 @@ function compute_entry_diff(old_entries, new_entries)
 }
 
 function render_simple(old_entries, new_entries, targetdiv, 
-                       create_entry_view_div)
+                       create_entry_view_div,
+                       postfuncs)
 {
     /* Render the entries into the target div collection
      * 
@@ -197,13 +198,17 @@ function render_simple(old_entries, new_entries, targetdiv,
                     
                 case 'hide' :
                     if(entry.hidden) {
-                        $(elt).addClass("hidden");
+                        $(elt).attr("page-hidden", true);
+                        $(elt).addClass("entry-hidden"); 
                     }  else { 
-                        $(elt).removeClass("hidden");
+                        $(elt).removeAttr("page-hidden");
+                        $(elt).removeClass("entry-hidden"); 
                     }
                     
                     break; 
+
                 case 'pin': 
+                    // fixme what happens if pin comes in while editing
                     var newdiv = create_entry_view_div(entry); 
                     $(elt).replace(newdiv); 
                     break; 
