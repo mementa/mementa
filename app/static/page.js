@@ -27,15 +27,6 @@ function render_entry_view(entry_doc, revision_doc)
 
 
 
-var render_entry_rev_view =  {
-    'text' : function(doc) { 
-        return $.mustache("<h3>{{{title}}}</h3> "
-                          + "<div class='text-body'>{{{body}}}</div></div> ", doc); 
-        
-    }
-}
-
-
 function render_entry_edit(entry_doc, revision_doc)
 {
     /* return a div for this entry and revision */ 
@@ -134,6 +125,7 @@ var save_entry_revision = {
     
 
 }
+
 function set_entry_state(entrydom, editstate)
 {
     /*
@@ -374,8 +366,35 @@ function change_page_archive(page_rev_doc, archive)
 $(document).ready(
     function () {
 
-        $(document).data("show_hidden_entries", false); 
 
+
+        var op_response = {
+            create: function(entryptr) {
+                var entry_id = entryptr.entry; 
+                var hidden = entryptr.hidden; 
+                var pinnedrev = entryptr.rev; 
+                
+                return create_entry_div(entry_id, hidden, pinnedrev); 
+                
+            }, 
+            
+            remove: function(elt, entryptr) {
+                
+            },
+            
+            hide: function(elt, entryptr) {
+
+            }, 
+            
+            pin : function(elt, entryptr) { 
+
+
+            }
+            
+        }; 
+
+
+        
         $(document).bind('page-docs-update', 
                          function(event, old_entry, old_rev, 
                                   new_entry, new_rev)
@@ -384,9 +403,8 @@ $(document).ready(
                              $("#page_title_view").html(new_rev.title);
                              var date = new Date(new_rev.date + "Z"); 
 
-                             $("#page_date").removeAttr("data-timestamp").html(date.toLocaleString()).cuteTime(); 
+                             $("#page_date").removeAttr("data-timestamp").html(new_rev.date).cuteTime(); 
 
-                             
 
                              var old_entries = []
                              if(old_rev) {
@@ -398,316 +416,13 @@ $(document).ready(
                                            $("#entries"), 
                                            create_entry_view_div); 
                              
-                             if(new_rev.archived) {
-                                 $("#archive_status").show(); 
-                                 $("#page_archive_toggle").html("unarchive"); 
-                             } else {
-                                 
-                                 $("#archive_status").hide(); 
-                                 $("#page_archive_toggle").html("archive"); 
-
-                             }
-                             
                          }); 
 
 
         
         update_page_docs(init_page_entry, init_page_rev); 
-
-
-        $("#debuglink").click(function() 
-                              {
-                                  console.log(page_entries_canonical); 
-                                  return false; 
-                              }); 
-
-        // http://blog.mirthlab.com/2008/11/13/dynamically-adding-and-removing-tinymce-instances-to-a-page/
-        $("a.entry-edit-click")
-            .live('click', function() {
-                       
-                       var editobj = 
-                           $(this).closest("div.entry"); 
-
-                       set_entry_state(editobj, 'edit'); 
-                       
-                       
-                       return false;                       
-                   }); 
-
-        $("div.entry button.entry-save-click")
-            .live('click', function() {
-                      var entry_div = $(this).closest("div.entry"); 
-                      var entry_class = $("div[entry_class]", entry_div ).attr("entry_class"); 
-                      save_entry_revision[entry_class](entry_div); 
-                  }); 
-
-        $("div.entry a.entry-archive-click")
-            .live('click', function() {
-                      var entry_div = $(this).closest("div.entry"); 
-                      var entry_class = $("div[entry_class]", entry_div ).attr("entry_class"); 
-                      save_entry_revision[entry_class](entry_div); 
-                  }); 
-
-
-
-        $("div.entry button.entry-cancel-click")
-            .live('click', function() {
-                      var entry_div = $(this).closest("div.entry"); 
-                      set_entry_state(entry_div, 'view'); 
-                      
-                  }); 
-
-        $("#new_page").click(function() {
-                               // FIXME : check if edit state and possibly abort
-                      $.ajax({'type' : "POST", 
-                              'url' : "/api/page/new",
-                              contentType:"application/json",
-                              dataType : "json" , 
-                              data : JSON.stringify(
-                                  {  title : "New Page", 
-                                     entries: []
-                                      
-                                  }), 
-                              success : function(resp) {
-                                  window.location.replace("/page/" + resp.entry._id); 
-
-                              }})}); 
-
-        $("a.entry-remove-click, a.entry-hide-click")
-            .live('click', function() {
-                      var spos = $(this).closest("div.entry").attr("entry-pos");
-                      var pos = parseFloat(spos); 
-
-                      var current_page_docs = get_current_page_docs(); 
-
-                      var new_page_rev; 
-                      
-                      if ($(this).hasClass("entry-remove-click")) {
-                          console.log("Removing entry" + pos); 
-                          new_page_rev = 
-                              remove_entry_from_page(current_page_docs.rev, pos);                            
-                      } else if ($(this).hasClass("entry-hide-click")) {
-                          console.log("hiding entry" + pos ); 
-                          new_page_rev = 
-                              toggle_hide_entry_on_page(current_page_docs.rev, pos); 
-                          console.log(new_page_rev); 
-                      }
-
-
-                      $.ajax({'type' : "POST", 
-                              'url' : "/api/page/" + 
-                              current_page_docs.entry._id,
-                              contentType:"application/json",
-                              dataType : "json", 
-                              data : JSON.stringify(
-                                  {old_rev_id : current_page_docs.rev._id, 
-                                   doc: new_page_rev}), 
-                              success: 
-                              function(resp) {
-                                  var latest_page_revision_doc = 
-                                      resp.latest_page_revision_doc; 
-                                  var entry = get_current_page_docs().entry; 
-                                  entry.head = latest_page_revision_doc._id; 
-                                  
-                                  update_page_docs(entry, 
-                                                   latest_page_revision_doc); 
-                                  
-                                  
-                              }, 
-                              }); 
-                      
-                      
-                      return false; 
-                  }
-                  
-                 );
-
-        $("#button_add_entry_text")
-            .click(function() {
-
-                       //create an empty doc and push it to the server
-                       $.ajax({type: 'POST', 
-                               url : "/api/entry/text/new", 
-                               data : JSON.stringify({'title' : "Dummy title", 
-                                                      'body' : "this is the body"}),
-                               success : 
-                               function(resp) {
-                                 // FIXME : add retry-loop
-                                 // fixme : abstract away page submission code
-                                   
-                                   
-                                   var entry_id = resp.entry._id; 
-                                   
-                                   var current_page_docs = get_current_page_docs(); 
-                                   
-                                   var new_page_rev = 
-                                       append_entry_to_page(current_page_docs.rev, entry_id); 
-                                 
-                                   
-
-                                   $.ajax({'type' : "POST", 
-                                           'url' : "/api/page/" + 
-                                           current_page_docs.entry._id,
-
-                                           data : JSON.stringify(
-                                               {old_rev_id : current_page_docs.rev._id, 
-                                                doc: new_page_rev}), 
-                                           success: 
-                                       function(resp) {
-                                            var latest_page_revision_doc = 
-                                               resp.latest_page_revision_doc; 
-                                           var entry = get_current_page_docs().entry; 
-                                           entry.head = latest_page_revision_doc._id; 
-
-                                           update_page_docs(entry, 
-                                                            latest_page_revision_doc); 
-
-                                           //update_global_page_rev(latest_page_revision_doc); 
-                                            // now we assume that the element we care about exists, has been created -- do something to it if you must
-
-                                           }, 
-                                           contentType:"application/json",
-                                           dataType : "json" }); 
-                                   
-        
-                               }, 
-                               contentType:"application/json",
-                               dataType : "json" }); 
-                       
-                       return false; 
-                   }); 
-        
-        $.fn.cuteTime.settings.refresh = 10000;
         
 
-        $("#pagetitle").hover(function(e) {
-                                  $("#page_title_edit_click").addClass("hovertargetvisible");
-
-                              }, 
-                              function(e) { 
-                                  $("#page_title_edit_click").removeClass("hovertargetvisible");
-                              });
+}
 
 
-        $("#editpagetitle")
-            .click(function(e) {
-                       $("#pagetitle > .view").hide(); 
-                       $("#page_title_edit").html($("#page_title_view").html()); 
-                       $("#pagetitle > .edit").show();
-                       $("#page_title_edit").focus(); 
-                   });
-
-        $("#pagetitle > .edit").hide();
-
-        $("#page_title_cancel")
-            .click(function(e) {
-                       $("#pagetitle > .edit").hide();
-                       $("#pagetitle > .view").show(); 
-                   }); 
-
-        $("#page_title_save")
-            .click(function(e) {
-                       var current_page_docs = get_current_page_docs(); 
-                       
-                       var new_page_rev = 
-                           change_page_title(current_page_docs.rev, 
-                                             $("#page_title_edit").html()); 
-
-
-                      $.ajax({'type' : "POST", 
-                              'url' : "/api/page/" + 
-                              current_page_docs.entry._id,
-                              contentType:"application/json",
-                              dataType : "json", 
-                              data : JSON.stringify(
-                                  {old_rev_id : current_page_docs.rev._id, 
-                                   doc: new_page_rev}), 
-                              success: 
-                              function(resp) {
-                                  var latest_page_revision_doc = 
-                                      resp.latest_page_revision_doc; 
-                                  var entry = get_current_page_docs().entry; 
-                                  entry.head = latest_page_revision_doc._id; 
-                                  
-                                  update_page_docs(entry, 
-                                                   latest_page_revision_doc); 
-                                  
-                                  
-                                  $("#pagetitle > .edit").hide();
-                                  $("#pagetitle > .view").show(); 
-
-                              }, 
-                             }); 
-                      
-                      
-                      return false; 
-                   }); 
-        
-        $("#page_archive_toggle")
-            .click(function(e) {
-                       var current_page_docs = get_current_page_docs(); 
-                       
-                       var new_page_rev; 
-                       if($("#page_archive_toggle").html() === "unarchive") {
-                           console.log("unarchiving"); 
-                           new_page_rev = 
-                               change_page_archive(current_page_docs.rev, 
-                                                   false); 
-                       } else {
-                           console.log("Creating archive update"); 
-                           new_page_rev = 
-                               change_page_archive(current_page_docs.rev, 
-                                                   true); 
-                       }
-                       console.log(new_page_rev.archived)
-
-
-                      $.ajax({'type' : "POST", 
-                              'url' : "/api/page/" + 
-                              current_page_docs.entry._id,
-                              contentType:"application/json",
-                              dataType : "json", 
-                              data : JSON.stringify(
-                                  {old_rev_id : current_page_docs.rev._id, 
-                                   doc: new_page_rev}), 
-                              success: 
-                              function(resp) {
-                                  var latest_page_revision_doc = 
-                                      resp.latest_page_revision_doc; 
-                                  var entry = get_current_page_docs().entry; 
-                                  entry.head = latest_page_revision_doc._id; 
-                                  
-                                  update_page_docs(entry, 
-                                                   latest_page_revision_doc); 
-                                 console.log("page status updated");  
-                              }, 
-                             }); 
-                      
-                      
-                      return false; 
-                   }); 
-
-
-        
-        $("#showhidden").change(function(e) {
-                                    if($(this).attr('checked')) {
-                                        console.log("showing hidden entries"); 
-                                        $(document).data("show_hidden_entries", true); 
-                                        $("div.entry[page-hidden]").removeClass("entry-hidden");
-                                        
-                                    } else {
-                                        $(document).data("show_hidden_entries", false); 
-                                        $("div.entry[page-hidden]").addClass("entry-hidden"); 
-
-
-                                    }
-                                    
-                                }); 
-
-    });
-
-
-tinyMCE.init({
-        // General options
-        mode : "none",
-        theme : "simple"}); 

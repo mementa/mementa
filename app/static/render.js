@@ -131,8 +131,7 @@ function compute_entry_diff(old_entries, new_entries)
 }
 
 function render_simple(old_entries, new_entries, targetdiv, 
-                       create_entry_view_div,
-                       postfuncs)
+                       opfuncs) 
 {
     /* Render the entries into the target div collection
      * 
@@ -169,53 +168,49 @@ function render_simple(old_entries, new_entries, targetdiv,
                 var action = op[0]; 
                 var pos = op[1]; 
                 var entry = op[2]; 
-                var elt = $(".active", targetdiv).eq(pos); 
+                var elt = $(".page-active", targetdiv).eq(pos); 
 
                 switch(action) {
                 case 'add': 
 
-                    var newdiv = create_entry_view_div(entry); 
+                    var newdiv = opfuncs.create(entryptr); 
                     if($(elt).length === 0) {
                         $(targetdiv).append(newdiv); 
                     } else {
                         $(elt).before(newdiv);
                     }
 
-                    $(newdiv).addClass("active"); 
-                    $(newdiv).attr('state', 'view'); 
-
+                    $(newdiv).addClass("page-active"); 
+                    
                     break; 
 
                 case 'remove':
+                    opfuncs.remove(elt, entry); 
 
-                    if(elt.attr('state') === 'edit') {
-                        $(elt).removeClass("active"); 
-                    } else {
+                    if((get_state(elt) === 'none') ||
+                        (get_state(elt) === 'view'))
+                    {
                         $(elt).remove();    
+
+                    } else {
+                        $(elt).removeClass("page-active"); 
                     }
 
                     break; 
                     
                 case 'hide' :
-                    if(entry.hidden) {
-                        $(elt).attr("page-hidden", true);
-                        $(elt).addClass("entry-hidden"); 
-                    }  else { 
-                        $(elt).removeAttr("page-hidden");
-                        $(elt).removeClass("entry-hidden"); 
-                    }
-                    
+                    opfuncs.hide(elt, entry); 
+
                     break; 
 
                 case 'pin': 
-                    // fixme what happens if pin comes in while editing
-                    var newdiv = create_entry_view_div(entry); 
-                    $(elt).replace(newdiv); 
+                    opfuncs.pin(elt, entry); 
+
                     break; 
 
                 }
             }); 
-    $(targetdiv).children().each(
+    $("div.entry.page-active", targetdiv).children().each(
         function(index, elt) {
             $(elt).attr("entry-pos", index); 
         }); 

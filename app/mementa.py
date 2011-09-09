@@ -841,5 +841,13 @@ def page_new():
     return redirect("/page/%s" % entid)
 
 
+
+@app.route('/fsmtest')
+@login_required
+def fsmtest():
+    return render_template("fsmtest.html",
+                           session = session)
+
+
 if __name__ == '__main__':
     app.run()

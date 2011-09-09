@@ -1,0 +1,32 @@
+{% extends "mementa.html" %}
+
+{% block javascript_includes %}
+
+<script type="text/javascript" src="/static/vendor/jquery.blockUI.js">
+</script>    
+
+<script type="text/javascript" src="/static/fsm.js"></script>    
+<script type="text/javascript" src="/static/support.js"></script>    
+<script type="text/javascript" src="/static/fsmtest.js"> </script>
+<script type="text/javascript" src="/static/rendering.js"> </script>
+
+{% endblock %}
+
+{% block bodywithtoolbar %}
+
+<div id="entries"> 
+
+</div> 
+
+<button id="creatediv" class='btn'> Create Div and set to none </button> <br/>
+
+<button id="none_to_view" class='btn'> Change state from none to view </button> <br/>
+<button id="view_to_pagepending_hide" class='btn'> attempt to hide div </button> <br/>
+
+Update buttons:
+
+<button id="page_update_entry">page update entry </id>
+
+
+
+{% endblock %}
