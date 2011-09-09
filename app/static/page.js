@@ -7,14 +7,6 @@
  * 
  */
 
-var uuid_pos = 0; 
-function generate_uuid()
-{
-    var x = uuid_pos; 
-    uuid_pos ++; 
-    return x; 
-}
-
 function render_entry_view(entry_doc, revision_doc)
 {
     /* return a div for this entry and revision */ 

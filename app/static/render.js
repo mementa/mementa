@@ -173,7 +173,7 @@ function render_simple(old_entries, new_entries, targetdiv,
                 switch(action) {
                 case 'add': 
 
-                    var newdiv = opfuncs.create(entryptr); 
+                    var newdiv = opfuncs.add(entry); 
                     if($(elt).length === 0) {
                         $(targetdiv).append(newdiv); 
                     } else {
@@ -210,6 +210,7 @@ function render_simple(old_entries, new_entries, targetdiv,
 
                 }
             }); 
+
     $("div.entry.page-active", targetdiv).children().each(
         function(index, elt) {
             $(elt).attr("entry-pos", index); 
