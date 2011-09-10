@@ -50,7 +50,7 @@ var datagen = {
             _id : "entry" + generate_seq_uuid(), 
             'head' : revdoc._id, 
             'class' : revdoc['class'], 
-            'revdoc' : $.extend({}, revdoc)
+            'revdoc' : $.extend(true, {}, revdoc)
             
         }; 
     },
@@ -75,7 +75,7 @@ var datagen = {
                                    var tr = 
                                        datagen.text_entry_revision_create("title" + id, 
                                                                   "This is the body for " + id); 
-                                   var rtr = $.extend(tr, 
+                                   var rtr = $.extend(true, tr, 
                                                        datagen.revision_create("eric", {})); 
                                    var e = datagen.entry_create(rtr); 
                                    docs[rtr._id] = rtr; 
@@ -86,7 +86,7 @@ var datagen = {
         var etptrs = datagen.to_page_entries(entry_revs); 
 
         var pe  = datagen.page_entry_revision_create("test page", etptrs); 
-        var rpe = $.extend(pe, datagen.revision_create("eric", {})); 
+        var rpe = $.extend(true, pe, datagen.revision_create("eric", {})); 
         docs[rpe._id] = rpe; 
         var page_entry = datagen.entry_create(rpe); 
         docs[page_entry._id] = page_entry; 
@@ -94,7 +94,17 @@ var datagen = {
                  docs : docs}; 
 
 
+    }, 
+
+    refresh_rev : function(orig) {
+        var newrev = $.extend(true, {}, orig); 
+        newrev._id = generate_seq_uuid(); 
+        newrev.date = ISODateString(new Date()); 
+        newrev.parent = orig._id; 
+        return newrev; 
     }
+    
+    
 }; 
 
 function ServerMock(associatedDOM) {
@@ -220,6 +230,11 @@ function ServerMock(associatedDOM) {
                 
             }
         }
+    }; 
+
+    this.outOfBandPageUpdate  = function(newrev) { 
+        $(this.dom).trigger('page-rev-update', newrev); 
+        
     }; 
     
 }; 

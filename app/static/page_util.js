@@ -28,8 +28,17 @@ function generate_seq_uuid()
     return x.toString(); 
 }
 
-function get_state(elt)
+function get_state(entrydiv)
 {
-    return $(elt).attr("state"); 
-
+    return get_entry_config(entrydiv)['state']; 
 }
+
+function get_entry_config(entrydiv) {
+    is_entry(entrydiv); 
+
+    return {'entryid' : $(entrydiv).attr("entryid"), 
+            // other stuff should be extracted here
+           state: $(entrydiv).attr("state") 
+           }; 
+}
+

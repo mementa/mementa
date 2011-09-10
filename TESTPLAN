@@ -1,0 +1,47 @@
+Okay, for the page-editing code, the test plan here is going to be
+pretty awesome. In particular, we want to be able to simulate and
+script all possible manner of user interactions. Since the interface
+is entirely asynchronous, 
+
+External modules: 
+
+"The thing that dispatches updates about entry values" 
+"The thing that dispatches page deltas, creating andsorting entry divs" 
+
+"The central thing that pretends its an ajax server" 
+
+
+
+DocDB: The query interface to all document requests. If you want an
+entry or a revision, ask through this inteface. This will be cached,
+possibly using client-side storage. All queries return promises. 
+
+Server: The interface to remote state, which does the following: 
+
+server.create_new_entry(class, info)
+server.page_new()
+server.page_update()
+server.entry_update()
+server.get_entry() 
+server.get_rev()   
+
+The latter two are direct methods to query for an entry or a rev, and should not
+in general be used by client-side code
+
+The server emits two classes of events: 
+page-update
+entry-update
+
+note there is no rev updates since revs are constant
+
+Server(domnode) 
+
+then to bind to the events, ust do 
+$(server_dom).bind
+
+Tests I want to run
+==================================
+1. Can we create a bunch of divs and set them to view? 
+2. Test page-view-update logic, all still in view
+3. test entry-rev-update logic, all still in view
+

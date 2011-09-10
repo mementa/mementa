@@ -1,0 +1,19 @@
+This is our new attempt to substantially clean up the entry interface
+and simultaneous-update code. it's become clear that we can no longer hide
+our heads in the sand with respect to asynchronous updates. 
+
+
+Each page consists of zero or more entries. A page is a canonical
+list of pointers to entries as follows:
+
+entry { 
+     head : [link to entry]
+     hidden : [is this entry by default displayed on the page]
+     rev: [link to specific rev, if this entry is pinned]
+}
+
+Note that whether or not an entry is hidden or is pinned is a property
+of the page.
+
+
+

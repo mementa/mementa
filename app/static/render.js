@@ -161,7 +161,7 @@ function render_simple(old_entries, new_entries, targetdiv,
 //    assert(old_entries_length === targetdiv.children().length); 
     
     var entry_diff = compute_entry_diff(old_entries, new_entries); 
-
+    console.log("the diff is", entry_diff); 
     // go through and perform the delta operations
 
      _.each(entry_diff, function(op) {
@@ -169,7 +169,7 @@ function render_simple(old_entries, new_entries, targetdiv,
                 var pos = op[1]; 
                 var entry = op[2]; 
                 var elt = $(".page-active", targetdiv).eq(pos); 
-
+                console.log("page action: op=", action); 
                 switch(action) {
                 case 'add': 
 
@@ -193,6 +193,7 @@ function render_simple(old_entries, new_entries, targetdiv,
                         $(elt).remove();    
 
                     } else {
+                        console.log("removing class page-active"); 
                         $(elt).removeClass("page-active"); 
                     }
 

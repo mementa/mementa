@@ -26,22 +26,6 @@ function is_entry(entrydiv)
 
 }
 
-function get_state(entrydiv)
-{
-    return get_entry_config(entrydiv)['state']; 
-}
-
-function get_entry_config(entrydiv) {
-    is_entry(entrydiv); 
-
-    return {'entryid' : $(entrydiv).attr("entryid"), 
-            // other stuff should be extracted here
-           state: $(entrydiv).attr("state") 
-           }; 
-}
-
-
-
 
 function create_entry_div(entryid, hidden, pinnedrev)
 {
@@ -58,22 +42,86 @@ function create_entry_div(entryid, hidden, pinnedrev)
     
 }
 
-function opfuncs() {
+function create_entrydiv_body(rev_doc) {
+    var class_content = 
+        render.entry_rev_view[rev_doc['class']](rev_doc); 
+    
+    // update author information
+    var entrydiv_body = $("<div class='entry-body'><div class='class-content'></div></div>"); 
+    
+    $(".class-content", entrydiv_body).append(class_content); 
+    
+    return entrydiv_body; 
+
+
+}
+
+function opfuncs(docdb) {
+    this.docdb = docdb; 
+
     this.add = function(entryptr) { 
         return create_entry_div(entryptr.entry, entryptr.hidden, 
                                entryptr.rev); 
     }; 
 
     this.remove = function(entrydiv, entryptr) {
+        console.log("opfuncs:remove") ; 
         
 
     }; 
     
     this.hide = function(entrydiv, entryptr) { 
+        if(entryptr.hidden) {
+            $(entrydiv).addClass("hidden");              
+        } else {
+            $(entrydiv).removeClass("hidden");              
+
+        }
+
 
     }; 
 
     this.pin = function(entrydiv, entryptr) { 
+        /* 
+         * This entry is undergoing a pinned transition -- either to a rev, 
+         * or having the pinning removed. 
+         * 
+         */
+
+        console.log("opfuncs:pin") ; 
+
+        if(get_state(entrydiv) == 'none')
+        {
+            if(entryptr.rev) {
+                
+                $(entrydiv).attr("pinned", entryptr.rev); 
+            }  else {
+                $(entrydiv).removeAttr("pinned"); 
+            }
+            
+        } else if (get_state(entrydiv) == "view") {
+             
+            if(entryptr.rev) {
+                // Adding pinning
+                var pinned_rev_id = entryptr.rev; 
+                var result = this.docdb.getRev(pinned_rev_id); 
+                result.done(function(revdoc) {
+                                var body = create_entrydiv_body(revdoc); 
+                                $(entrydiv).html(body);
+                                console.log("Done pinning"); 
+                            }); 
+                
+                $(entrydiv).addClass("pinned");              
+                
+            } else {
+                console.log("FIXME: have not implemented unpinning"); 
+                $(entrydiv).removeClass("pinned");              
+                
+                
+            }
+        } else {
+            console.log("Pin updates not present for other states yet"); 
+        }
 
 
     }; 
@@ -100,6 +148,7 @@ function state_none_to_view(entrydiv, docdb, hidden, pinned)
     var entry_doc = {}; 
 
     if (pinned) {
+        console.log("holy crap. this is pinned, pinned=", pinned); 
         entry_doc['head'] = pinned; 
     } else {
         var entry_doc = docdb.getEntry(entry_id); 
@@ -111,14 +160,9 @@ function state_none_to_view(entrydiv, docdb, hidden, pinned)
                            
                   $.when(docdb.getRev(rev_id))
                       .done(function(rev_doc) {
-              
-                                var class_content = 
-                                    render.entry_rev_view[rev_doc['class']](rev_doc); 
-                                
+
                                 // update author information
-                                var entrydiv_body = $("<div class='entry-body'><div class='class-content'></div></div>"); 
-                                
-                                $(".class-content", entrydiv_body).append(class_content); 
+                                var entrydiv_body = create_entrydiv_body(rev_doc); 
                                 
                                 $(entrydiv).append(entrydiv_body); 
                                 
