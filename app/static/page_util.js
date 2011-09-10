@@ -13,13 +13,18 @@ function ISODateString(d){
         + pad(d.getUTCDate())+'T'
         + pad(d.getUTCHours())+':'
         + pad(d.getUTCMinutes())+':'
-        + pad(d.getUTCSeconds())+'Z'}
+        + pad(d.getUTCSeconds())+'Z'}; 
+
 
 var uuid_seq_pos = 0; 
+
 function generate_seq_uuid()
 {
+
     var x = uuid_seq_pos; 
-    uuid_seq_pos ++; 
+
+    uuid_seq_pos++; 
+
     return x.toString(); 
 }
 

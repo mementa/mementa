@@ -1,5 +1,13 @@
 
 
+var render = {
+    entry_rev_view : { 
+        text: function(rev_doc) {
+            return $($.mustache("<div> <h2>{{title}}</h2> <div> {{body}} </div> "
+                                + "</div>", rev_doc)); 
+            }
+    }
+}
 
 function is_entry(entrydiv)
 {
@@ -20,17 +28,19 @@ function is_entry(entrydiv)
 
 function get_state(entrydiv)
 {
-    is_entry(entrydiv); 
-    return $(entrydiv).attr("state"); 
+    return get_entry_config(entrydiv)['state']; 
 }
 
 function get_entry_config(entrydiv) {
-    
+    is_entry(entrydiv); 
+
     return {'entryid' : $(entrydiv).attr("entryid"), 
             // other stuff should be extracted here
-            
+           state: $(entrydiv).attr("state") 
            }; 
 }
+
+
 
 
 function create_entry_div(entryid, hidden, pinnedrev)
@@ -48,9 +58,32 @@ function create_entry_div(entryid, hidden, pinnedrev)
     
 }
 
+function opfuncs() {
+    this.add = function(entryptr) { 
+        return create_entry_div(entryptr.entry, entryptr.hidden, 
+                               entryptr.rev); 
+    }; 
 
-function state_none_to_view(entrydiv, docdb, rev_id, hidden, pinned)
+    this.remove = function(entrydiv, entryptr) {
+        
+
+    }; 
+    
+    this.hide = function(entrydiv, entryptr) { 
+
+    }; 
+
+    this.pin = function(entrydiv, entryptr) { 
+
+
+    }; 
+    
+}; 
+
+
+function state_none_to_view(entrydiv, docdb, hidden, pinned)
 {
+
     /* transition: NONE->VIEW
      * 
      * Currently just blows away the contained div and does all the updates by
@@ -60,30 +93,47 @@ function state_none_to_view(entrydiv, docdb, rev_id, hidden, pinned)
     
     is_entry(entrydiv); 
 
+
     var entry_id = $(entrydiv).attr("entryid"); 
-    var entry_doc = docdb.get_entry(entry_id); 
-    var rev_doc = docdb.get_rev(rev_id); 
 
-    console.log("rev_doc=", rev_doc); 
     
-    var class_content = 
-        render.entry_rev_view_for_class[entry_doc['class']](rev_doc); 
+    var entry_doc = {}; 
 
-    // update author information
-    var entrydiv_body = $("<div class='entry-body'><div class='class-content'></div></div>"); 
-
-    $(".class-content", entrydiv_body).append(class_content); 
-    
-    $(entrydiv).append(entrydiv_body); 
-    
-    if(hidden) {
-        $(entrydiv).attr("hidden", '1'); 
+    if (pinned) {
+        entry_doc['head'] = pinned; 
+    } else {
+        var entry_doc = docdb.getEntry(entry_id); 
     }
     
-    if(pinned) { 
-        $(entrydiv).attr("pinned", rev_id); 
-    }
+    $.when(entry_doc)
+        .done(function(ed) {
+                 var rev_id = ed.head; 
+                           
+                  $.when(docdb.getRev(rev_id))
+                      .done(function(rev_doc) {
+              
+                                var class_content = 
+                                    render.entry_rev_view[rev_doc['class']](rev_doc); 
+                                
+                                // update author information
+                                var entrydiv_body = $("<div class='entry-body'><div class='class-content'></div></div>"); 
+                                
+                                $(".class-content", entrydiv_body).append(class_content); 
+                                
+                                $(entrydiv).append(entrydiv_body); 
+                                
+                                if(hidden) {
+                                    $(entrydiv).attr("hidden", '1'); 
+                                }
+                                
+                                if(pinned) { 
+                                    $(entrydiv).attr("pinned", rev_id); 
+                                }
+                                
+                                $(entrydiv).attr('state', 'view'); 
     
+                            }); 
+                  }); 
 }
 
 function state_view_to_pagepending(entrydiv, op, server)

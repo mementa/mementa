@@ -12,10 +12,9 @@ function DocumentDB(server) {
             result.resolve(this.cache[entryid]); 
             
         } else {
-            console.log("Getting entry"); 
+
             server.getEntry(entryid)
                 .done(function(doc)  {
-                          console.log("DONE", entryid, doc); 
                           cache[entryid] = doc; 
                           result.resolve(doc); 
                          })

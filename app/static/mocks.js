@@ -29,7 +29,7 @@ var datagen = {
             retdoc.parent = null; 
         }
 
-        retdoc._id = "rev" + uuid_seq_pos(); 
+        retdoc._id = "rev" + generate_seq_uuid(); 
 
         return retdoc; 
     },
@@ -47,9 +47,9 @@ var datagen = {
     entry_create: function(revdoc) 
     {
         return {
-            _id : "entry" + uuid_seq_pos(), 
+            _id : "entry" + generate_seq_uuid(), 
             'head' : revdoc._id, 
-            'class' : revdoc_['class'], 
+            'class' : revdoc['class'], 
             'revdoc' : $.extend({}, revdoc)
             
         }; 
@@ -57,7 +57,7 @@ var datagen = {
     
     // take an array of entries and create a page 'entries' field
     to_page_entries : function(ents) {
-        return $_.map(ents, function(e) { 
+        return _.map(ents, function(e) { 
                           return {'entry' : e._id, 
                                   'hidden' : false};}); 
         
@@ -73,22 +73,22 @@ var datagen = {
         var entry_revs = _.map(_.range(entrycount), 
                                function(id) { 
                                    var tr = 
-                                       text_entry_revision_create("title" + id, 
+                                       datagen.text_entry_revision_create("title" + id, 
                                                                   "This is the body for " + id); 
-                                   var rtr = $.extends(tr, 
-                                                       revision_create("eric")); 
-                                   var e = entry_create(rtr); 
+                                   var rtr = $.extend(tr, 
+                                                       datagen.revision_create("eric", {})); 
+                                   var e = datagen.entry_create(rtr); 
                                    docs[rtr._id] = rtr; 
                                    docs[e._id] = e; 
                                    return e; 
                                    }); 
 
-        var etptrs = to_page_entries(entry_revs); 
+        var etptrs = datagen.to_page_entries(entry_revs); 
 
-        var pe  = page_entry_revision_create("test page", etptrs); 
-        var rpe = $.extends(pe, revision_create("eric")); 
+        var pe  = datagen.page_entry_revision_create("test page", etptrs); 
+        var rpe = $.extend(pe, datagen.revision_create("eric", {})); 
         docs[rpe._id] = rpe; 
-        var page_entry = entry_create(rpe); 
+        var page_entry = datagen.entry_create(rpe); 
         docs[page_entry._id] = page_entry; 
         return { page_entry : page_entry, 
                  docs : docs}; 
@@ -162,7 +162,6 @@ function ServerMock(associatedDOM) {
     this.getEntry = function(entryid)
     {
         
-        console.log("entryid"); 
         var d = $.Deferred(); 
         
         this.queue.push({op: 'getEntry', 
@@ -190,14 +189,37 @@ function ServerMock(associatedDOM) {
         var cmd = this.queue.shift(); 
         var id = cmd['entryid']; 
         var d= cmd['deferred']; 
-        console.log("HERE"); 
+
         if(success) { 
-            console.log("resolving"); 
             d.resolve(doc); 
         } else {
             d.reject(); 
         }
         
+    }; 
+
+    this.processAll  = function(db) { 
+        // just successfully return all, straight from the dict 'db'
+
+        while(this.queue.length > 0) {
+            var cmd = this.queue.shift(); 
+            var op = cmd.op; 
+            switch(op) {
+            case 'getRev':
+                var id = cmd.revid; 
+                cmd.deferred.resolve(db[id]); 
+                break; 
+
+            case 'getEntry':
+                var id = cmd.entryid; 
+                cmd.deferred.resolve(db[id]); 
+                break; 
+                
+            default: 
+                console.log("WHAT THE HELL ARE WE DOING HERE"); 
+                
+            }
+        }
     }; 
     
 }; 
