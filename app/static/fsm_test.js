@@ -17,8 +17,8 @@ function validate_entries(entriesdiv, page_rev_doc, db)
     $("div.page-active", entriesdiv)
         .each(function(index, element) {
                   var ent = page_rev_doc.entries[index]; 
-                  same(get_entry_config(element), {state: 'view', 
-                                                    entryid : ent.entry}); 
+                  same(get_entry_config(element)['state'], 'view')
+                  same(get_entry_config(element)['entryid'], ent.entry); 
 
                   var entry_doc = db[ent.entry]; 
                   
@@ -45,9 +45,9 @@ function fsm_tests()
     test("create divs ", function() {
              var ENTRYN = 10; 
              var fakepage = datagen.create_fake_page(ENTRYN); 
-
+             
              var entriesdiv = $("<div id='entries'/>"); 
-
+             
              var server = new ServerMock(entriesdiv); 
 
              var docdb = new DocumentDB(server); 
@@ -78,23 +78,6 @@ function fsm_tests()
              validate_entries($(entriesdiv), fakepage.page_entry.revdoc, 
                              fakepage.docs) ;
 
-             // $(entriesdiv).children()
-             //     .each(function(index, element) {
-             //               equal(get_state(element), 'view'); 
-             //               // for each div, is the title text correct? 
-             //               var eptr = entries[index]; 
-             //               var entry_doc =  fakepage.docs[eptr.entry]; 
-             //               var revdoc = fakepage.docs[entry_doc.head]; 
-             //               var title = revdoc.title; 
-             //               equal($("H2", element).html(), title); 
-
-             //           }); 
-             
-             
-             
-
-
-             
          });     
 
 
@@ -194,6 +177,142 @@ function fsm_tests()
 
              
          });     
+    
 
+    module("Simple edit cycle", 
+           {setup : function() { 
+                var ENTRYN = 10; 
+                var fakepage = datagen.create_fake_page(ENTRYN); 
+                
+                var localdb = fakepage.docs; 
 
+                
+                var entriesdiv = $("<div id='entries'/>"); 
+                
+                var server = new ServerMock(entriesdiv); 
+                
+                var docdb = new DocumentDB(server); 
+                
+                var ofunc = new opfuncs(docdb); 
+                var page_doc_rev = fakepage.page_entry.revdoc; 
+                
+                var entries = page_doc_rev.entries; 
+                
+                render_simple([], entries, 
+                              entriesdiv, ofunc); 
+                
+                $(entriesdiv).data('page-rev', page_doc_rev); 
+                
+                // now the mutate callback
+                $(entriesdiv).bind('page-rev-update', function(event, doc) {
+                                       var oldpage = $(this).data('page-rev'); 
+                                       render_simple(oldpage.entries, 
+                                                     doc.entries, $(entriesdiv), ofunc); 
+                                       
+                                       
+                                       $(this).data('page-rev', doc); 
+                                       
+                                       
+                                   }); 
+
+                $(entriesdiv).bind('entry-rev-update', function(event, er) {
+                                       
+                                       docdb.update(er.entry); 
+                                       docdb.update(er.rev); 
+                                       
+                                   })
+                
+                // transition them to view
+                
+                $(entriesdiv).children()
+                    .each(function(index, element) {
+                              state_none_to_view(element, docdb, 
+                                                 entries[index].hidden, 
+                                                 entries[index].rev); 
+                              
+                          }); 
+                
+                server.processAll(localdb); 
+                
+                this.server = server; 
+                this.localdb = localdb; 
+                this.fakepage = fakepage; 
+                this.entriesdiv = entriesdiv; 
+                this.docdb = docdb; 
+                this.ofunc = ofunc; 
+
+            
+            }, 
+            teardown : function() {
+
+               
+           }}); 
+    
+    test("click state transition", function() {
+
+             setup_handlers(this.server, this.docdb, this.entriesdiv); 
+             var tgtn = 2; 
+             var tgtdiv = $(this.entriesdiv).children().eq(tgtn); 
+             dom_view_edit_click($("a.edit", tgtdiv), this.docdb); 
+             
+             equals(get_state(tgtdiv), 'edit'); 
+             
+             
+             }); 
+
+    test("click state transition, cancel", 
+         function() {
+             setup_handlers(this.server, this.docdb, this.entriesdiv); 
+             var tgtn = 2; 
+             var tgtdiv = $(this.entriesdiv).children().eq(tgtn); 
+             dom_view_edit_click($("a.edit", tgtdiv), this.docdb); 
+             
+             equals(get_state(tgtdiv), 'edit'); 
+             
+             dom_edit_cancel_click($("a.cancel", tgtdiv), this.docdb); 
+             
+             console.log("Checking"); 
+             equals(get_state(tgtdiv), 'view'); 
+             }); 
+
+    test("click state transition, cancel, with new entry rev", 
+         function() {
+             /* this should result in a new notice in the div
+              * 
+              * 
+              * 
+              */
+
+             setup_handlers(this.server, this.docdb, this.entriesdiv); 
+             var tgtn = 2; 
+             var tgtdiv = $(this.entriesdiv).children().eq(tgtn); 
+             dom_view_edit_click($("a.edit", tgtdiv), this.docdb); 
+             
+             equals(get_state(tgtdiv), 'edit'); 
+             
+             /* update the entry */ 
+
+             var ne1 = $.extend(true, datagen.text_entry_revision_create("new appended title", "appended body TestWord"), datagen.revision_create("eric", {})); 
+             this.docdb[ne1._id] = ne1; 
+             
+             var entryid = get_entry_config(tgtdiv)['entryid']; 
+             var entrydoc = this.localdb[entryid]; 
+
+             entrydoc['head'] = ne1._id; 
+             
+             this.server.outOfBandEntryUpdate(entrydoc, ne1); 
+
+             // now how do we tell the docdb of a new entry doc? 
+
+             dom_edit_cancel_click($("a.cancel", tgtdiv), this.docdb); 
+             
+             equals(get_state(tgtdiv), 'view'); 
+
+             check_notice(tgtdiv, 'info', "This is the latest version"); 
+
+             ok($(".body", tgtdiv).html().search("TestWord"), 
+                "Correctly rendered new revision text"); 
+
+             }); 
+   
 }

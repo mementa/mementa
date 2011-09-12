@@ -36,9 +36,59 @@ function get_state(entrydiv)
 function get_entry_config(entrydiv) {
     is_entry(entrydiv); 
 
-    return {'entryid' : $(entrydiv).attr("entryid"), 
-            // other stuff should be extracted here
-           state: $(entrydiv).attr("state") 
+    var r = {'entryid' : $(entrydiv).attr("entryid"), 
+             // other stuff should be extracted here
+             state: $(entrydiv).attr("state") 
            }; 
+
+    if($(entrydiv).attr("revid")) {
+        r['revid'] = $(entrydiv).attr("revid"); 
+    }
+     
+    return r; 
 }
 
+function assert_state(entrydiv, state)
+{
+    if(get_state(entrydiv) != state) {
+        console.log("Div", entrydiv, "is not in state", state);         
+    }
+
+
+}
+
+function save_entry_config(entrydiv)
+{
+    $(entrydiv).data("saved-config", get_entry_config(entrydiv)); 
+}
+
+function get_saved_entry_config(entrydiv) {
+    return $(entrydiv).data("saved-config"); 
+
+}
+
+function check_notice(tgtdiv, level, message) {
+    /* check that this div has a notice of the appropriate level containing the text message
+     * 
+     * 
+     */
+    
+    var notices = $('div.notices > .notice', tgtdiv); 
+    ok(notices.length > 0, "At least one notice"); 
+    var atleastone = false; 
+    $(notices)
+        .each(function(index, elt) {
+                  atleastone |=  $(elt).html().search(message) && ($(elt).attr('level') === level); 
+              });
+    ok(atleastone, "notices contain string:" + message); 
+    
+}
+
+function config_page_delta(newconf, oldconf) {
+    // FIXME not impelmeented
+    
+    
+    return false; 
+
+
+}

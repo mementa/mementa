@@ -4,13 +4,11 @@ function DocumentDB(server) {
     this.cache = {}; 
     
     this.getEntry = function(entryid) {
-        
-        var cache = this.cache; 
 
+        var cache = this.cache; 
         var result = $.Deferred();         
         if(this.cache[entryid]) {
             result.resolve(this.cache[entryid]); 
-            
         } else {
 
             server.getEntry(entryid)
@@ -36,7 +34,7 @@ function DocumentDB(server) {
 
         var cache = this.cache; 
 
-        if(this.cache[revid]) {
+        if(cache[revid]) {
             result.resolve(this.cache[revid]); 
             
         } else {
@@ -54,6 +52,11 @@ function DocumentDB(server) {
         
         return result; 
         
+        
+    }; 
+
+    this.update = function(doc) {
+        this.cache[doc._id]  = doc; 
         
     }; 
     

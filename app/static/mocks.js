@@ -4,7 +4,7 @@ var datagen = {
     text_entry_revision_create:  function (title, body)
     {
         return {title : title, 
-                boyd : body, 
+                body : body, 
                 'class' : 'text'};
     }, 
     
@@ -234,6 +234,13 @@ function ServerMock(associatedDOM) {
 
     this.outOfBandPageUpdate  = function(newrev) { 
         $(this.dom).trigger('page-rev-update', newrev); 
+        
+    }; 
+
+    this.outOfBandEntryUpdate  = function(entry, newrev) { 
+
+        $(this.dom).trigger('entry-rev-update', {'entry' : entry, 
+                                                 'rev' : newrev}); 
         
     }; 
     
