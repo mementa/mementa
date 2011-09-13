@@ -164,6 +164,11 @@ function ServerMock(associatedDOM) {
                          doc : doc, 
                          deferred : d}); 
         
+        // fixme when this is a success, it should trigger a page update
+        // when it is a failure, it should trigger a page update
+        // basiclaly it should always trigger a page update
+
+
         return d; 
         
         
@@ -243,6 +248,17 @@ function ServerMock(associatedDOM) {
                                                  'rev' : newrev}); 
         
     }; 
+   
+    this.queueOp = function(div) {
+        this.queuedOps.push(div); 
+        
+    };
+    
+    this.processQueue = function() { 
+        // 
+
+
+    }
     
 }; 
 

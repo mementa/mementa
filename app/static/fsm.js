@@ -235,9 +235,24 @@ function state_edit_to_view(entrydiv, docdb)
     var current_config =  get_entry_config(entrydiv); 
     var saved_config = get_saved_entry_config(entrydiv); 
     
-    if (config_page_delta(current_config, saved_config) ) {
+    delete saved_config.state; 
+    delete current_config.state; 
+    console.log("current config:", current_config, 
+                "saved config:", saved_config); 
+    var delta = config_page_delta(current_config, saved_config); 
+    if (delta === {}) {
+
         // FIXME check what happens when there are page-updates
         // in the middle of this
+
+        // if removed, then don't transition back to edit, just transition to "none, have close of notification box remove the div from the list, 
+
+        // if pinned, reload the pinned version, post message
+        // if hidden, reload, post message
+
+        // if hidden, keep showing with message that, when closed, hides
+
+        
 
     } else {
 
@@ -272,6 +287,7 @@ function state_view_to_pagepending(entrydiv, op, server)
      */
 
     is_entry(entrydiv);     
+    
 
     // save current config
     var cur_config = get_entry_config(entrydiv); 
@@ -279,31 +295,62 @@ function state_view_to_pagepending(entrydiv, op, server)
     // mutate state 
     $(entrydiv).attr('state', "pagepending"); 
     $(entrydiv).attr("pendingop", op); 
-    $(entrydiv).data("oldconfig", cur_config); 
+    save_entry_config(entrydiv); 
 
     $(".entry-body", entrydiv).hide(); 
     $(entrydiv).append($("<div class='pending'> PENDING </div>")); 
-
-    // request op from server
-    server.pageop_notify(); 
-
+    
+    
 }
 
-function state_pagepending_to_view(entrydiv, is_success, error_messages)
+function state_pagepending_to_view(entrydiv, server)
 {
     /* transition : PAGEPENDING->VIEW
      *  
      * 
      */
     
-    // get current op
+    
     var pending_op = $(entrydiv).attr(pendingop); 
     
-    // if success, we assume the op delta is correct
+    var RETRIES = 5; 
+    function try_command(attempts_left) {
+        
+
+        if (attempts_left === 0) {
+            console.log("HOLY CRAP, IT DIDNT WORK AFTER 5 TRIES?"); 
+
+            return; 
+        }
+
+        // has the request been fulflled? 
+
+        
+        // first, does it still make sense to construct this request
+        
+        // if so, great, contruct the request; if not, error out
+
+        // submit the request
+
+        var submit = server.pageUpdate(entryid, doc); 
+        submit.done(function(foo) { 
+                        // this submission succeeded, 
+                        // which means our state should now be where we want it to be.          
+                        
+        });
+
+        submit.fail(function(foo) {
+                        // retry
+                        
+                        try_command(attempts_left -1 ); 
+
+                        }) ; 
+        
+        
+
+    }
     
-    // unblock UI
-    
-    // reflect new state, including possible remove
+    try_command(RETRIES); 
 
 }
 
@@ -343,6 +390,13 @@ function dom_view_edit_click(entrydom_link, docdb)
     
 }
 
+function dom_view_remove_click(entrydom_link,server)
+{
+    var entrydom = $(entrydom_link).closest(".entry"); 
+    state_view_to_pagepending(entrydom, 'remove'); 
+    
+}
+
 
 
 function dom_edit_cancel_click(entrydom_link, docdb)
@@ -366,7 +420,11 @@ function setup_handlers(server, docdb, entrydom)
 
               }); 
 
+    $("a.hide", entrydom)
+        .live("click", function(e) {
 
+              }); 
+    
 
 }
 

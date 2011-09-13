@@ -33,6 +33,14 @@ function get_state(entrydiv)
     return get_entry_config(entrydiv)['state']; 
 }
 
+function copy_attr(elt, attr, obj) {
+ // if attr defined, copy to obj    
+    if($(elt).attr(attr)) {
+        obj[attr] = $(elt).attr(attr); 
+    }
+
+}
+
 function get_entry_config(entrydiv) {
     is_entry(entrydiv); 
 
@@ -40,10 +48,12 @@ function get_entry_config(entrydiv) {
              // other stuff should be extracted here
              state: $(entrydiv).attr("state") 
            }; 
-
-    if($(entrydiv).attr("revid")) {
-        r['revid'] = $(entrydiv).attr("revid"); 
-    }
+    
+    copy_attr(entrydiv, 'revid', r); 
+    copy_attr(entrydiv, 'removed', r); 
+    copy_attr(entrydiv, 'pinned', r); 
+    copy_attr(entrydiv, 'hidden', r); 
+    copy_attr(entrydiv, 'page-active', r); 
      
     return r; 
 }
@@ -85,8 +95,25 @@ function check_notice(tgtdiv, level, message) {
 }
 
 function config_page_delta(newconf, oldconf) {
-    // FIXME not impelmeented
-    
+    /* 
+     * return the fields where new and old objects differ
+     * 
+     */
+
+    var outobj = {}; 
+    for(var key in newconf) {
+        if(newconf[key] !== oldconf[key]) {
+            outobj[key] = true; 
+        }
+    }
+
+    for(var key in oldconf) {
+        if(newconf[key] !== oldconf[key]) {
+            outobj[key] = true; 
+        }
+    }
+
+    return outobj; 
     
     return false; 
 

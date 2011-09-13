@@ -195,6 +195,7 @@ function render_simple(old_entries, new_entries, targetdiv,
                     } else {
                         console.log("removing class page-active"); 
                         $(elt).removeClass("page-active"); 
+                        $(elt).attr("removed", true); 
                     }
 
                     break; 
