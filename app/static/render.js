@@ -193,7 +193,6 @@ function render_simple(old_entries, new_entries, targetdiv,
                         $(elt).remove();    
 
                     } else {
-                        console.log("removing class page-active"); 
                         $(elt).removeClass("page-active"); 
                         $(elt).attr("removed", true); 
                     }
@@ -213,7 +212,7 @@ function render_simple(old_entries, new_entries, targetdiv,
                 }
             }); 
 
-    $("div.entry.page-active", targetdiv).children().each(
+    $("div.entry.page-active", targetdiv).each(
         function(index, elt) {
             $(elt).attr("entry-pos", index); 
         }); 

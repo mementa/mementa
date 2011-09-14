@@ -314,5 +314,182 @@ function fsm_tests()
                 "Correctly rendered new revision text"); 
 
              }); 
-   
+
+
+    module("PAGEPENDING state mutations", 
+           {setup : function() { 
+                var ENTRYN = 10; 
+                var fakepage = datagen.create_fake_page(ENTRYN); 
+                
+                var localdb = fakepage.docs; 
+
+                
+                var entriesdiv = $("<div id='entries'/>"); 
+                
+                var server = new ServerMock(entriesdiv); 
+                
+                var docdb = new DocumentDB(server); 
+                
+                var ofunc = new opfuncs(docdb); 
+                var page_doc_rev = fakepage.page_entry.revdoc; 
+
+                server.pageState.entry = fakepage.page_entry;
+                server.pageState.rev = fakepage.page_entry.revdoc; 
+
+                var entries = page_doc_rev.entries; 
+                
+                render_simple([], entries, 
+                              entriesdiv, ofunc); 
+                
+                $(entriesdiv).data('page-rev', page_doc_rev); 
+                
+                // now the mutate callback
+                $(entriesdiv).bind('page-rev-update', function(event, doc) {
+                                       var oldpage = $(this).data('page-rev'); 
+                                       
+                                       console.log("updating with new page doc", doc, "where old page doc=", oldpage);
+
+                                       
+                                       render_simple(oldpage.entries, 
+                                                     doc.entries, $(entriesdiv), ofunc); 
+                                       
+                                       
+                                       $(this).data('page-rev', doc); 
+                                       
+                                       
+                                   }); 
+
+                $(entriesdiv).bind('entry-rev-update', function(event, er) {
+                                       
+                                       docdb.update(er.entry); 
+                                       docdb.update(er.rev); 
+                                       
+                                   })
+                
+                // transition them to view
+                
+                $(entriesdiv).children()
+                    .each(function(index, element) {
+                              state_none_to_view(element, docdb, 
+                                                 entries[index].hidden, 
+                                                 entries[index].rev); 
+                              
+                          }); 
+                
+                server.processAll(localdb); 
+                
+                this.server = server; 
+                this.localdb = localdb; 
+                this.fakepage = fakepage; 
+                this.entriesdiv = entriesdiv; 
+                this.docdb = docdb; 
+                this.ofunc = ofunc; 
+
+            
+            }, 
+            teardown : function() {
+
+               
+            }}); 
+    
+    test("Simple remove test", function()
+         {
+             setup_handlers(this.server, this.docdb, this.entriesdiv); 
+             var tgtn = 2; 
+             var tgtdiv = $(this.entriesdiv).children().eq(tgtn); 
+
+             dom_view_remove_click($("a.edit", tgtdiv), this.server); 
+             
+             var sop = this.server.queue.pop(); 
+             equals(sop.op, 'page_update'); 
+             equals(sop.pageid, this.server.pageState.entry._id); 
+
+             equals(sop.doc.entries.length, 
+                    this.server.pageState.rev.entries.length -1); 
+             // assert properties of request
+             var updated_rev = datagen.refresh_rev(sop.doc);
+             var entry = this.localdb[sop.pageid]; 
+             entry.rev = updated_rev._id; 
+
+             this.localdb[updated_rev._id] = updated_rev; 
+             
+             /* update the entry */ 
+             sop.deferred.resolve(updated_rev); 
+             equal($(this.entriesdiv).children().length, 9); 
+             
+             
+         }); 
+
+    test("Simple pin test", function()
+         {
+             setup_handlers(this.server, this.docdb, this.entriesdiv); 
+             var tgtn = 5; 
+             var tgtdiv = $(this.entriesdiv).children().eq(tgtn); 
+             
+             // executing this requires us knowing what the pinned rev is
+             
+             var pinned_rev = $.extend(true, datagen.text_entry_revision_create("pinned version", "pinned body"), 
+                                       datagen.revision_create("eric", {})); 
+             
+             this.localdb[pinned_rev._id] = pinned_rev; 
+             dom_view_pin_click($("a.edit", tgtdiv), this.server, 
+                                this.docdb, pinned_rev._id); 
+             
+             var sop = this.server.queue.pop(); 
+             equals(sop.op, 'page_update'); 
+             equals(sop.pageid, this.server.pageState.entry._id); 
+             equals(sop.doc.entries[tgtn].rev, pinned_rev._id); 
+
+             // assert properties of request
+             var updated_rev = datagen.refresh_rev(sop.doc);
+             var entry = this.localdb[sop.pageid]; 
+             entry.rev = updated_rev._id; 
+
+             this.localdb[updated_rev._id] = updated_rev; 
+             
+             /* update the entry */ 
+             sop.deferred.resolve(updated_rev); 
+
+             // now get the doc query
+             this.server.processAll(this.localdb); 
+
+             equal($(tgtdiv).attr("pinned"), pinned_rev._id); 
+             equal($("H2", tgtdiv).html(), "pinned version"); 
+             
+             
+         }); 
+
+    test("Simple hide test, hide=true", function()
+         {
+             setup_handlers(this.server, this.docdb, this.entriesdiv); 
+             var tgtn = 6; 
+             var tgtdiv = $(this.entriesdiv).children().eq(tgtn); 
+             
+             // executing this requires us knowing what the pinned rev is
+             dom_view_hide_click($("a.edit", tgtdiv), this.server, 
+                                this.docdb); 
+             
+             var sop = this.server.queue.pop(); 
+             equals(sop.op, 'page_update'); 
+             equals(sop.pageid, this.server.pageState.entry._id); 
+             equals(sop.doc.entries[tgtn].hidden, true); 
+
+             // assert properties of request
+             var updated_rev = datagen.refresh_rev(sop.doc);
+             var entry = this.localdb[sop.pageid]; 
+             entry.rev = updated_rev._id; 
+
+             this.localdb[updated_rev._id] = updated_rev; 
+             
+             /* update the entry */ 
+             sop.deferred.resolve(updated_rev); 
+
+             // now get the doc query
+             this.server.processAll(this.localdb); 
+
+             ok($(tgtdiv).attr("hidden")); 
+             
+             
+         }); 
+
 }

@@ -54,3 +54,15 @@ To test:
 4. Edit save cycle
 3. test entry-rev-update logic, all still in view
 
+-----
+4. Simple test -- other page manipulations, but no contention
+4. Try and pin, but there's a remove. Check that the remove happens, and that
+the notification div is present
+5. Try and pin, but there's a hide. Check that there's a notification. [FIXME: still need to figure out this UI]
+6. Try and pin, and there's a different pin in the middle
+
+
+
+Other tests: 
+make sure revid is always correct
+make sure unpinning works

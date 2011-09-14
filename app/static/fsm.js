@@ -82,22 +82,26 @@ function create_entrydiv_body_edit(rev_doc) {
 
 function opfuncs(docdb) {
     this.docdb = docdb; 
-
+    // FIXME it's not clear how much updating actually happens here
+    // THIS IS MUDDLED, WHY ARE WE CREATING DIVS? 
     this.add = function(entryptr) { 
         return create_entry_div(entryptr.entry, entryptr.hidden, 
                                entryptr.rev); 
     }; 
 
     this.remove = function(entrydiv, entryptr) {
-        
+
+        $(entrydiv).attr("removed", true); 
 
     }; 
     
     this.hide = function(entrydiv, entryptr) { 
         if(entryptr.hidden) {
             $(entrydiv).addClass("hidden");              
+            $(entrydiv).attr("hidden", true); 
         } else {
             $(entrydiv).removeClass("hidden");              
+            $(entrydiv).removeAttr("hidden"); 
 
         }
 
@@ -133,7 +137,8 @@ function opfuncs(docdb) {
                                 $(entrydiv).attr("revid", revdoc._id); 
                             }); 
                 
-                $(entrydiv).addClass("pinned");              
+                $(entrydiv).addClass("pinned");
+                $(entrydiv).attr("pinned", revdoc._id); 
                 
             } else {
                 console.log("FIXME: have not implemented unpinning"); 
@@ -142,6 +147,21 @@ function opfuncs(docdb) {
                 
             }
         } else {
+            var pinned_rev_id = entryptr.rev; 
+
+            if(entryptr.rev) {
+
+                $(entrydiv).addClass("pinned");
+                $(entrydiv).attr("pinned", pinned_rev_id); 
+                $(entrydiv).attr("revid", pinned_rev_id); 
+            } else {
+                $(entrydiv).removeClass("pinned");
+                $(entrydiv).removeattr("pinned"); 
+                // FIXME : We should update the revid for real 
+                 
+            }
+
+
             console.log("Pin updates not present for other states yet"); 
         }
 
@@ -278,12 +298,14 @@ function state_edit_to_view(entrydiv, docdb)
     
 }
 
-function state_view_to_pagepending(entrydiv, op, server)
+function state_view_to_pagepending(entrydiv, op, server, docdb)
 {
     /* transition: VIEW->PAGEPENDING
      * 
-     * op: 'remove', 'hide', 'pin'
-     * 
+     * op: 
+     * {cmd : remove}
+     * {cmd : hidden, hidden: t/f}
+     * {cmd : pinned, pinned: rev (or undefined to unpin)}
      */
 
     is_entry(entrydiv);     
@@ -294,16 +316,25 @@ function state_view_to_pagepending(entrydiv, op, server)
 
     // mutate state 
     $(entrydiv).attr('state', "pagepending"); 
-    $(entrydiv).attr("pendingop", op); 
+    $(entrydiv).data("pendingop", op); 
     save_entry_config(entrydiv); 
 
     $(".entry-body", entrydiv).hide(); 
     $(entrydiv).append($("<div class='pending'> PENDING </div>")); 
     
+    // now we should actually execute the op
+    state_pagepending_to_view(entrydiv, server, docdb); 
     
 }
 
-function state_pagepending_to_view(entrydiv, server)
+function post_entry_message(entrydiv, level, message)
+{
+    var msg = $("<div class='alert-message'>" + message + "</div>");
+    $(msg).addClass(level); 
+    $(entrydiv).after(msg); 
+}
+
+function state_pagepending_to_view(entrydiv, server, docdb)
 {
     /* transition : PAGEPENDING->VIEW
      *  
@@ -311,8 +342,97 @@ function state_pagepending_to_view(entrydiv, server)
      */
     
     
-    var pending_op = $(entrydiv).attr(pendingop); 
+    var pending_op = $(entrydiv).data("pendingop"); 
     
+    function redraw_transition_update(div, knowndeltas) {
+        var entry_id = get_entry_config(entrydiv)['entryid']; 
+        var current_config =  get_entry_config(entrydiv); 
+        var saved_config = get_saved_entry_config(entrydiv); 
+        
+        
+        delete saved_config.state; 
+        delete current_config.state; 
+
+        var delta = config_page_delta(current_config, saved_config); 
+        console.log("redrawing", delta);
+        $.when(docdb.getEntry(entry_id)).done(
+            function(doc) {
+                var head_rev = doc.head; 
+                if(current_config.pinned) {
+                    head_rev = current_config.pinned; 
+                }
+
+                $.when(docdb.getRev(head_rev)).done( 
+                    function(rev_doc) {
+
+                        var entrydiv_body = create_entrydiv_body(rev_doc); 
+
+                        $(entrydiv).html(entrydiv_body); 
+                        $(entrydiv).attr("revid", rev_doc._id);
+
+                        $(entrydiv).attr('state', 'view'); 
+                    });
+                }); 
+        
+    }
+    
+
+    // this is the loop
+    function op_check() {
+        var current_config = get_entry_config(entrydiv); 
+        var old_config = get_saved_entry_config(entrydiv); 
+        
+        var config_delta = config_page_delta(current_config, old_config); 
+        console.log("op_check", current_config, config_delta); 
+        
+        if('removed' in current_config) {
+            // don't even need to check the delta, because hell, we're never going
+            // from removed to unremoved
+            if (pending_op.cmd == 'remove') {
+                // ok
+            } else {
+                // bugger, someone removed this on us! 
+                if(pending_op.cmd == 'pin') {
+                    post_entry_message(entrydiv, 'error', "Your attempt to pin was aborted by someone removing this entry from the page"); 
+                } else {
+                    post_entry_message(entrydiv, 'error', "Your attempt to hide was aborted by someone removing this entry from the page"); 
+                }
+            }
+            
+            $(entrydiv).remove(); 
+            return; 
+        } 
+
+        if(pending_op.cmd == 'hide') {
+            console.log("OP IS HIDE");
+            if(pending_op.hidden == true && ('hidden' in current_config)) {
+                // we wanted to hide and it's hidden! 
+                // if it's now pinned or unpinned, we dont' care
+                console.log("HIDING"); 
+                redraw_transition_update(entrydiv, {hidden: true}); 
+                
+            } else if(pending_op.hidden == false && !('hidden' in current_config)) {
+                // we wanted to unhide and have been successful! 
+                // if it's now pinned or unpinned, we don't care
+                console.log("UNHIDING"); 
+                redraw_transition_update(entrydiv, {hidden: true}); 
+            } else {
+                // we're still waiting for this to come through
+                
+            }
+        }
+        
+        if(pending_op.cmd == 'pin') {
+            if(current_config.pinned && current_config.pinned == pending_op.pinned) 
+            {
+                // FIXME make sure unpinning works
+                // success!
+                redraw_transition_update(entrydiv, {pinned: true}); 
+            }
+        }
+        
+    }
+
     var RETRIES = 5; 
     function try_command(attempts_left) {
         
@@ -323,35 +443,57 @@ function state_pagepending_to_view(entrydiv, server)
             return; 
         }
 
-        // has the request been fulflled? 
-
+        // SYNC BLOCK STARTS HERE
         
-        // first, does it still make sense to construct this request
+        op_check(entrydiv); 
+        // if we get here, the op has not been successful yet, but it's
+        // also not been aborted by some other out-of-band transaction
+
+        var current_docs = server.getPageState(); 
+        console.log("Current_page_state = ", current_docs);
+        var page_rev = $.extend(true, {}, current_docs.rev)
         
-        // if so, great, contruct the request; if not, error out
+        console.log("entry-pos =", $(entrydiv).attr('entry-pos')); 
 
-        // submit the request
+        var entry_pos = parseFloat($(entrydiv).attr("entry-pos")); 
+        
+        if(pending_op.cmd == 'remove') {
+            page_rev.entries.splice(entry_pos, 1); 
+        } else if (pending_op.cmd == 'pin') {
+            if(pending_op.pinned) {
+                page_rev.entries[entry_pos]['rev'] = 
+                    pending_op.pinned; 
+            } else {
+                delete page_rev.entries[entry_pos].pinned;                 
+            }
 
-        var submit = server.pageUpdate(entryid, doc); 
-        submit.done(function(foo) { 
-                        // this submission succeeded, 
-                        // which means our state should now be where we want it to be.          
-                        
+        } else if (pending_op.cmd == 'hide') {
+            page_rev.entries[entry_pos].hidden = pending_op.hidden; 
+        }
+        
+
+        var submit = server.pageUpdate(current_docs.entry._id, 
+                                       page_rev); 
+        
+        submit.done(
+            function(foo) { 
+                op_check(entrydiv);  
         });
 
-        submit.fail(function(foo) {
-                        // retry
-                        
-                        try_command(attempts_left -1 ); 
-
-                        }) ; 
+        submit.fail(
+            function(foo) {
+                // retry
+                
+                try_command(attempts_left -1 ); 
+                
+            }) ; 
         
         
-
+        
     }
     
     try_command(RETRIES); 
-
+    
 }
 
 
@@ -393,11 +535,23 @@ function dom_view_edit_click(entrydom_link, docdb)
 function dom_view_remove_click(entrydom_link,server)
 {
     var entrydom = $(entrydom_link).closest(".entry"); 
-    state_view_to_pagepending(entrydom, 'remove'); 
+    state_view_to_pagepending(entrydom, {cmd: 'remove'}, server); 
+    
+}
+function dom_view_pin_click(entrydom_link,server, docdb, pinned_rev)
+{
+    var entrydom = $(entrydom_link).closest(".entry"); 
+    state_view_to_pagepending(entrydom, {cmd: 'pin', pinned:pinned_rev}, server, docdb); 
     
 }
 
-
+function dom_view_hide_click(entrydom_link, server, docdb)
+{
+    var entrydom = $(entrydom_link).closest(".entry"); 
+    state_view_to_pagepending(entrydom, {cmd: 'hide', hidden:true},
+                              server, docdb); 
+    
+}
 
 function dom_edit_cancel_click(entrydom_link, docdb)
 {

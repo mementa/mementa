@@ -38,7 +38,8 @@ var datagen = {
     {
         return {
             title: title, 
-            entries : entries
+            entries : entries,
+            'class' : 'page'
         }; 
 
     }, 
@@ -110,6 +111,8 @@ var datagen = {
 function ServerMock(associatedDOM) {
     this.dom = associatedDOM; 
     this.queue = []; 
+    this.pageState = {entry: null, rev : null};
+    
 
     this.entryNew = function(dclass, info)
     {
@@ -154,26 +157,53 @@ function ServerMock(associatedDOM) {
         
     };
 
-    this.pageUpdate = function(pageid, doc)
+    this.pageUpdate = function(page_entryid, new_revdoc)
     {
-        
+        /*
+         * successful resolution: new page rev
+         * 
+         * failed resolution: latest page rev
+         * 
+         */
         var d = $.Deferred(); 
         
         this.queue.push({op: 'page_update', 
-                         pageid : pageid,
-                         doc : doc, 
+                         pageid : page_entryid,
+                         doc : new_revdoc, 
                          deferred : d}); 
         
         // fixme when this is a success, it should trigger a page update
         // when it is a failure, it should trigger a page update
         // basiclaly it should always trigger a page update
+        var ps = this.pageState; 
+        var dom = this.dom; 
+        d.done(function(newrev) {
+                   ps.entry.head = newrev._id; 
+                   ps.revdoc = newrev; 
+                   $(dom).trigger('page-rev-update', newrev); 
+                   
+               }); 
+        
+        d.fail(function(newrev) {
+                      ps.entry.head = newrev._id; 
+                      ps.revdoc = newrev; 
+                      $(dom).trigger('page-rev-update', newrev); 
 
-
+               }); 
+        
         return d; 
         
         
     }; 
 
+    this.getPageState = function() 
+    {
+        console.log("this.pageState =", this.pageState); 
+        return this.pageState; 
+        
+    }
+
+    
     this.getEntry = function(entryid)
     {
         
