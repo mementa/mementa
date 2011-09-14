@@ -265,7 +265,6 @@ function state_none_to_view(entrydiv, docdb)
     is_entry(entrydiv); 
     assert_state(entrydiv, 'none'); 
     var config = get_entry_config(entrydiv); 
-    console.log("state_none_to_view, config=", config); 
     entrydiv_reload_view(entrydiv, docdb, config, {}); 
 
 
@@ -303,7 +302,6 @@ function state_edit_to_view(entrydiv, docdb)
     var current_config =  get_entry_config(entrydiv); 
     var saved_config = get_saved_entry_config(entrydiv); 
     
-    console.log("EDIT->VIEW"); 
     entrydiv_reload_view(entrydiv, docdb, saved_config, 
                          {revid : {level : "info", 
                                    message : "This entry has been updated since you clicked edit"},
@@ -379,7 +377,7 @@ function state_pagepending_to_view(entrydiv, server, docdb)
         var old_config = get_saved_entry_config(entrydiv); 
         
         var config_delta = config_page_delta(current_config, old_config); 
-        console.log("op_check", current_config, config_delta); 
+
         
         if('page-removed' in current_config) {
             // don't even need to check the delta, because hell, we're never going
@@ -394,23 +392,23 @@ function state_pagepending_to_view(entrydiv, server, docdb)
                     post_entry_message(entrydiv, 'error', "Your attempt to hide was aborted by someone removing this entry from the page"); 
                 }
             }
-            console.log("REMOVING"); 
+
             $(entrydiv).remove(); 
             return; 
         } 
 
         if(pending_op.cmd == 'hide') {
-            console.log("OP IS HIDE");
+
             if(pending_op.hidden == true && ('page-hidden' in current_config)) {
                 // we wanted to hide and it's hidden! 
                 // if it's now pinned or unpinned, we dont' care
-                console.log("HIDING"); 
+
                 redraw_transition_update(entrydiv, {hidden: true}); 
                 
             } else if(pending_op.hidden == false && !('page-hidden' in current_config)) {
                 // we wanted to unhide and have been successful! 
                 // if it's now pinned or unpinned, we don't care
-                console.log("UNHIDING"); 
+
                 redraw_transition_update(entrydiv, {hidden: true}); 
             } else {
                 // we're still waiting for this to come through
@@ -446,10 +444,9 @@ function state_pagepending_to_view(entrydiv, server, docdb)
         // also not been aborted by some other out-of-band transaction
 
         var current_docs = server.getPageState(); 
-        console.log("Current_page_state = ", current_docs);
         var page_rev = $.extend(true, {}, current_docs.rev)
         
-        console.log("entry-pos =", $(entrydiv).attr('entry-pos')); 
+
 
         var entry_pos = parseFloat($(entrydiv).attr("entry-pos")); 
         

@@ -172,7 +172,7 @@ function render_simple(old_entries, new_entries, targetdiv,
 
                 switch(action) {
                 case 'add': 
-                    console.log("add"); 
+
                     var newdiv = opfuncs.add(entry); 
                     if($(elt).length === 0) {
                         $(targetdiv).append(newdiv); 
@@ -200,14 +200,12 @@ function render_simple(old_entries, new_entries, targetdiv,
                     break; 
                     
                 case 'hide' :
-                    console.log("hide"); 
 
                     opfuncs.hide(elt, entry); 
 
                     break; 
 
                 case 'pin': 
-                    console.log("pin"); 
                     opfuncs.pin(elt, entry); 
 
                     break; 

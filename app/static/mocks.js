@@ -201,7 +201,6 @@ function ServerMock(associatedDOM) {
                }); 
         
         d.fail(function(newrev) {
-                   console.log("Update failed, out of date"); 
                    ps.entry.head = newrev._id; 
                    ps.revdoc = newrev; 
                    $(dom).trigger('page-rev-update', newrev); 
@@ -215,10 +214,10 @@ function ServerMock(associatedDOM) {
 
     this.getPageState = function() 
     {
-        console.log("this.pageState =", this.pageState); 
+
         return this.pageState; 
         
-    }
+    };
 
     
     this.getEntry = function(entryid)
