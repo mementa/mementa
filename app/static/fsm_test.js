@@ -12,8 +12,7 @@ function validate_entries(entriesdiv, page_rev_doc, db)
      */
 
     equal($("div.page-active", entriesdiv).length, page_rev_doc.entries.length); 
-    console.log("validate_entires: entiresdiv", entriesdiv); 
-    console.log(page_rev_doc.entries); 
+
     $("div.page-active", entriesdiv)
         .each(function(index, element) {
                   var ent = page_rev_doc.entries[index]; 
@@ -110,7 +109,7 @@ function fsm_tests()
                                     render_simple(oldpage.entries, 
                                                   doc.entries, $(entriesdiv), ofunc); 
                                     
-
+                                    
                                     $(this).data('page-rev', doc); 
                                     
                                     
@@ -161,13 +160,12 @@ function fsm_tests()
              
              server.outOfBandPageUpdate(new_page_doc); 
 
-
+             // transition all new docs to view
              $(entriesdiv).children()
                  .each(function(index, element) {
                            if(get_state(element) == 'none') {
-                               state_none_to_view(element, docdb, 
-                                                  entries[index].hidden, 
-                                                  entries[index].rev);                                 
+                               state_none_to_view(element, docdb); 
+
                            }
                        }); 
 
@@ -179,7 +177,7 @@ function fsm_tests()
          });     
     
 
-    module("Simple edit cycle", 
+    module("EDIT", 
            {setup : function() { 
                 var ENTRYN = 10; 
                 var fakepage = datagen.create_fake_page(ENTRYN); 
@@ -216,11 +214,21 @@ function fsm_tests()
                                    }); 
 
                 $(entriesdiv).bind('entry-rev-update', function(event, er) {
-                                       
                                        docdb.update(er.entry); 
                                        docdb.update(er.rev); 
                                        
-                                   })
+                                       
+                                       $(".entry[entryid='" + er.entry._id + "']", entriesdiv)
+                                           .each(function(index, elt) { 
+                                                     if(!$(elt).attr("pinned")) {
+                                                         if($(elt).attr('state') === 'view') { 
+                                                             entrydiv_reload_view(elt, docdb, {}, {}); 
+                                                         } else {
+                                                             $(elt).attr("revid", er.rev._id); 
+                                                         }
+                                                     }                                                                                               
+                                                 }); 
+                                   }); 
                 
                 // transition them to view
                 
@@ -248,11 +256,12 @@ function fsm_tests()
                
            }}); 
     
-    test("click state transition", function() {
+    test("click state transition from view to edit", function() {
 
              setup_handlers(this.server, this.docdb, this.entriesdiv); 
              var tgtn = 2; 
              var tgtdiv = $(this.entriesdiv).children().eq(tgtn); 
+
              dom_view_edit_click($("a.edit", tgtdiv), this.docdb); 
              
              equals(get_state(tgtdiv), 'edit'); 
@@ -260,7 +269,7 @@ function fsm_tests()
              
              }); 
 
-    test("click state transition, cancel", 
+    test("click state transition from view to edit, cancel", 
          function() {
              setup_handlers(this.server, this.docdb, this.entriesdiv); 
              var tgtn = 2; 
@@ -271,11 +280,10 @@ function fsm_tests()
              
              dom_edit_cancel_click($("a.cancel", tgtdiv), this.docdb); 
              
-             console.log("Checking"); 
              equals(get_state(tgtdiv), 'view'); 
              }); 
 
-    test("click state transition, cancel, with new entry rev", 
+    test("click state transition from view to edit, cancel, with new entry rev in the meantime", 
          function() {
              /* this should result in a new notice in the div
               * 
@@ -315,6 +323,45 @@ function fsm_tests()
 
              }); 
 
+    test("edit_save_attempt 1", function() {
+             setup_handlers(this.server, this.docdb, this.entriesdiv); 
+             var tgtn = 2; 
+             var tgtdiv = $(this.entriesdiv).children().eq(tgtn); 
+             dom_view_edit_click($("a.edit", tgtdiv), this.docdb); 
+             
+             equals(get_state(tgtdiv), 'edit'); 
+
+             // MODIFY THE DOC
+             $("input[name='title']", tgtdiv).val("THE NEW TITLE"); 
+             $("[name='body']", tgtdiv).val("THE NEW BODY"); 
+             dom_edit_save_click($("a.save", tgtdiv), this.server, this.docdb); 
+             //FIXME not done
+             equal(this.server.queue.length, 1); // should be a page op 
+             var op = this.server.queue.pop(); 
+             equal(op.op, 'entry_update'); 
+             equal(op.entryid, get_entry_config(tgtdiv)['entryid']); 
+             equal(op.doc.title, "THE NEW TITLE"); 
+             equal(op.doc.body, "THE NEW BODY"); 
+             equal(op.doc['class'], "text"); 
+             
+             // create a new doc
+             var new_text_rev = 
+                 $.extend(true, datagen.text_entry_revision_create(op.doc.title, 
+                                                                   op.doc.body), 
+                           datagen.revision_create("eric", {parent: op.doc.parent})); 
+             this.localdb[new_text_rev._id] = 
+                 new_text_rev; 
+
+             // update the entry
+             var ent = this.localdb[op.entryid]; 
+             ent.head = new_text_rev._id; 
+             op.deferred.resolve({'entry' : ent, 'rev' : new_text_rev}); 
+
+             equal(this.server.queue.length, 0); // should be a page op 
+             
+             same($("H2", tgtdiv).html(), "THE NEW TITLE"); 
+
+         }); 
 
     module("PAGEPENDING state mutations", 
            {setup : function() { 
@@ -347,7 +394,6 @@ function fsm_tests()
                 $(entriesdiv).bind('page-rev-update', function(event, doc) {
                                        var oldpage = $(this).data('page-rev'); 
                                        
-                                       console.log("updating with new page doc", doc, "where old page doc=", oldpage);
 
                                        
                                        render_simple(oldpage.entries, 
@@ -453,7 +499,7 @@ function fsm_tests()
              // now get the doc query
              this.server.processAll(this.localdb); 
 
-             equal($(tgtdiv).attr("pinned"), pinned_rev._id); 
+             equal($(tgtdiv).attr("page-pinned"), pinned_rev._id); 
              equal($("H2", tgtdiv).html(), "pinned version"); 
              
              
@@ -487,7 +533,7 @@ function fsm_tests()
              // now get the doc query
              this.server.processAll(this.localdb); 
 
-             ok($(tgtdiv).attr("hidden")); 
+             ok($(tgtdiv).attr("page-hidden")); 
              
              
          }); 
@@ -504,7 +550,6 @@ function fsm_tests()
              
              var FAILCNT = 3; 
              for ( var i = 0; i < FAILCNT; ++i) {
-                 console.log("FAIL TIME", i); 
                  ok(this.server.queue.length > 0, "there is a pending server op"); 
                  var sop = this.server.queue.pop(); 
                  equals(sop.op, 'page_update'); 
@@ -537,7 +582,7 @@ function fsm_tests()
              // now get the doc query
              this.server.processAll(this.localdb); 
 
-             ok($(tgtdiv).attr("hidden")); 
+             ok($(tgtdiv).attr("page-hidden")); 
              
              
          }); 

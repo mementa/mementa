@@ -41,28 +41,20 @@ $(server_dom).bind
 
 Tests I want to run
 ==================================
-Tested: 
-1. Can we create a bunch of divs and set them to view? 
-2. Test page-view-update logic, all still in view
-3. Edit / cancel
-4. edit/cancel with entry update
 
+edit/cancel with a remove : check for notification logic
 
-To test: 
-
-5. edit/cancel with page update
 4. Edit save cycle
 3. test entry-rev-update logic, all still in view
 
 -----
-4. Simple test -- other page manipulations, but no contention
 4. Try and pin, but there's a remove. Check that the remove happens, and that
 the notification div is present
 5. Try and pin, but there's a hide. Check that there's a notification. [FIXME: still need to figure out this UI]
 6. Try and pin, and there's a different pin in the middle
 
-
-
-Other tests: 
 make sure revid is always correct
 make sure unpinning works
+
+When we edit/save an entry, do the other copies of that entry auto-update? 
+

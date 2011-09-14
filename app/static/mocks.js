@@ -145,6 +145,11 @@ function ServerMock(associatedDOM) {
     
     this.entryUpdate = function(entryid, doc)
     {
+        /* 
+         * successful : {entry : new_entry, rev: new_rev}
+         * fail : same thing
+         * 
+         */
         var d = $.Deferred(); 
         
         this.queue.push({op: 'entry_update', 
@@ -152,8 +157,19 @@ function ServerMock(associatedDOM) {
                          doc : doc, 
                          deferred : d}); 
         
-        return d; 
+        var dom = this.dom; 
+
+        d.done(function(nd) {
+                   $(dom).trigger('entry-rev-update', nd); 
+                   
+               }); 
         
+        d.fail(function(nd) {
+                   $(dom).trigger('entry-rev-update', nd); 
+                   }); 
+        
+        return d; 
+                   
         
     };
 

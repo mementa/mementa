@@ -46,17 +46,19 @@ function get_entry_config(entrydiv) {
 
     var r = {'entryid' : $(entrydiv).attr("entryid"), 
              // other stuff should be extracted here
-             state: $(entrydiv).attr("state") 
+             state: $(entrydiv).attr("state"),
+             entryclass : $(entrydiv).attr("entry-class")
            }; 
     
     copy_attr(entrydiv, 'revid', r); 
-    copy_attr(entrydiv, 'removed', r); 
-    copy_attr(entrydiv, 'pinned', r); 
-    copy_attr(entrydiv, 'hidden', r); 
+    copy_attr(entrydiv, 'page-removed', r); 
+    copy_attr(entrydiv, 'page-pinned', r); 
+    copy_attr(entrydiv, 'page-hidden', r); 
     copy_attr(entrydiv, 'page-active', r); 
      
     return r; 
 }
+
 
 function assert_state(entrydiv, state)
 {
