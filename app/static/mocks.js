@@ -185,10 +185,11 @@ function ServerMock(associatedDOM) {
                }); 
         
         d.fail(function(newrev) {
-                      ps.entry.head = newrev._id; 
-                      ps.revdoc = newrev; 
-                      $(dom).trigger('page-rev-update', newrev); 
-
+                   console.log("Update failed, out of date"); 
+                   ps.entry.head = newrev._id; 
+                   ps.revdoc = newrev; 
+                   $(dom).trigger('page-rev-update', newrev); 
+                   
                }); 
         
         return d; 

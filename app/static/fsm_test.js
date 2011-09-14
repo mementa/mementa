@@ -492,4 +492,55 @@ function fsm_tests()
              
          }); 
 
+    test("multiple-mutate-retry test, hiding test, hide=true", function()
+         {
+             setup_handlers(this.server, this.docdb, this.entriesdiv); 
+             var tgtn = 4; 
+             var tgtdiv = $(this.entriesdiv).children().eq(tgtn); 
+             
+             // executing this requires us knowing what the pinned rev is
+             dom_view_hide_click($("a.edit", tgtdiv), this.server, 
+                                this.docdb); 
+             
+             var FAILCNT = 3; 
+             for ( var i = 0; i < FAILCNT; ++i) {
+                 console.log("FAIL TIME", i); 
+                 ok(this.server.queue.length > 0, "there is a pending server op"); 
+                 var sop = this.server.queue.pop(); 
+                 equals(sop.op, 'page_update'); 
+                 equals(sop.pageid, this.server.pageState.entry._id); 
+                 equals(sop.doc.entries[tgtn].hidden, true);
+                 
+                 // remove 8 - i
+                 var newrev = datagen.refresh_rev(this.server.pageState.rev); 
+                 newrev.entries.splice(8-i, 1); 
+                 sop.deferred.reject(newrev); 
+
+             }
+
+             var sop = this.server.queue.pop(); 
+             equals(sop.op, 'page_update'); 
+             equals(sop.pageid, this.server.pageState.entry._id); 
+             equals(sop.doc.entries[tgtn].hidden, true);
+             
+
+             // assert properties of request
+             var updated_rev = datagen.refresh_rev(sop.doc);
+             var entry = this.localdb[sop.pageid]; 
+             entry.rev = updated_rev._id; 
+
+             this.localdb[updated_rev._id] = updated_rev; 
+             
+             /* update the entry */ 
+             sop.deferred.resolve(updated_rev); 
+
+             // now get the doc query
+             this.server.processAll(this.localdb); 
+
+             ok($(tgtdiv).attr("hidden")); 
+             
+             
+         }); 
+
+
 }
