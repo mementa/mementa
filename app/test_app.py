@@ -160,19 +160,22 @@ class MementaTestCase(unittest.TestCase):
         entry_id = rv_json['entry']['_id']
 
         # try and do an update
-        rv = self.post_json("/api/page/%s" % entry_id,
-                            data = {'old_rev_id' : page_rev_id,
-                                    'doc' : {'title':  "THIS IS A NEW TITLE", 
-                                             'entries' : []}})
+        rv = self.post_json("/api/entry/%s" % entry_id,
+                            data = {'title':  "THIS IS A NEW TITLE", 
+                                    'entries' : [],
+                                    'class' : 'page', 
+                                    'parent' : page_rev_id})
         
         rv_json = json.loads(rv.data)
-        assert(rv_json['latest_page_revision_doc']['title'] == "THIS IS A NEW TITLE")
+        assert(rv_json['latest_revision_doc']['title'] == "THIS IS A NEW TITLE")
 
         # now this update should fail; out of date rev
-        rv = self.post_json("/api/page/%s" % entry_id,
-                            data = {'old_rev_id' : page_rev_id,
-                                    'doc' : {'title':  "THIS IS A NEW TITLE 2", 
-                                             'entries' : []}})
+        rv = self.post_json("/api/entry/%s" % entry_id,
+                            data = 
+                                    {'title':  "THIS IS A NEW TITLE 2", 
+                                     'entries' : [],
+                                     'class' : 'page',
+                                     'parent' : page_rev_id})
         assert_equal(rv.status, '400')
 
         rv_json = json.loads(rv.data)

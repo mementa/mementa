@@ -94,7 +94,7 @@ function Server(associatedDOM) {
 
     };
 
-    this.pageUpdate = function(page_entryid, new_revdoc)
+    this.pageUpdate = function(entryid, doc)
     {
         /*
          * successful resolution: new page rev
@@ -102,33 +102,33 @@ function Server(associatedDOM) {
          * failed resolution: latest page rev
          * 
          */
-        // var d = $.Deferred(); 
+        var d = $.Deferred(); 
         
-        // this.queue.push({op: 'page_update', 
-        //                  pageid : page_entryid,
-        //                  doc : new_revdoc, 
-        //                  deferred : d}); 
-        
-        // // fixme when this is a success, it should trigger a page update
-        // // when it is a failure, it should trigger a page update
-        // // basiclaly it should always trigger a page update
-        // var ps = this.pageState; 
-        // var dom = this.dom; 
-        // d.done(function(newrev) {
-        //            ps.entry.head = newrev._id; 
-        //            ps.revdoc = newrev; 
-        //            $(dom).trigger('page-rev-update', newrev); 
-                   
-        //        }); 
-        
-        // d.fail(function(newrev) {
-        //            ps.entry.head = newrev._id; 
-        //            ps.revdoc = newrev; 
-        //            $(dom).trigger('page-rev-update', newrev); 
-                   
-        //        }); 
-        
-        // return d; 
+        console.log("posting doc", doc); 
+        var resp = $.ajax({'type' : "POST", 
+                           'url' : "/api/entry/" + entryid,
+                           contentType:"application/json",
+                           dataType : "json" , 
+                           data : JSON.stringify(doc)}); 
+        var dom = this.dom; 
+        var server = this; 
+        resp.done(function(resp) {
+                      var rev_doc = resp['latest_revision_doc']; 
+                      var entry = resp['latest_entry_doc']; 
+
+                      server.setPageState(entry, rev_doc); 
+
+                      d.resolve(rev_doc); 
+
+                      }); 
+
+        resp.fail(function(resp) {
+                      // FIXME this should return the out-of-date versions
+                      d.reject(); 
+                      
+                  }); 
+        return d; 
+
         
         
     }; 

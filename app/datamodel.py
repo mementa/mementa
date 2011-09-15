@@ -92,11 +92,33 @@ def page_entry_revision_create(title, entries, **kargs) :
                           'hidden' : boolean,
                           'rev' : dbref to revision (only present if pinned)}
 
+    this func upconverts entry from string to ref
     """
-        
+    newentries = []
+    for entptr in entries:
+        ent = entptr['entry']
+        if not isinstance(ent, bson.dbref.DBRef):
+            
+            if not isinstance(ent, bson.objectid.ObjectId):
+                ent = bson.objectid.ObjectId(ent)
+            ent = bson.dbref.DBRef("entries", ent)
+
+        r = {'entry' : ent,
+             'hidden' : entptr['hidden']}
+        if 'rev' in entptr:
+            rev = entptr['rev']
+            if not isinstance(rev, bson.dbref.DBRef):
+            
+                if not isinstance(rev, bson.objectid.ObjectId):
+                    rev = bson.objectid.ObjectId(rev)
+                rev = bson.dbref.DBRef("revisions", rev)
+            p['rev'] = rev
+        newentries.append(r);
+
     return {'title' : title,
-            'entries' : entries,
-            'class' : "page"}
+            'entries' : newentries,
+            'class' : 'page'}
+
 
 def page_rev_to_json(page):
     """

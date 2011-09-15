@@ -470,120 +470,37 @@ def api_entry_text_new():
                     
                     'revision' : rev_json})
 
-
-@app.route('/api/page/<page_entryid>', methods=["POST"])
-@login_required
-def api_page_mutate(page_entryid):
-    """
-    Primary page mutation interface
-
-    Part of me is concerned that we're pushing a full-new entry doc
-    every time, but that's a later optimization -- we could always send a diff
-
-    input : { 'old_rev_id' : The old revision (that is, what the sender thinks as current',
-              'doc' : { 'title' : ,
-                        'archived' :,
-                        'entries' : }}
-
-    response:
-       OK: Ok, with updated doc
-       ERROR : no, you were wrong, the latest rev is XXX, here it is!
-
-    thus the client must do the compare-and-swap
-
-    """
-
-    
-    if request.mimetype != "application/json":
-        return "Invalid request type, must be application/json", 400
-    
-    request_data = request.json
-
-    old_rev_id = request_data['old_rev_id']
-
-    submitted_doc = request_data['doc']
-
-    entry_ref = bson.dbref.DBRef("entries", bson.objectid.ObjectId(page_entryid))
-    latest_entry_doc = g.db.dereference(entry_ref)
-
-    true_latest_page_ref = latest_entry_doc['head']
-
-    if str(true_latest_page_ref.id) != old_rev_id:
-        print "Incorrect latest"
-        latest_page_rev_doc = g.db.dereference(true_latest_page_ref)
-        resp = jsonify({'reason' : "Incorrect latest",
-                        'doc' : dm.page_rev_to_json(latest_page_rev_doc)})
-        resp.status = "400"
-        return resp
-
-
-    # otherwise, at least as of this moment, things are correct
-
-    # convert entries:
-    new_entries = []
-    for e in submitted_doc['entries']:
-        ne = {'entry' : bson.dbref.DBRef("entries",
-                                         bson.objectid.ObjectId(e['entry'])),
-              'hidden' : e['hidden']}
-        if 'rev' in e:
-            ne['rev'] = bson.dbref.DBRef("revisions",
-                                         bson.objectid.ObjectId(e['rev']))
-        new_entries.append(ne)
-
-    # create the new doc:
-    new_page_doc = dm.page_entry_revision_create(submitted_doc['title'],
-                                                 new_entries)
-    
-    author = dbref("users", session["user_id"])
-
-    new_page_doc.update(dm.revision_create(author,
-                                           parent=old_rev_id,
-                                           archived = submitted_doc['archived']))
-            
-    new_page_doc_oid = g.db.revisions.insert(new_page_doc, safe=True)
-
-    new_page_doc['_id'] = new_page_doc_oid
-    
-    new_entry_doc = dm.entry_create(dbref('revisions', new_page_doc_oid), 
-                                    'page', new_page_doc)
-
-    res = g.db.entries.update({"_id" : latest_entry_doc['_id'],
-                               "head" : latest_entry_doc['head']}, 
-                              new_entry_doc, safe=True)
-
-            
-    if res['updatedExisting'] == True:
-        # success!
-        new_page_doc_json = dm.page_rev_to_json(new_page_doc)
-        return jsonify({
-                        "latest_page_revision_doc" : new_page_doc_json})
-                              
-            
-    else:
-        # failed to update, meaning someone else updated the entry ahead of us
-        g.db.revisions.remove({'_id' : new_page_doc_oid})
-                
-        entry_ref = dbref("entries", page_entryid)
-        latest_entry_doc = g.db.dereference(entry_ref)
-        
-        true_latest_page_ref = latest_entry_doc['head']
-        latest_page_rev = g.db.dereference(true_latest_page_ref)
-        latest_page_rev_json = dm.page_rev_to_json(latest_page_rev)
-        
-        resp =  jsonify({"reason" : "out of date", 
-                         "latest_page_revision_doc" : latest_page_rev_json})
-        resp.status = "400"
-        return resp
-    
 @app.route('/api/entry/<entryid>',  methods = ['GET', 'POST'])
 @login_required
 def api_entry_get_post(entryid):
     """
-    Get an entry and the associated doc, or update an existing entry
+    GET the latest entry and rev for an entry
+
+    POST an updated rev. Note that we extract out the relevant fields
+    from the submitted doc, and overwrite other relevant ones. Things
+    that must be present include:
+
+    class
+    parent: Parent points to the old entry; this is also what we think the entry currently points to 
+    doc-specific entries
+
+    we rewrite :
+    author (current logged in author)
+    date
+    _id : with the new updated revid
+
+    and update the entry
+
+    If the entry is out of date, we reject, and instead
+    return the latest entry/rev
+    
     
     """
     if request.method == 'POST':
-        # update -- assume doc comes in pretty fully-formed, with the exception of the author field and the date field
+        """
+        Perform an update, assuming that the doc is pretty well-formed
+
+        """
 
     
         if request.mimetype != "application/json":
@@ -594,15 +511,22 @@ def api_entry_get_post(entryid):
         dclass = rd['class']
         parent = rd['parent']
 
+
         if dclass == 'text':
             rev = dm.text_entry_revision_create(rd['title'],
                                                      rd['body'])
-
+        elif dclass == 'page':
+            rev = dm.page_entry_revision_create(rd['title'],
+                                                rd['entries'])
+        else:
+            raise Exception("Unknown entry")
+        
         author = dbref("users", session["user_id"])
-
         pref = dbref("revisions", parent)
         
-        rev.update(dm.revision_create(author, parent=pref))
+        rev.update(dm.revision_create(author, parent=pref,
+                                      archived=rd.get('archived', False)))
+
 
         # save the revision
         new_rev_oid = g.db.revisions.insert(rev, safe=True)
@@ -623,10 +547,9 @@ def api_entry_get_post(entryid):
     
         if res['updatedExisting'] == True:
             # success!
-            new_rev_doc_json = dm.page_rev_to_json(rev)
+            new_rev_doc_json = dm.rev_to_json[dclass](rev)
 
             entry_doc_json = dm.entry_to_json(new_entry_doc)
-            # note that this does not return the entry with the included revdoc
             
             return jsonify({"latest_entry_doc" : entry_doc_json, 
                             "latest_revision_doc" : new_rev_doc_json})
@@ -634,6 +557,7 @@ def api_entry_get_post(entryid):
 
         else:
             # failed to update, meaning someone else updated the entry ahead of us
+
             g.db.revisions.remove({'_id' : new_rev_oid})
 
             entry_ref = dbref("entries", entryid)

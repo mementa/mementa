@@ -75,8 +75,15 @@ function create_entrydiv_body_view(rev_doc) {
         render.entry_rev_view[rev_doc['class']](rev_doc); 
     
     // update author information
-    var entrydiv_body = $("<div class='entry-body'><div class='class-content'></div><div class='control'> <a href='#' class='edit'>edit</a> </div> <div class='notices'/> </div>"); 
+    var entrydiv_body = $("<div class='entry-body'><div class='class-content'></div><div class='control'> <span class='timestamp'/> "
+                          + "<a href='#' class='edit'>edit</a> "
+                          + "<a href='#' class='hide'>hide</a> "
+                          + "<a href='#' class='remove'>remove</a> "
+                          + "</div> <div class='notices'/> </div>"); 
     
+    var datestring = rev_doc.date.substr(0, rev_doc.date.length - 7) + "Z"; 
+
+    $(".timestamp", entrydiv_body).html(datestring).cuteTime(); 
     $(".class-content", entrydiv_body).append(class_content); 
     
     return entrydiv_body; 
@@ -464,6 +471,7 @@ function state_pagepending_to_view(entrydiv, server, docdb)
             page_rev.entries[entry_pos].hidden = pending_op.hidden; 
         }
         
+        page_rev.parent = page_rev._id; 
 
         var submit = server.pageUpdate(current_docs.entry._id, 
                                        page_rev); 

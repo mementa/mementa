@@ -317,7 +317,6 @@ function toggle_hide_entry_on_page(page_rev_doc, position)
     // deep copy? 
     
     var newobj = $.extend(true, {}, page_rev_doc);
-    console.log("Setting doc pos=" + position + " to " + !newobj.entries[position].hidden);
 
     if( newobj.entries[position].hidden) {
         newobj.entries[position].hidden = false;         
@@ -392,6 +391,11 @@ $(document).ready(
 
 
                                $(this).data('old-page-rev', doc); 
+                               $("#page_title_view").html(doc.title);
+
+                               var datestring = doc.date.substr(0, doc.date.length - 7) + "Z"; 
+
+                               $("#page_date").removeAttr("data-timestamp").html(datestring).cuteTime(); 
                                
                                
                            }); 
@@ -422,6 +426,16 @@ $(document).ready(
         $(".entry a.edit").live('click', function(e) {
                                     dom_view_edit_click(this, docdb); 
                                 }); 
+
+        $(".entry a.remove").live('click', function(e) {
+                                    dom_view_remove_click(this, server); 
+                                }); 
+
+
+        $(".entry a.hide").live('click', function(e) {
+                                    dom_view_hide_click(this, server, docdb); 
+                                }); 
+
         
         $(".entry a.save").live('click', function(e) {
                                     dom_edit_save_click(this, server, docdb); 
@@ -430,6 +444,66 @@ $(document).ready(
         $(".entry a.cancel").live('click', function(e) {
                                     dom_edit_cancel_click(this, docdb); 
                                 }); 
+        
+        $("#pagetitle")
+            .hoverIntent(
+                function() {
+                    $("#page_title_edit_click").addClass("hovertargetvisible");
+                },
+                function() {
+                    $("#page_title_edit_click").removeClass("hovertargetvisible");
+                    
+                });
+        $(".pagetitle div.edit").hide(); 
+
+        
+        $(".pagetitle a.edit")
+            .click(function() {
+                       $(".pagetitle div.view").hide(); 
+                       $(".pagetitle div.edit").show(); 
+                       $("#page_title_edit").html(server.getPageState().rev.title).focus(); 
+
+                   }); 
+        
+        $("#page_title_cancel")
+            .click(function() {
+                       $(".pagetitle div.edit").hide(); 
+                       $(".pagetitle div.view").show(); 
+                   }); 
+
+        
+        $("#page_title_save")
+            .click(function() {
+                       var MAXTRIES = 5; 
+                       function save_title(cur_try) {
+                           if(cur_try == 0) {
+                               return; 
+                           }
+
+                           var curdocs = server.getPageState(); 
+                           var title = $("#page_title_edit").html(); 
+                           var newdoc = $.extend(true, {}, curdocs.rev); 
+                           newdoc.title = title;              
+                           newdoc.parent = newdoc._id; 
+                           console.log("Submitting", newdoc); 
+                           var res = server.pageUpdate(curdocs.entry._id, 
+                                                       newdoc); 
+                           res.done(function(doc) {
+                                        
+                                        $(".pagetitle div.edit").hide(); 
+                                        $(".pagetitle div.view").show(); 
+                                        
+                                    }); 
+                           res.fail(function(doc) {
+                                        save_title(cur_try - 1); 
+                                    }); 
+
+                               
+                           }
+                           
+                       save_title(MAXTRIES); 
+
+                   }); 
         
         // $(document).bind('page-docs-update', 
         //                  function(event, old_entry, old_rev, 
