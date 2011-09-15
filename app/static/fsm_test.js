@@ -258,7 +258,7 @@ function fsm_tests()
     
     test("click state transition from view to edit", function() {
 
-             setup_handlers(this.server, this.docdb, this.entriesdiv); 
+             ////setup_handlers(this.server, this.docdb, this.entriesdiv); 
              var tgtn = 2; 
              var tgtdiv = $(this.entriesdiv).children().eq(tgtn); 
 
@@ -271,7 +271,7 @@ function fsm_tests()
 
     test("click state transition from view to edit, cancel", 
          function() {
-             setup_handlers(this.server, this.docdb, this.entriesdiv); 
+             //setup_handlers(this.server, this.docdb, this.entriesdiv); 
              var tgtn = 2; 
              var tgtdiv = $(this.entriesdiv).children().eq(tgtn); 
              dom_view_edit_click($("a.edit", tgtdiv), this.docdb); 
@@ -281,6 +281,10 @@ function fsm_tests()
              dom_edit_cancel_click($("a.cancel", tgtdiv), this.docdb); 
              
              equals(get_state(tgtdiv), 'view'); 
+
+             // assert no notices
+             equal($(".notice", this.entriesdiv).length, 0, "There should be no notices"); 
+
              }); 
 
     test("click state transition from view to edit, cancel, with new entry rev in the meantime", 
@@ -291,7 +295,7 @@ function fsm_tests()
               * 
               */
 
-             setup_handlers(this.server, this.docdb, this.entriesdiv); 
+             //setup_handlers(this.server, this.docdb, this.entriesdiv); 
              var tgtn = 2; 
              var tgtdiv = $(this.entriesdiv).children().eq(tgtn); 
              dom_view_edit_click($("a.edit", tgtdiv), this.docdb); 
@@ -324,7 +328,7 @@ function fsm_tests()
              }); 
 
     test("edit_save_attempt 1", function() {
-             setup_handlers(this.server, this.docdb, this.entriesdiv); 
+             //setup_handlers(this.server, this.docdb, this.entriesdiv); 
              var tgtn = 2; 
              var tgtdiv = $(this.entriesdiv).children().eq(tgtn); 
              dom_view_edit_click($("a.edit", tgtdiv), this.docdb); 
@@ -440,7 +444,7 @@ function fsm_tests()
     
     test("Simple remove test", function()
          {
-             setup_handlers(this.server, this.docdb, this.entriesdiv); 
+             //setup_handlers(this.server, this.docdb, this.entriesdiv); 
              var tgtn = 2; 
              var tgtdiv = $(this.entriesdiv).children().eq(tgtn); 
 
@@ -468,7 +472,7 @@ function fsm_tests()
 
     test("Simple pin test", function()
          {
-             setup_handlers(this.server, this.docdb, this.entriesdiv); 
+             //setup_handlers(this.server, this.docdb, this.entriesdiv); 
              var tgtn = 5; 
              var tgtdiv = $(this.entriesdiv).children().eq(tgtn); 
              
@@ -507,7 +511,7 @@ function fsm_tests()
 
     test("Simple hide test, hide=true", function()
          {
-             setup_handlers(this.server, this.docdb, this.entriesdiv); 
+             //setup_handlers(this.server, this.docdb, this.entriesdiv); 
              var tgtn = 6; 
              var tgtdiv = $(this.entriesdiv).children().eq(tgtn); 
              
@@ -540,7 +544,7 @@ function fsm_tests()
 
     test("multiple-mutate-retry test, hiding test, hide=true", function()
          {
-             setup_handlers(this.server, this.docdb, this.entriesdiv); 
+             //setup_handlers(this.server, this.docdb, this.entriesdiv); 
              var tgtn = 4; 
              var tgtdiv = $(this.entriesdiv).children().eq(tgtn); 
              

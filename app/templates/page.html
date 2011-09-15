@@ -11,7 +11,15 @@
 <script type="text/javascript" src="/static/vendor/tiny_mce/tiny_mce.js"> </script>
 <script type="text/javascript" src="/static/vendor/tiny_mce/jquery.tinymce.js"> </script>
 
-<script type="text/javascript" src="/static/render.js"></script>    
+<script type="text/javascript" src="/static/render.js"></script>  
+<script type="text/javascript" src="/static/page_util.js"></script>    
+
+<script type="text/javascript" src="/static/docdb.js"></script>    
+
+
+<script type="text/javascript" src="/static/fsm.js"></script>    
+<script type="text/javascript" src="/static/server.js"></script>    
+  
 <script type="text/javascript" src="/static/page.js"></script>    
 <script type="text/javascript"
   src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
@@ -34,7 +42,7 @@
         <h1 id='page_title_view'>{{page_rev.title}}</h1>
       </div>  
       <div class='edit'>
-        <h1 id='page_title_edit' contentEditable >{{page_rev.title}}</h1>
+        <h1 id='page_title_edit' contentEditable ></h1>
 
         <button id="page_title_save" class='btn primary'>save </button> 
         <button id="page_title_cancel" class='btn'> cancel </button>

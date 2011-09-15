@@ -5,6 +5,7 @@ function DocumentDB(server) {
     
     this.getEntry = function(entryid) {
 
+
         var cache = this.cache; 
         var result = $.Deferred();         
         if(this.cache[entryid]) {
@@ -15,7 +16,7 @@ function DocumentDB(server) {
                 .done(function(doc)  {
                           cache[entryid] = doc; 
                           result.resolve(doc); 
-                         })
+                      })
                 .fail(function(doc) {
                           result.reject(); 
                       }); 
@@ -35,6 +36,7 @@ function DocumentDB(server) {
         var cache = this.cache; 
 
         if(cache[revid]) {
+
             result.resolve(this.cache[revid]); 
             
         } else {

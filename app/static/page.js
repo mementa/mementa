@@ -359,62 +359,106 @@ $(document).ready(
     function () {
 
 
-
-        var op_response = {
-            create: function(entryptr) {
-                var entry_id = entryptr.entry; 
-                var hidden = entryptr.hidden; 
-                var pinnedrev = entryptr.rev; 
-                
-                return create_entry_div(entry_id, hidden, pinnedrev); 
-                
-            }, 
-            
-            remove: function(elt, entryptr) {
-                
-            },
-            
-            hide: function(elt, entryptr) {
-
-            }, 
-            
-            pin : function(elt, entryptr) { 
-
-
-            }
-            
-        }; 
-
-
+        // create the docdb
+        var entriesdiv = $("#entries"); 
+        var server = new Server(entriesdiv); 
+        var docdb = new DocumentDB(server); 
         
-        $(document).bind('page-docs-update', 
-                         function(event, old_entry, old_rev, 
-                                  new_entry, new_rev)
-                         {
+        docdb.update(init_page_entry); 
+        docdb.update(init_page_rev); 
 
-                             $("#page_title_view").html(new_rev.title);
-                             var date = new Date(new_rev.date + "Z"); 
-
-                             $("#page_date").removeAttr("data-timestamp").html(new_rev.date).cuteTime(); 
+        var ofunc = new opfuncs(docdb); 
 
 
-                             var old_entries = []
-                             if(old_rev) {
-                              old_entries = old_rev.entries; 
-                             }
 
-                             render_simple(old_entries,
-                                           new_rev.entries,
-                                           $("#entries"), 
-                                           create_entry_view_div); 
+        $(entriesdiv).bind('page-rev-update', function(event, doc) {
+                               var oldpage_rev = $(this).data('old-page-rev'); 
+                               var first_page_load = false;  // hack
+                               if(!oldpage_rev) {
+                                   oldpage_rev = {
+                                       entries : {}
+                                   }; 
+                                   first_page_load = true; 
+                               }
+                               
+                               render_simple(oldpage_rev.entries, 
+                                             doc.entries, $(entriesdiv), ofunc); 
+                               
+                               if(first_page_load) {
+                                   $(".entry", entriesdiv)
+                                       .each(function(index, element) {
+                                                 state_none_to_view(element, docdb);                                                  
+                                             });                                                                 }
+
+
+                               $(this).data('old-page-rev', doc); 
+                               
+                               
+                           }); 
+
+        $(entriesdiv).bind('entry-rev-update', function(event, er) {
+                               // fixme: this may in fact be resulting in a double
+                               // trigger here for new entries
+
+                               docdb.update(er.entry); 
+                               docdb.update(er.rev); 
+                               
+                               
+                               $(".entry[entryid='" + er.entry._id + "']", entriesdiv)
+                                   .each(function(index, elt) { 
+                                             if(!$(elt).attr("pinned")) {
+                                                 if($(elt).attr('state') === 'view') { 
+                                                     entrydiv_reload_view(elt, docdb, {}, {}); 
+                                                 } else {
+                                                     $(elt).attr("revid", er.rev._id); 
+                                                 }
+                                             }                                                                                               
+                                         }); 
+                           }); 
+        
+        server.setPageState(init_page_entry, init_page_rev); 
+
+        // setup the handlers
+        $(".entry a.edit").live('click', function(e) {
+                                    dom_view_edit_click(this, docdb); 
+                                }); 
+        
+        $(".entry a.save").live('click', function(e) {
+                                    dom_edit_save_click(this, server, docdb); 
+                                }); 
+
+        $(".entry a.cancel").live('click', function(e) {
+                                    dom_edit_cancel_click(this, docdb); 
+                                }); 
+        
+        // $(document).bind('page-docs-update', 
+        //                  function(event, old_entry, old_rev, 
+        //                           new_entry, new_rev)
+        //                  {
+
+        //                      $("#page_title_view").html(new_rev.title);
+        //                      var date = new Date(new_rev.date + "Z"); 
+
+        //                      $("#page_date").removeAttr("data-timestamp").html(new_rev.date).cuteTime(); 
+
+
+        //                      var old_entries = []
+        //                      if(old_rev) {
+        //                       old_entries = old_rev.entries; 
+        //                      }
+
+        //                      render_simple(old_entries,
+        //                                    new_rev.entries,
+        //                                    $("#entries"), 
+        //                                    create_entry_view_div); 
                              
-                         }); 
+        //                  }); 
 
 
         
-        update_page_docs(init_page_entry, init_page_rev); 
+        // update_page_docs(init_page_entry, init_page_rev); 
         
-
-}
+        
+    }); 
 
 

@@ -4,14 +4,14 @@ var render = {
     entry_rev_view : { 
         text: function(rev_doc) {
 
-            return $($.mustache("<div> <h2>{{title}}</h2> <div class='body'> {{body}} </div> "
+            return $($.mustache("<div> <h2>{{{title}}}</h2> <div class='body'> {{{body}}} </div> "
                                 + "</div>", rev_doc)); 
         }
     }, 
 
     entry_rev_edit : { 
         text: function(rev_doc) {
-            return $($.mustache("<div> <input name='title' value='{{title}}'/> <div> <textarea name='body'>{{body}}</textarea> </div> "
+            return $($.mustache("<div> <input name='title' value='{{{title}}}'/> <div> <textarea name='body'>{{{body}}}</textarea> </div> "
                                 + "</div>", rev_doc)); 
         }
     },
@@ -137,7 +137,7 @@ function entrydiv_reload_view(entrydiv, docdb, expected_config,
                                 $(entrydiv).attr('state', 'view'); 
 
                                 if(current_config['page-hidden'] &&
-                                   expected_config['page-hidden']) {
+                                   !expected_config['page-hidden']) {
                                     messages.hidden && post_entry_message(entrydiv, messages.hidden); 
                                 }
 
@@ -600,11 +600,11 @@ function state_savepending_to_view(entrydiv, server, docdb, retries, new_rev)
     var entryid = saved_config.entryid; 
 
     var resp = docdb.getEntry(entryid); 
+    console.log("state_savepending_to_view"); 
     resp.done(function(entrydoc) {
-                  //var current_config = get_entry_config(entrydiv); 
-                  //var config_delta = config_page_delta(current_config, saved_config); 
-
-                  messages = {
+                  console.log("state_savepending_to_view done"); 
+                  
+                  var messages = {
                       removed : {level : 'info', 
                                  message : "Your changes were saved but in the meantime this entry was removed from the page"}, 
                       pinned : {level : "info", 
@@ -631,7 +631,6 @@ function state_savepending_to_edit(entrydiv, docdb)
     assert_state(entrydiv, 'savepending'); 
 
 }
-
 
 
 function dom_view_edit_click(entrydom_link, docdb)
@@ -673,35 +672,3 @@ function dom_edit_save_click(entrydom_link, server, docdb)
     var entrydom = $(entrydom_link).closest(".entry"); 
     state_edit_to_savepending(entrydom, server, docdb); 
 } 
-
-
-function setup_handlers(server, docdb, entrydom)
-{
-    
-    $("a.edit", entrydom)
-        .live("click", function(e) { 
-                  
-                  // transition this element to edit state
-
-                  console.log($(this)); 
-
-
-
-              }); 
-
-    $("a.hide", entrydom)
-        .live("click", function(e) {
-
-              }); 
-    
-
-}
-
-
-function kill_handlers(entrydom)
-{
-    
-
-
-
-}

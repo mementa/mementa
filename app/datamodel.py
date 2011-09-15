@@ -152,6 +152,7 @@ def entry_to_json(entry_doc):
     """
     Does not currently return the included (denormed) doc
     """
+    
     return {'_id' : str(entry_doc['_id']),
             'head' : str(entry_doc['head'].id),
             'class' : entry_doc['class']}

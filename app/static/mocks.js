@@ -304,7 +304,7 @@ function ServerMock(associatedDOM) {
         // 
 
 
-    }
+    };
     
 }; 
 

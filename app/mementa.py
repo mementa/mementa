@@ -616,13 +616,19 @@ def api_entry_get_post(entryid):
                                    'head' : dbref('revisions', parent), 
                                    'class' : dclass},
                                   new_entry_doc, safe=True)
+
         
+        new_entry_doc["_id"] = bson.objectid.ObjectId(entryid)
         
     
         if res['updatedExisting'] == True:
             # success!
             new_rev_doc_json = dm.page_rev_to_json(rev)
-            return jsonify({
+
+            entry_doc_json = dm.entry_to_json(new_entry_doc)
+            # note that this does not return the entry with the included revdoc
+            
+            return jsonify({"latest_entry_doc" : entry_doc_json, 
                             "latest_revision_doc" : new_rev_doc_json})
 
 
@@ -644,6 +650,8 @@ def api_entry_get_post(entryid):
         
         
     elif request.method == "GET":
+        # fixme update this to use denormalized stuff
+        
         entry_ref = dbref("entries", entryid)
         entry_doc = g.db.dereference(entry_ref)
         
@@ -656,6 +664,19 @@ def api_entry_get_post(entryid):
                         "revision" : dm.rev_to_json[entry_doc['class']](latest_page_rev)})
     
 
+
+@app.route('/api/rev/<revid>')
+@login_required
+def api_rev_get(revid):
+    """
+    get rev
+    
+    """
+    
+    rev = g.db.dereference(dbref('revisions', revid))
+
+    
+    return jsonify(dm.rev_to_json[rev['class']](rev))
 
 
 
