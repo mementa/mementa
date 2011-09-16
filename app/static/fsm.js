@@ -87,7 +87,8 @@ function create_entrydiv_body_view(rev_doc) {
 
     $(".timestamp", entrydiv_body).html(datestring).cuteTime(); 
     $(".class-content", entrydiv_body).append(class_content); 
-    
+    $("img.avatar", entrydiv_body)
+        .attr("src", "/api/user/" + rev_doc['author'] + "/avatar/48");     
     return entrydiv_body; 
 
 
@@ -96,7 +97,7 @@ function create_entrydiv_body_view(rev_doc) {
 function update_entrydiv_view(entrydiv, revdoc) {
     $(entrydiv).attr("revid", revdoc._id); 
     $(entrydiv).attr("entry-class", revdoc['class']); 
-    $("img.avatar", entrydiv).attr("src", "/api/user/" + revdoc['author'] + "/avatar/48"); 
+
 
     // other outer-properties
 }
@@ -172,10 +173,19 @@ function create_entrydiv_body_edit(rev_doc) {
         render.entry_rev_edit[rev_doc['class']](rev_doc); 
     
     // update author information
-    var entrydiv_body = $("<div class='entry-body'><div class='class-content'></div><a href='#' class='save'>save</a> <a href='#' class='cancel'>cancel </a></div>"); 
+    var entrydiv_body = $("<div class='entry-body'>"
+                          + "<div class='meta'>"
+                          + "<img class='avatar'/>"
+                          + "</div>"
+                          + "<div class='right-body'>"
+                          + "    <div class='class-content'/>"
+                          + "    <div class='control'><a href='#' class='save'>save</a> <a href='#' class='cancel'>cancel </a></div> "
+                          + "</div></div>"); 
     
     $(".class-content", entrydiv_body).append(class_content); 
-    
+    $("img.avatar", entrydiv_body)
+        .attr("src", "/api/user/" + rev_doc['author'] + "/avatar/48"); 
+
     return entrydiv_body; 
 
 
