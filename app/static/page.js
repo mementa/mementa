@@ -75,7 +75,14 @@ $(document).ready(
                               }
                               
                           }                                                 
+                      } else if (state == 'edit') {
+                          $("textarea", element).tinymce({mode: "none", 
+                                                          theme:"simple",
+                                                          plugins : "autoresize",
+                                                         });                           
+                          
                       }
+                      
                   }); 
         
         
@@ -215,35 +222,11 @@ $(document).ready(
 
                        }); 
 
-
-        // $(document).bind('page-docs-update', 
-        //                  function(event, old_entry, old_rev, 
-        //                           new_entry, new_rev)
-        //                  {
-
-        //                      $("#page_title_view").html(new_rev.title);
-        //                      var date = new Date(new_rev.date + "Z"); 
-
-        //                      $("#page_date").removeAttr("data-timestamp").html(new_rev.date).cuteTime(); 
-
-
-        //                      var old_entries = []
-        //                      if(old_rev) {
-        //                       old_entries = old_rev.entries; 
-        //                      }
-
-        //                      render_simple(old_entries,
-        //                                    new_rev.entries,
-        //                                    $("#entries"), 
-        //                                    create_entry_view_div); 
-                             
-        //                  }); 
-
-
-        
-        // update_page_docs(init_page_entry, init_page_rev); 
-        
         
     }); 
 
 
+tinyMCE.init({
+        // General options
+        mode : "none",
+        theme : "simple"}); 

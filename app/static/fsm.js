@@ -11,7 +11,7 @@ var render = {
 
     entry_rev_edit : { 
         text: function(rev_doc) {
-            return $($.mustache("<div> <input name='title' value='{{{title}}}'/> <div> <textarea name='body'>{{{body}}}</textarea> </div> "
+            return $($.mustache("<div> <input name='title' value='{{{title}}}'/> <div> <textarea name='body' class='tinymce'>{{{body}}}</textarea> </div> "
                                 + "</div>", rev_doc)); 
         }
     },
