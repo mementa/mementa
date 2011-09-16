@@ -74,7 +74,11 @@ $(document).ready(
                                   $(element).addClass("hidden");                                    
                               }
                               
-                          }                                                 
+                          }                                       
+                          
+                          var id = $(element).attr('id'); 
+                          MathJax.Hub.Queue(["Typeset",MathJax.Hub, id]);
+
                       } else if (state == 'edit') {
                           $("textarea", element).tinymce({mode: "none", 
                                                           theme:"simple",

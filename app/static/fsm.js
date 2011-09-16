@@ -56,6 +56,7 @@ function create_entry_div(entryid, hidden, pinnedrev)
     var entrydiv = $("<div>"); 
     $(entrydiv).addClass("entry"); 
     $(entrydiv).attr("entryid", entryid); 
+    $(entrydiv).attr("id", "entry"+generate_seq_uuid); 
 
     if(hidden) {
         $(entrydiv).attr('page-hidden', true);         
