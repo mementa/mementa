@@ -58,7 +58,16 @@ $(document).ready(
 
                                $("#page_date").removeAttr("data-timestamp").html(datestring).cuteTime(); 
                                
+                               if (doc.archived) {
+                                   $("#archive_status").show(); 
+                                   $("#page_archive_click").hide(); 
+                                   $("#page_unarchive_click").show(); 
+                               } else {
+                                   $("#archive_status").hide(); 
+                                   $("#page_archive_click").hide(); 
+                                   $("#page_unarchive_click").show(); 
 
+                               }
                            }); 
 
         // FIX ME : THERES NO WAY FOR US TO KNOW WHEN AN ELEMENT IS DONE WITH A STATE TRANSITION, SO CHAINING IS ALMOST IMPOSSIBLE
@@ -170,6 +179,7 @@ $(document).ready(
         
         $("#page_title_save")
             .click(function() {
+                       // fixme consolidate this
                        var MAXTRIES = 5; 
                        function save_title(cur_try) {
                            if(cur_try == 0) {
@@ -199,6 +209,40 @@ $(document).ready(
                            
                        save_title(MAXTRIES); 
 
+                   }); 
+
+        // fixme consolidate this
+        function save_page_archive(cur_try, is_archived) {
+            if(cur_try == 0) {
+                return; 
+            }
+            
+            var curdocs = server.getPageState(); 
+            if(curdocs.rev.archived == is_archived) {
+                return; 
+            }
+
+            var newdoc = $.extend(true, {}, curdocs.rev); 
+            newdoc.archived = is_archived; 
+            newdoc.parent = newdoc._id; 
+
+            var res = server.pageUpdate(curdocs.entry._id, 
+                                        newdoc); 
+            res.fail(function(doc) {
+                         save_page_archive(cur_try - 1, is_archived); 
+                     }); 
+            
+            }                           
+
+        
+        $("#page_archive_click")
+            .click(function() {
+                       save_page_archive(5, true); 
+                   }); 
+        
+        $("#page_unarchive_click")
+            .click(function() {
+                       save_page_archive(5, false); 
                    }); 
         
         $("#showhidden")
