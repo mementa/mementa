@@ -7,6 +7,10 @@
  * 
  */
 
+function is_hidden_visible()
+{
+    return $("#showhidden").is(':checked');
+}
 
 $(document).ready(
     function () {
@@ -24,24 +28,30 @@ $(document).ready(
 
 
 
+
+
+        $(entriesdiv).bind('entry-to-state-none', function(entrydiv) {
+                               
+
+                           }); 
+        $(entriesdiv).bind('entry-to-state-view', function(entrydiv) {
+                               
+
+                           }); 
+
         $(entriesdiv).bind('page-rev-update', function(event, doc) {
                                var oldpage_rev = $(this).data('old-page-rev'); 
-                               var first_page_load = false;  // hack
+
                                if(!oldpage_rev) {
                                    oldpage_rev = {
                                        entries : {}
                                    }; 
-                                   first_page_load = true; 
+
                                }
                                
                                render_simple(oldpage_rev.entries, 
                                              doc.entries, $(entriesdiv), ofunc); 
-                               
-                               if(first_page_load) {
-                                   $(".entry", entriesdiv)
-                                       .each(function(index, element) {
-                                                 state_none_to_view(element, docdb);                                                  
-                                             });                                                                 }
+
 
 
                                $(this).data('old-page-rev', doc); 
@@ -51,8 +61,28 @@ $(document).ready(
 
                                $("#page_date").removeAttr("data-timestamp").html(datestring).cuteTime(); 
                                
-                               
+
                            }); 
+
+        // FIX ME : THERES NO WAY FOR US TO KNOW WHEN AN ELEMENT IS DONE WITH A STATE TRANSITION, SO CHAINING IS ALMOST IMPOSSIBLE
+        $(entriesdiv)
+            .bind("state-change", 
+                  function(event, element) {
+                      var state = get_state(element); 
+                      if(state == 'none') {
+                          var res = state_none_to_view(element, docdb);                                                                                        
+                      } else if (state == 'view') {
+                          if(!is_hidden_visible()){
+                              if($(element).attr("page-hidden")) {
+                                  $(element).addClass("hidden");                                    
+                              }
+                              
+                          }                                                 
+                      }
+                  }); 
+        
+        
+    
 
         $(entriesdiv).bind('entry-rev-update', function(event, er) {
                                // fixme: this may in fact be resulting in a double
@@ -87,7 +117,11 @@ $(document).ready(
 
 
         $(".entry a.hide").live('click', function(e) {
-                                    dom_view_hide_click(this, server, docdb); 
+                                    dom_view_hide_click(this, server, docdb, true); 
+                                }); 
+
+        $(".entry a.unhide").live('click', function(e) {
+                                    dom_view_hide_click(this, server, docdb, false); 
                                 }); 
 
         
@@ -139,7 +173,7 @@ $(document).ready(
                            var newdoc = $.extend(true, {}, curdocs.rev); 
                            newdoc.title = title;              
                            newdoc.parent = newdoc._id; 
-                           console.log("Submitting", newdoc); 
+
                            var res = server.pageUpdate(curdocs.entry._id, 
                                                        newdoc); 
                            res.done(function(doc) {
@@ -159,6 +193,17 @@ $(document).ready(
 
                    }); 
         
+        $("#showhidden")
+            .click(function() {
+
+                       if(is_hidden_visible()) {
+                           $(".entry[state='view'][page-hidden]").removeClass("hidden");                                    
+                       } else {
+                           $(".entry[state='view'][page-hidden]").addClass("hidden");                                    
+                           
+                       }
+            
+        });
         // $(document).bind('page-docs-update', 
         //                  function(event, old_entry, old_rev, 
         //                           new_entry, new_rev)

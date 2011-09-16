@@ -180,7 +180,8 @@ function render_simple(old_entries, new_entries, targetdiv,
                     }
 
                     $(newdiv).addClass("page-active"); 
-                    
+                    set_state(newdiv, 'none');
+
                     break; 
 
                 case 'remove':

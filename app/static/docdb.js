@@ -23,7 +23,7 @@ function DocumentDB(server) {
             
         }
         
-        return result; 
+        return result.promise(); 
         
         
     }; 
@@ -52,7 +52,7 @@ function DocumentDB(server) {
             
         }
         
-        return result; 
+        return result.promise(); 
         
         
     }; 

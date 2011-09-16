@@ -33,6 +33,14 @@ function get_state(entrydiv)
     return get_entry_config(entrydiv)['state']; 
 }
 
+function set_state(entrydiv, state)
+{
+    /* Call "set state" when you enter a state */ 
+
+    $(entrydiv).attr("state", state); 
+    $(entrydiv).closest(".entrycontainer").trigger('state-change', entrydiv); 
+}
+
 function copy_attr(elt, attr, obj) {
  // if attr defined, copy to obj    
     if($(elt).attr(attr)) {

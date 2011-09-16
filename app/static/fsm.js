@@ -56,7 +56,7 @@ function create_entry_div(entryid, hidden, pinnedrev)
     var entrydiv = $("<div>"); 
     $(entrydiv).addClass("entry"); 
     $(entrydiv).attr("entryid", entryid); 
-    $(entrydiv).attr("state", "none"); 
+
     if(hidden) {
         $(entrydiv).attr('page-hidden', true);         
     }
@@ -78,6 +78,7 @@ function create_entrydiv_body_view(rev_doc) {
     var entrydiv_body = $("<div class='entry-body'><div class='meta'><img class='avatar' src='http://www.gravatar.com/avatar/205e460b479e2e5b48aec07710c08d50?s=50'/></div><div class='right-body'> <div class='class-content'></div><div class='control'> <span class='timestamp'/> "
                           + "<a href='#' class='edit'>edit</a> "
                           + "<a href='#' class='hide'>hide</a> "
+                          + "<a href='#' class='unhide'>unhide</a> "
                           + "<a href='#' class='remove'>remove</a> "
                           + "</div> <div class='notices'/> </div> </div>"); 
     
@@ -121,7 +122,8 @@ function entrydiv_reload_view(entrydiv, docdb, expected_config,
     } else {
         var entry_doc = docdb.getEntry(current_config.entryid);
     }
-    
+    var done_deferred = $.Deferred(); 
+
     $.when(entry_doc)
         .done(function(entdoc) {
                  var rev_id = entdoc.head; 
@@ -143,7 +145,6 @@ function entrydiv_reload_view(entrydiv, docdb, expected_config,
                                 var body = create_entrydiv_body_view(revdoc);     
                                 $(entrydiv).html(body);
                                 update_entrydiv_view(entrydiv, revdoc); 
-                                $(entrydiv).attr('state', 'view'); 
 
                                 if(current_config['page-hidden'] &&
                                    !expected_config['page-hidden']) {
@@ -155,11 +156,14 @@ function entrydiv_reload_view(entrydiv, docdb, expected_config,
                                     messages.revid && add_entry_notice(entrydiv, messages.revid); 
                                     
                                 }   
+
+                                set_state(entrydiv, "view"); 
                                 
-                            
-                           }); 
+                                done_deferred.resolve(); 
+
+                            }); 
               }); 
-    
+    return done_deferred.promise(); 
 }
 
 function create_entrydiv_body_edit(rev_doc) {
@@ -193,10 +197,9 @@ function opfuncs(docdb) {
     
     this.hide = function(entrydiv, entryptr) { 
         if(entryptr.hidden) {
-            $(entrydiv).addClass("hidden");              
+            console.log("setting page-hidden", entrydiv); 
             $(entrydiv).attr("page-hidden", true); 
         } else {
-            $(entrydiv).removeClass("hidden");              
             $(entrydiv).removeAttr("page-hidden"); 
 
         }
@@ -274,7 +277,7 @@ function state_none_to_view(entrydiv, docdb)
     is_entry(entrydiv); 
     assert_state(entrydiv, 'none'); 
     var config = get_entry_config(entrydiv); 
-    entrydiv_reload_view(entrydiv, docdb, config, {}); 
+    return entrydiv_reload_view(entrydiv, docdb, config, {}); 
 
 
 }
@@ -339,7 +342,8 @@ function state_view_to_pagepending(entrydiv, op, server, docdb)
     var cur_config = get_entry_config(entrydiv); 
 
     // mutate state 
-    $(entrydiv).attr('state', "pagepending"); 
+    set_state(entrydiv, "pagepending"); 
+
     $(entrydiv).data("pendingop", op); 
     save_entry_config(entrydiv); 
 
@@ -519,7 +523,8 @@ function state_view_to_edit(entrydiv, docdb)
                       .done(function(rev_doc) {
                                 var body = create_entrydiv_body_edit(rev_doc); 
                                 $(entrydiv).html(body); 
-                                $(entrydiv).attr('state', 'edit'); 
+                                set_state(entrydiv, 'edit'); 
+
                                })}); 
 
 
@@ -541,8 +546,8 @@ function state_edit_to_savepending(entrydiv, server, docdb)
 
     is_entry(entrydiv); 
     assert_state(entrydiv, 'edit'); 
-
-    $(entrydiv).attr("state", "savepending"); 
+    
+    set_state(entrydiv, "savepending"); 
     
     
     // from the entrydiv, attempt to construct the new doc, 
@@ -610,9 +615,8 @@ function state_savepending_to_view(entrydiv, server, docdb, retries, new_rev)
     var entryid = saved_config.entryid; 
 
     var resp = docdb.getEntry(entryid); 
-    console.log("state_savepending_to_view"); 
+
     resp.done(function(entrydoc) {
-                  console.log("state_savepending_to_view done"); 
                   
                   var messages = {
                       removed : {level : 'info', 
@@ -663,10 +667,10 @@ function dom_view_pin_click(entrydom_link,server, docdb, pinned_rev)
     
 }
 
-function dom_view_hide_click(entrydom_link, server, docdb)
+function dom_view_hide_click(entrydom_link, server, docdb, hidden)
 {
     var entrydom = $(entrydom_link).closest(".entry"); 
-    state_view_to_pagepending(entrydom, {cmd: 'hide', hidden:true},
+    state_view_to_pagepending(entrydom, {cmd: 'hide', hidden: hidden},
                               server, docdb); 
     
 }

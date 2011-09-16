@@ -18,9 +18,31 @@ div.entry {
             font-size: 11px;
         /* background-color: @grayLighter; */
         }
+
     }
-        
+    
+
 }
+
+div.entry:not([page-hidden]) {
+        a.unhide {
+            display: none;
+        }
+        a.hide {
+            display: inline;
+        }
+
+    }
+
+div.entry[page-hidden] {
+        a.unhide {
+            display: inline;
+        }
+
+        a.hide {
+            display: none;
+        }
+    }
 
 img.avatar {
     display: inline;
@@ -55,9 +77,10 @@ table.pagelist td
 
 }
 
-div.entry[page-hidden]
+div.entry.hidden
 {
-    background-color: rgb(240, 240, 240);
+    display:none
+
 }
 
 .pagetitle {

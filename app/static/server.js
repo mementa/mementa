@@ -90,7 +90,7 @@ function Server(associatedDOM) {
                       d.reject(); 
                       
                   }); 
-        return d; 
+        return d.promise(); 
 
     };
 
@@ -127,7 +127,7 @@ function Server(associatedDOM) {
                       d.reject(); 
                       
                   }); 
-        return d; 
+        return d.promise(); 
 
         
         
@@ -162,7 +162,7 @@ function Server(associatedDOM) {
                           // FIXME need better semantics here? 
                           d.reject(reason); 
                       }); 
-        return d; 
+        return d.promise(); 
     }; 
 
     this.getRev = function(revid)
@@ -181,7 +181,7 @@ function Server(associatedDOM) {
                             // FIXME need better semantics here? 
                             d.reject(reason); 
                         }); 
-        return d; 
+        return d.promise(); 
 
     }; 
     

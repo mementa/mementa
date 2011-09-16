@@ -123,7 +123,7 @@ function ServerMock(associatedDOM) {
                          info: info, 
                          deferred : d}); 
         
-        return d; 
+        return d.promise(); 
 
     };
 
@@ -137,7 +137,7 @@ function ServerMock(associatedDOM) {
                          entries : entries, 
                          deferred : d}); 
         
-        return d; 
+        return d.promise(); 
         
         
     };
@@ -168,7 +168,7 @@ function ServerMock(associatedDOM) {
                    $(dom).trigger('entry-rev-update', nd); 
                    }); 
         
-        return d; 
+        return d.promise(); 
                    
         
     };
@@ -207,7 +207,7 @@ function ServerMock(associatedDOM) {
                    
                }); 
         
-        return d; 
+        return d.promise(); 
         
         
     }; 
@@ -229,7 +229,7 @@ function ServerMock(associatedDOM) {
                          entryid : entryid, 
                          deferred : d}); 
         
-        return d; 
+        return d.promise(); 
 
     }; 
 
@@ -241,7 +241,7 @@ function ServerMock(associatedDOM) {
                          revid : revid, 
                          deferred : d}); 
         
-        return d; 
+        return d.promise(); 
 
     }; 
     

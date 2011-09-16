@@ -45,7 +45,7 @@ function fsm_tests()
              var ENTRYN = 10; 
              var fakepage = datagen.create_fake_page(ENTRYN); 
              
-             var entriesdiv = $("<div id='entries'/>"); 
+             var entriesdiv = $("<div id='entries' class='entrycontainer'/>"); 
              
              var server = new ServerMock(entriesdiv); 
 
@@ -87,7 +87,7 @@ function fsm_tests()
              var localdb = fakepage.docs; 
 
              
-             var entriesdiv = $("<div id='entries'/>"); 
+             var entriesdiv = $("<div id='entries' class='entrycontainer'/>"); 
 
              var server = new ServerMock(entriesdiv); 
 
@@ -185,7 +185,7 @@ function fsm_tests()
                 var localdb = fakepage.docs; 
 
                 
-                var entriesdiv = $("<div id='entries'/>"); 
+                var entriesdiv = $("<div id='entries' class='entrycontainer'/>"); 
                 
                 var server = new ServerMock(entriesdiv); 
                 
@@ -375,7 +375,7 @@ function fsm_tests()
                 var localdb = fakepage.docs; 
 
                 
-                var entriesdiv = $("<div id='entries'/>"); 
+                var entriesdiv = $("<div id='entries' class='entrycontainer'/>"); 
                 
                 var server = new ServerMock(entriesdiv); 
                 
@@ -517,7 +517,7 @@ function fsm_tests()
              
              // executing this requires us knowing what the pinned rev is
              dom_view_hide_click($("a.edit", tgtdiv), this.server, 
-                                this.docdb); 
+                                this.docdb, true); 
              
              var sop = this.server.queue.pop(); 
              equals(sop.op, 'page_update'); 
@@ -542,6 +542,66 @@ function fsm_tests()
              
          }); 
 
+    test("Simple hide test, hide=true then hide=false", function()
+         {
+             //setup_handlers(this.server, this.docdb, this.entriesdiv); 
+             var tgtn = 6; 
+             var tgtdiv = $(this.entriesdiv).children().eq(tgtn); 
+             
+             // executing this requires us knowing what the pinned rev is
+             dom_view_hide_click($("a.hide", tgtdiv), this.server, 
+                                this.docdb, true); 
+             
+             var sop = this.server.queue.pop(); 
+             equals(sop.op, 'page_update'); 
+             equals(sop.pageid, this.server.pageState.entry._id); 
+             equals(sop.doc.entries[tgtn].hidden, true); 
+
+             // assert properties of request
+             var updated_rev = datagen.refresh_rev(sop.doc);
+             var entry = this.localdb[sop.pageid]; 
+             entry.rev = updated_rev._id; 
+
+             this.localdb[updated_rev._id] = updated_rev; 
+             
+             /* update the entry */ 
+             sop.deferred.resolve(updated_rev); 
+
+             // now get the doc query
+             this.server.processAll(this.localdb); 
+
+             ok($(tgtdiv).attr("page-hidden")); 
+             
+
+             
+             dom_view_hide_click($("a.unhide", tgtdiv), this.server, 
+                                 this.docdb, false); 
+             
+             var sop = this.server.queue.pop(); 
+             equals(sop.op, 'page_update'); 
+             equals(sop.pageid, this.server.pageState.entry._id); 
+             equals(sop.doc.entries[tgtn].hidden, false); 
+
+             // assert properties of request
+             var updated_rev = datagen.refresh_rev(sop.doc);
+             var entry = this.localdb[sop.pageid]; 
+             entry.rev = updated_rev._id; 
+
+             this.localdb[updated_rev._id] = updated_rev; 
+             
+             /* update the entry */ 
+             sop.deferred.resolve(updated_rev); 
+
+             // now get the doc query
+             this.server.processAll(this.localdb); 
+
+             ok($(tgtdiv).attr("page-hidden") ==  undefined) ; 
+             
+
+             
+             
+         }); 
+
     test("multiple-mutate-retry test, hiding test, hide=true", function()
          {
              //setup_handlers(this.server, this.docdb, this.entriesdiv); 
@@ -550,7 +610,7 @@ function fsm_tests()
              
              // executing this requires us knowing what the pinned rev is
              dom_view_hide_click($("a.edit", tgtdiv), this.server, 
-                                this.docdb); 
+                                this.docdb, true); 
              
              var FAILCNT = 3; 
              for ( var i = 0; i < FAILCNT; ++i) {
