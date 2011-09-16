@@ -338,95 +338,104 @@ app.secret_key = 'A0Zr98j/3kdshfkdsajhfasdkj239r12nc-95h1pi34r1143yX R~XHH!jmN]L
 #     else:
 #         pass
 
-@app.route("/api/page/new", methods=["POST"])
-@login_required
-def api_page_new():
-    """
-    You can POST a new page to this URL and get back the JSON-ified page,
-    it's entry, the fully-spec'd ref, etc.
+# @app.route("/api/page/new", methods=["POST"])
+# @login_required
+# def api_page_new():
+#     """
+#     You can POST a new page to this URL and get back the JSON-ified page,
+#     it's entry, the fully-spec'd ref, etc.
 
-    input json:
+#     input json:
 
-    {'title' : title of the page,
-     'entries' : [ {'entry' : text_string_of_entry_id,
-                    'hidden' : boolean [default : False]
-                    'rev' : text string of revision ID if pinned } ]}
+#     {'title' : title of the page,
+#      'entries' : [ {'entry' : text_string_of_entry_id,
+#                     'hidden' : boolean [default : False]
+#                     'rev' : text string of revision ID if pinned } ]}
 
 
-    returns :
-       {'entry' : standard entry doc,
-        'revision' : standard revision doc
-        }
+#     returns :
+#        {'entry' : standard entry doc,
+#         'revision' : standard revision doc
+#         }
 
-    or 400 if an invalid request
+#     or 400 if an invalid request
 
-    note does not check to see if IDs are valid
+#     note does not check to see if IDs are valid
     
-    """
+#     """
  
-    if request.mimetype != "application/json":
-        return "Invalid request type, must be application/json", 400
+#     if request.mimetype != "application/json":
+#         return "Invalid request type, must be application/json", 400
     
-    request_data = request.json
+#     request_data = request.json
    
-    if 'title' not in request_data:
-        return "'title' not present in request",  400
+#     if 'title' not in request_data:
+#         return "'title' not present in request",  400
 
-    title = request_data['title']
+#     title = request_data['title']
     
 
-    entries = []
-    if 'entry' in request_data:
-        for e in request_data['entries']:
+#     entries = []
+#     if 'entry' in request_data:
+#         for e in request_data['entries']:
 
-            if 'entry' not in e:
-                return 'invalid entry', 400
+#             if 'entry' not in e:
+#                 return 'invalid entry', 400
 
-            edict = {'entry' : bson.dbref.DBRef("entries", e['entry']), 
-                     'hidden' : get(e, 'hidden', False)}
+#             edict = {'entry' : bson.dbref.DBRef("entries", e['entry']), 
+#                      'hidden' : get(e, 'hidden', False)}
 
-            if 'rev' in e:
-                edict['rev'] = bson.dbref.DBRef("revisions", e['rev'])
+#             if 'rev' in e:
+#                 edict['rev'] = bson.dbref.DBRef("revisions", e['rev'])
 
-            entries.append(edict)
+#             entries.append(edict)
 
-    page_rev = dm.page_entry_revision_create(title, entries)
-    author = bson.dbref.DBRef("users", bson.objectid.ObjectId(session["user_id"]))
-    page_rev.update(dm.revision_create(author))
+#     page_rev = dm.page_entry_revision_create(title, entries)
+#     author = bson.dbref.DBRef("users", bson.objectid.ObjectId(session["user_id"]))
+#     page_rev.update(dm.revision_create(author))
 
-    revid = g.db.revisions.insert(page_rev, safe=True)
-    page_rev["_id"] = revid
+#     revid = g.db.revisions.insert(page_rev, safe=True)
+#     page_rev["_id"] = revid
     
-    ent_dict = dm.entry_create(dbref("revisions", revid), 'page', page_rev)
+#     ent_dict = dm.entry_create(dbref("revisions", revid), 'page', page_rev)
     
-    entid = g.db.entries.insert(ent_dict, safe=True)
+#     entid = g.db.entries.insert(ent_dict, safe=True)
 
-    ent_dict["_id"] = entid
+#     ent_dict["_id"] = entid
 
-    page_rev_json = dm.page_rev_to_json(page_rev)
+#     page_rev_json = dm.page_rev_to_json(page_rev)
 
     
-    return jsonify({'entry' : {'class' : 'page',
-                       'head' : str(revid),
-                       '_id' : str(entid)},
+#     return jsonify({'entry' : {'class' : 'page',
+#                        'head' : str(revid),
+#                        '_id' : str(entid)},
             
-                    'revision' : page_rev_json})
+#                     'revision' : page_rev_json})
 
     
-@app.route("/api/entry/text/new", methods=["POST"])
+@app.route("/api/entry/new", methods=["POST"])
 @login_required
-def api_entry_text_new():
+def api_entry_new():
     """
-    Create a new entry 
+    Create a new revision and entry.
+    
+    You can POST a new json object to this URL and get back the JSON-ified page,
+    it's entry, the fully-spec'd rev. 
 
-    You can POST a new page to this URL and get back the JSON-ified page,
-    it's entry, the fully-spec'd ref, etc.
+    Note the input json must contain class
+    and then any of the requirements for this class, for example:
 
-    input json:
+    all:
+       archived:
+    
+    text:
+        title
+        body
 
-    {'title' : title of the page,
-     'body' : body text }
-
+    page:
+        title
+        entries : [ {entry:, hidden:, rev:},]
+        
     returns :
        {'entry' : standard entry doc,
         'revision' : standard revision doc
@@ -441,30 +450,32 @@ def api_entry_text_new():
 
     request_data = request.json
 
-    if 'title' not in request_data:
-        return "'title' not present in request",  400
-    if 'body' not in request_data:
-        return "'body' not present in request", 400
+    if 'class' not in request_data:
+        return "'class' not present in request", 400
+    
+    dclass = request_data['class']
 
-    title = request_data['title']
-    body = request_data['body']
+    if dclass not in dm.json_to_rev:
+        return "Unknown class", 400
 
-    rev = dm.text_entry_revision_create(title, body)
+    rev =  dm.json_to_rev[dclass](request_data)
+    
     rev.update(dm.revision_create(dbref("users", session["user_id"])))
 
     revid = g.db.revisions.insert(rev, safe=True)
     rev["_id"] = revid
     
     ent_dict = dm.entry_create(dbref("revisions", revid),
-                               'text', rev)
+                               dclass, rev)
 
     entid = g.db.entries.insert(ent_dict, safe=True)
     ent_dict["_id"] = entid
 
 
 
-    rev_json = dm.entry_text_rev_to_json(rev)
-    return jsonify({'entry' : {'class' : 'text',
+    rev_json = dm.rev_to_json[dclass](rev)
+    
+    return jsonify({'entry' : {'class' : dclass,
                                'head' : str(revid),
                                '_id' : str(entid)},
                     

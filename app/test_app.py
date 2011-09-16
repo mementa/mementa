@@ -89,8 +89,9 @@ class MementaTestCase(unittest.TestCase):
 
         body = "11, 22, 33, 44"
         title = "This is a title"
-        rv = self.post_json("/api/entry/text/new",
-                           {'title' : title,'body' : body})
+        rv = self.post_json("/api/entry/new",
+                           {'class' : 'text',
+                            'title' : title,'body' : body})
 
         
         rv_json = json.loads(rv.data)
@@ -112,25 +113,28 @@ class MementaTestCase(unittest.TestCase):
 
         # create empty page
         title = "Empty Page"
-        rv = self.post_json("/api/page/new", data={'title' : title, 
-                                                  'entries' : None})
-
+        rv = self.post_json("/api/entry/new", data={'class' : 'page',
+                                                    'title' : title, 
+                                                    'entries' : None})
+        
         rv_json = json.loads(rv.data)
 
         assert_equal(rv_json['revision']['title'], title)
         
         # create page with one doc
 
-        rv = self.post_json("/api/entry/text/new", data={'title' : "Page Title 1", 
-                                                        'body' : "Body Body"})
+        rv = self.post_json("/api/entry/new", data={'class'  : "text",
+                                                    'title' : "Page Title 1", 
+                                                    'body' : "Body Body"})
         rv_json = json.loads(rv.data)
 
         page_id = rv_json['entry']['_id']
 
                 
         title = "non-Empty Page"
-        rv = self.post_json("/api/page/new",
-                           data={'title' : title, 
+        rv = self.post_json("/api/entry/new",
+                           data={'title' : title,
+                                 'class' : 'page', 
                                  'entries' : [{'entry' : page_id,
                                                'hidden' : True}] })
         
@@ -152,8 +156,9 @@ class MementaTestCase(unittest.TestCase):
 
         # create empty page
         title = "Empty Page One"
-        rv = self.post_json("/api/page/new", data={'title' : title, 
-                                                  'entries' : None})
+        rv = self.post_json("/api/entry/new", data={'title' : title,
+                                                    'class' : 'page', 
+                                                    'entries' : None})
 
         rv_json = json.loads(rv.data)
         page_rev_id = rv_json['entry']['head']
@@ -197,8 +202,9 @@ class MementaTestCase(unittest.TestCase):
         # create empty page
         title = "Test text entry"
         body = "test body"
-        rv = self.post_json("/api/entry/text/new",
-                            data={'title' : title, 
+        rv = self.post_json("/api/entry/new",
+                            data={'title' : title,
+                                  'class' : 'text', 
                                   'body' : body})
 
         rv_json = json.loads(rv.data)
@@ -252,13 +258,15 @@ class MementaTestCase(unittest.TestCase):
             text_entries = []
             for d in range(ENTRY_N):
                 title = "Text entry title %s %d" % (user, d)
-                rv = self.post_json("/api/entry/text/new", data={'title' : title,
-                                                                 'body' : "Body Body"})
+                rv = self.post_json("/api/entry/new", data={'title' : title,
+                                                            'class' : 'text', 
+                                                            'body' : "Body Body"})
                 rv_json = json.loads(rv.data)
 
                 id = rv_json['entry']['_id']
 
-                text_entries.append(id)
+                text_entries.append({'entry' : id,
+                                     'hidden' : False})
 
             text_entries_all[user] = text_entries
             
@@ -268,8 +276,9 @@ class MementaTestCase(unittest.TestCase):
             for d in range(PAGE_N):
                 title = "Page entry title %s %d" % (user, d)
                 
-                rv = self.post_json("/api/page/new", data={'title' : title, 
-                                                  'entries' : text_entries})
+                rv = self.post_json("/api/entry/new", data={'title' : title,
+                                                            'class' : 'page', 
+                                                            'entries' : text_entries})
 
                 rv_json = json.loads(rv.data)
 

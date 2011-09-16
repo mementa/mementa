@@ -184,3 +184,30 @@ def entry_to_json(entry_doc):
 rev_to_json = {'page' : page_rev_to_json,
                'text' : entry_text_rev_to_json }
 
+
+
+
+def entry_text_json_to_rev(jsond) :
+    
+    title = jsond['title']
+    body = jsond['body']
+
+    rev = text_entry_revision_create(title, body)
+
+    return rev
+
+def page_json_to_rev(jsond):
+
+    title = jsond['title']
+    entries = jsond['entries']
+    if entries == None:
+        entries = []
+        
+    rev = page_entry_revision_create(title, entries)
+
+    return rev
+
+
+
+json_to_rev = {'text' : entry_text_json_to_rev,
+               'page' : page_json_to_rev}

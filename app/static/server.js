@@ -31,29 +31,41 @@ function Server(associatedDOM) {
     
     this.entryNew = function(dclass, info)
     {
-        // var d = $.Deferred(); 
+        var d = $.Deferred(); 
+
+        var doc = $.extend(true, { 'class' : dclass}, info); 
         
-        // this.queue.push({op : 'entry_new', 
-        //                  dclass: dclass, 
-        //                  info: info, 
-        //                  deferred : d}); 
-        
-        // return d; 
+        var resp = $.ajax({'type' : "POST", 
+                           'url' : "/api/entry/new",
+                           contentType:"application/json",
+                           dataType : "json" , 
+                           data : JSON.stringify(doc)}); 
+
+        var dom = this.dom; 
+        resp.done(function(arg) {
+                      $(dom).trigger('entry-rev-update', 
+                                     {entry: arg.entry, 
+                                      rev: arg.revision}); 
+
+                      d.resolve(arg); 
+                  }); 
+        resp.fail(function(arg) {
+                      d.reject(arg); 
+                  }); 
+                  
+        return d.promise(); 
 
     };
 
     
     this.pageNew = function(title, entries)
     {
-        // var d = $.Deferred(); 
-        
-        // this.queue.push({op: 'page_new', 
-        //                  title : title, 
-        //                  entries : entries, 
-        //                  deferred : d}); 
-        
-        // return d; 
-        
+
+        return this.entryNew('page', 
+                             {
+                               title : title, 
+                               entries: entries
+                             })
         
     };
     

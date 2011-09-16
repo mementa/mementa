@@ -116,6 +116,10 @@ function ServerMock(associatedDOM) {
 
     this.entryNew = function(dclass, info)
     {
+        /* 
+         * returns {entry, revision}
+         * 
+         */
         var d = $.Deferred(); 
         
         this.queue.push({op : 'entry_new', 
@@ -130,6 +134,10 @@ function ServerMock(associatedDOM) {
     
     this.pageNew = function(title, entries)
     {
+        /*
+         * returns {entry:, revision:}
+         * 
+         */
         var d = $.Deferred(); 
         
         this.queue.push({op: 'page_new', 

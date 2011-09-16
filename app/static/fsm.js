@@ -646,6 +646,85 @@ function state_savepending_to_edit(entrydiv, docdb)
 
 }
 
+function insert_entry_retry(server, pos, entryid, hidden, pinned, RETRYN) 
+{
+    var d = $.Deferred(); 
+    
+    function attempt(tryattempt) {
+        if(tryattempt == 0) {
+            d.reject(); 
+        } 
+        
+        var ps = server.getPageState(); 
+        var page_rev = $.extend(true, {}, ps.rev)
+        var ent = {
+            entry: entryid, 
+            hidden : hidden
+        }; 
+        if(pinned) {
+            ent.pinned = pinned; 
+        }
+
+        page_rev.entries.splice(pos, 0, ent); 
+        page_rev.parent = page_rev._id; 
+
+        var submit = server.pageUpdate(ps.entry._id, 
+                                       page_rev); 
+        
+        submit.done(
+            function(foo) { 
+                d.resolve(); 
+        });
+        
+        submit.fail(
+            function(foo) {
+                // retry
+                attempt(tryattempt -1); 
+                
+            }) ; 
+        
+        
+    }
+    attempt(RETRYN); 
+
+    return d; 
+
+}
+
+function dom_add_entry_click(doc, server, docdb) {
+    /* When this op is completed, we fire the deferred so that we can (say) 
+     * switch it to edit and set focus. 
+     * 
+     * 
+     */
+    var d = $.Deferred(); 
+    
+    var entdef = server.entryNew(doc['class'], doc ); 
+    entdef.done(function(docs) {
+                    console.log("Created", docs); 
+                    var hidden = false; 
+                    var pinned = undefined; 
+                    // when done
+                    var RETRYN = 5; 
+                    var pos = 10000; // very end
+
+                    var entryid = docs.entry._id; 
+
+                    var insertdone = 
+                        insert_entry_retry(server, pos, 
+                                           entryid, hidden, pinned, RETRYN); 
+                    
+                    insertdone.done(function() {
+                                        d.resolve(); 
+                                    });
+                    
+                    insertdone.fail(function() { 
+                                        d.reject(); 
+                                    }); 
+                    }); 
+    return d.promise(); 
+
+}
 
 function dom_view_edit_click(entrydom_link, docdb)
 {

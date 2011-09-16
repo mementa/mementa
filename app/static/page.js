@@ -27,9 +27,6 @@ $(document).ready(
         var ofunc = new opfuncs(docdb); 
 
 
-
-
-
         $(entriesdiv).bind('entry-to-state-none', function(entrydiv) {
                                
 
@@ -204,6 +201,21 @@ $(document).ready(
                        }
             
         });
+
+        $("#button_add_entry_text")
+            .click(function() { 
+                       var resp = dom_add_entry_click(
+                           {
+                               'class' : 'text', 
+                               title : "dummy title", 
+                               body: "Temp body"
+                           }, server, docdb); 
+                       // fixme : this is where we would wait for resp
+                       // to finish and then set that entry editable or something
+
+                       }); 
+
+
         // $(document).bind('page-docs-update', 
         //                  function(event, old_entry, old_rev, 
         //                           new_entry, new_rev)
