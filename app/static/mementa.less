@@ -4,11 +4,22 @@ div.entry {
     display: table-row;
     border-collapse: collapse;
     
-}
+    .entry-body { 
+        .meta { 
+            display: table-cell;
+            width: 60px;
+        }
+        
+        .right-body { 
+            display: table-cell;
+        }
 
-div.meta {
-    display: table-cell;
-    width: 60px;
+        .control {
+            font-size: 11px;
+        /* background-color: @grayLighter; */
+        }
+    }
+        
 }
 
 img.avatar {
@@ -16,16 +27,8 @@ img.avatar {
     vertical-align: top; 
 }
 
-div.entrybody { 
-    display: table-cell;
 
-}
 
-.entrycontrol {
-    font-size: 11px;
-    /* background-color: @grayLighter; */
-    
-}
 
 .hovertarget {
     visibility: hidden;
