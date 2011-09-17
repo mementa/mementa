@@ -74,7 +74,9 @@ $(document).ready(
         $(entriesdiv)
             .bind("state-change", 
                   function(event, element) {
-                      var state = get_state(element); 
+                      var config  = get_entry_config(element); 
+                      var state = config.state; 
+
                       if(state == 'none') {
                           var res = state_none_to_view(element, docdb);                                                                                        
                       } else if (state == 'view') {
@@ -84,15 +86,20 @@ $(document).ready(
                               }
                               
                           }                                       
-                          
-                          var id = $(element).attr('id'); 
-                          MathJax.Hub.Queue(["Typeset",MathJax.Hub, id]);
+
+                          if(config.entryclass == 'text') {
+                              var id = $(element).attr('id'); 
+                              MathJax.Hub.Queue(["Typeset",MathJax.Hub, id]);                              
+                          }
 
                       } else if (state == 'edit') {
-                          $("textarea", element).tinymce({mode: "none", 
-                                                          theme:"simple",
-                                                          plugins : "autoresize",
-                                                         });                           
+                          if(config.entryclass == 'text') {
+                              $("textarea", element).tinymce({mode: "none", 
+                                                              theme:"simple",
+                                                              plugins : "autoresize",
+                                                             });                                                         
+                          }
+
                           
                       }
                       
