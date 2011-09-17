@@ -181,7 +181,7 @@ class MementaTestCase(unittest.TestCase):
                                      'entries' : [],
                                      'class' : 'page',
                                      'parent' : page_rev_id})
-        assert_equal(rv.status, '400')
+        assert_equal(rv.status, "409")
 
         rv_json = json.loads(rv.data)
         assert_equal(rv_json['reason'], "Incorrect latest")
@@ -233,7 +233,7 @@ class MementaTestCase(unittest.TestCase):
                                     'body' : "wooo",
                                     'class' : 'text'})
                                     
-        assert_equal(rv.status, '400')
+        assert_equal(rv.status, "409")
 
         rv_json = json.loads(rv.data)
         assert_equal(rv_json['reason'], "Incorrect latest")

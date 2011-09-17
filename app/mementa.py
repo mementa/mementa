@@ -19,6 +19,8 @@ DB_HOST = "127.0.0.1"
 DB_PORT = 27017
 DB_URL = "mongodb://127.0.0.1:27017"
 
+HTTP_ERROR_CLIENT_CONFLICT = "409"
+HTTP_ERROR_CLIENT_BADREQUEST = "400"
 
 PASSWORDSALT = "3wSnElYBSaphFAB76f78"
 
@@ -290,128 +292,6 @@ def db_get_entry(id):
 # set the secret key.  keep this really secret:
 app.secret_key = 'A0Zr98j/3kdshfkdsajhfasdkj239r12nc-95h1pi34r1143yX R~XHH!jmN]LWX/,?RT'
 
-
-# @app.route('/entry/<entryid>', methods=['GET', 'POST'])
-# @login_required
-# def save_entry(entryid):
-    
-#     if request.method == "POST":
-#         # extract the fields from post
-
-#         # add the fields 
-
-#         entry_class = request.form['entry_class']
-#         entry_id = request.form['entry_id']
-
-#         request_dict = {}
-#         # turn the multidict into a single dict
-        
-#         for k in request.form:
-#             request_dict[k] = request.form[k]
-                    
-#         vdoc = dm.revision_class_create[entry_class](**request_dict)
-#         author = bson.dbref.DBRef("users", bson.objectid.ObjectID(session["user_id"]))
-#         Entry_ver = dm.revision_create(author=author,
-#                                             parent = request.form["rev_id"])
-#         vdoc.update(entry_ver)
-        
-#         # create the doc, now insert it into mongo
-#         col_entries = g.db['entries']
-#         col_revisions = g.db['revisions']
-
-#         oid = col_revisions.insert(vdoc, safe=True)
-
-        
-#         tref = bson.dbref.DBRef("revisions", oid)
-
-#         # FIXME FIXME FIXME USE COMPARE AND SWAP HERE
-
-#         col_entries.save({'_id' : bson.objectid.ObjectId(entry_id),
-#                           'head' : tref}, safe=True)
-
-
-#         div = entry_divs.create[entry_class]({'_id' : entry_id,
-#                                               'head' : tref,
-#                                               'archived' : False}, vdoc) # FIXME archived
-#         return div
-    
-#     else:
-#         pass
-
-# @app.route("/api/page/new", methods=["POST"])
-# @login_required
-# def api_page_new():
-#     """
-#     You can POST a new page to this URL and get back the JSON-ified page,
-#     it's entry, the fully-spec'd ref, etc.
-
-#     input json:
-
-#     {'title' : title of the page,
-#      'entries' : [ {'entry' : text_string_of_entry_id,
-#                     'hidden' : boolean [default : False]
-#                     'rev' : text string of revision ID if pinned } ]}
-
-
-#     returns :
-#        {'entry' : standard entry doc,
-#         'revision' : standard revision doc
-#         }
-
-#     or 400 if an invalid request
-
-#     note does not check to see if IDs are valid
-    
-#     """
- 
-#     if request.mimetype != "application/json":
-#         return "Invalid request type, must be application/json", 400
-    
-#     request_data = request.json
-   
-#     if 'title' not in request_data:
-#         return "'title' not present in request",  400
-
-#     title = request_data['title']
-    
-
-#     entries = []
-#     if 'entry' in request_data:
-#         for e in request_data['entries']:
-
-#             if 'entry' not in e:
-#                 return 'invalid entry', 400
-
-#             edict = {'entry' : bson.dbref.DBRef("entries", e['entry']), 
-#                      'hidden' : get(e, 'hidden', False)}
-
-#             if 'rev' in e:
-#                 edict['rev'] = bson.dbref.DBRef("revisions", e['rev'])
-
-#             entries.append(edict)
-
-#     page_rev = dm.page_entry_revision_create(title, entries)
-#     author = bson.dbref.DBRef("users", bson.objectid.ObjectId(session["user_id"]))
-#     page_rev.update(dm.revision_create(author))
-
-#     revid = g.db.revisions.insert(page_rev, safe=True)
-#     page_rev["_id"] = revid
-    
-#     ent_dict = dm.entry_create(dbref("revisions", revid), 'page', page_rev)
-    
-#     entid = g.db.entries.insert(ent_dict, safe=True)
-
-#     ent_dict["_id"] = entid
-
-#     page_rev_json = dm.page_rev_to_json(page_rev)
-
-    
-#     return jsonify({'entry' : {'class' : 'page',
-#                        'head' : str(revid),
-#                        '_id' : str(entid)},
-            
-#                     'revision' : page_rev_json})
-
     
 @app.route("/api/entry/new", methods=["POST"])
 @login_required
@@ -446,17 +326,17 @@ def api_entry_new():
     """
     
     if request.mimetype != "application/json":
-        return "Invalid request type, must be application/json", 400
+        return "Invalid request type, must be application/json", HTTP_ERROR_CLIENT_BADREQUEST
 
     request_data = request.json
 
     if 'class' not in request_data:
-        return "'class' not present in request", 400
+        return "'class' not present in request",HTTP_ERROR_CLIENT_BADREQUEST
     
     dclass = request_data['class']
 
     if dclass not in dm.json_to_rev:
-        return "Unknown class", 400
+        return "Unknown class", HTTP_ERROR_CLIENT_BADREQUEST
 
     rev =  dm.json_to_rev[dclass](request_data)
     
@@ -503,7 +383,7 @@ def api_entry_get_post(entryid):
     and update the entry
 
     If the entry is out of date, we reject, and instead
-    return the latest entry/rev
+    return the latest entry/rev, with error 409
     
     
     """
@@ -515,7 +395,7 @@ def api_entry_get_post(entryid):
 
     
         if request.mimetype != "application/json":
-            return "Invalid request type, must be application/json", 400
+            return "Invalid request type, must be application/json", HTTP_ERROR_CLIENT_BAD_REQUEST
         
         rd = request.json
 
@@ -580,7 +460,7 @@ def api_entry_get_post(entryid):
 
             resp =  jsonify({"reason" : "Incorrect latest", 
                              "latest_revision_doc" : latest_rev_json})
-            resp.status = "400"
+            resp.status = HTTP_ERROR_CLIENT_CONFLICT
             return resp
         
         
@@ -613,65 +493,6 @@ def api_rev_get(revid):
     
     return jsonify(dm.rev_to_json[rev['class']](rev))
 
-
-
-@app.route("/api/entry/text/new", methods=["POST"])
-@login_required
-def api_entry_text_new():
-    """
-    Create a new entry 
-
-    You can POST a new page to this URL and get back the JSON-ified page,
-    it's entry, the fully-spec'd ref, etc.
-
-    input json:
-
-    {'title' : title of the page,
-     'body' : body text }
-
-    returns :
-       {'entry' : standard entry doc,
-        'revision' : standard revision doc
-        }
-
-    or 400 if an invalid request
-
-    """
-    
-    if request.mimetype != "application/json":
-        return "Invalid request type, must be application/json", 400
-
-    request_data = request.json
-
-    if 'title' not in request_data:
-        return "'title' not present in request",  400
-    if 'body' not in request_data:
-        return "'body' not present in request", 400
-
-    title = request_data['title']
-    body = request_data['body']
-
-    rev = dm.text_entry_revision_create(title, body)
-    rev.update(dm.revision_create(bson.dbref.DBRef("users",
-                                                   bson.objectid.ObjectId(session["user_id"]))))
-
-    revid = g.db.revisions.insert(rev, safe=True)
-    rev["_id"] = revid
-    
-    ent_dict = dm.entry_create(dbref("revisions", revid),
-                               'text', rev)
-
-    entid = g.db.entries.insert(ent_dict, safe=True)
-    ent_dict["_id"] = entid
-
-    rev["_id"] = revid
-
-    rev_json = dm.entry_text_rev_to_json(rev)
-    return jsonify({'entry' : {'class' : 'text',
-                               'head' : str(revid),
-                               '_id' : str(entid)},
-                    
-                    'revision' : rev_json})
 
 def list_entries_query(req):
     """
