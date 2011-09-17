@@ -286,7 +286,10 @@ $(document).ready(
 
                        }); 
         
-        
+        $(".entry[state='view']")
+            .live("dblclick", function(ent) {
+                      dom_view_edit_click(this, docdb); 
+                  }); 
         
     }); 
 
