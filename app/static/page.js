@@ -303,6 +303,17 @@ $(document).ready(
             .live("click", function(evenet) {
                       $(this).closest(".alert-message").remove(); 
                   }); 
+
+        $(".entry")
+            .hover(
+                function() {
+                    $(".control", this).addClass("hovertargetvisible");
+                },
+                function() {
+                    $(".control", this).removeClass("hovertargetvisible");
+                    
+                });
+
         
     }); 
 

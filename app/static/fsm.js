@@ -96,7 +96,7 @@ function create_entrydiv_body_view(rev_doc) {
         render.entry_rev_view[rev_doc['class']](rev_doc); 
     
     // update author information
-    var entrydiv_body = $("<div class='entry-body'><div class='meta'><img class='avatar' src='http://www.gravatar.com/avatar/205e460b479e2e5b48aec07710c08d50?s=50'/></div><div class='right-body'> <div class='class-content'></div><div class='control'> <span class='timestamp'/> "
+    var entrydiv_body = $("<div class='entry-body'><div class='meta'><img class='avatar' src='http://www.gravatar.com/avatar/205e460b479e2e5b48aec07710c08d50?s=50'/></div><div class='right-body'> <div class='class-content'></div><div class='control hovertarget'> <span class='timestamp'/> "
                           + "<a href='#' class='edit'>edit</a> "
                           + "<a href='#' class='hide'>hide</a> "
                           + "<a href='#' class='unhide'>unhide</a> "
