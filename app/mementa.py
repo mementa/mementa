@@ -172,18 +172,6 @@ def listusers():
     pass
 
 
-@app.route("/entries")
-@login_required
-def entries():
-    entries = g.db['entries']
-    docs = entries.find()
-    ids = [str(d["_id"]) for d in docs]
-    urls = [(id, url_for('entry', entryid=id)) for id in ids]
-
-    
-    return render_template("list_entries.html", entries=urls,
-                           session = session)
-    
 
 @app.route("/settings", methods=['GET', 'POST'])
 @login_required
@@ -254,7 +242,7 @@ def entries():
     for p in pages:
         p['author'] = lookup_user(p['author'])
         
-    return render_template("list_pages.html", pages=pages,
+    return render_template("list_entries.html", pages=pages,
                            session = session)
 
 @app.route("/page/<entryid>")

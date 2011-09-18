@@ -4,11 +4,11 @@
 <script type="text/javascript" src="/static/list_pages.js"></script>    
 
 {%endblock %}
-{% block title %} Pages List Interface {% endblock %}
+{% block title %} Entry List Interface {% endblock %}
 {% block content %} 
 
 <div class="container">
-  <H1> Current Pages </H1>
+  <H1> Current Entries </H1>
   <ul> 
   {%for p in pages %}
     <li> <h3> <a href="/page/{{p._id}}">{{p.title}}</a> 
