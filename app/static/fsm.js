@@ -199,7 +199,7 @@ function create_entrydiv_body_edit(rev_doc) {
                           + "</div>"
                           + "<div class='right-body'>"
                           + "    <div class='class-content'/>"
-                          + "    <div class='control'><a href='#' class='save'>save</a> <a href='#' class='cancel'>cancel </a></div> "
+                          + "    <div class='control'><a href='#' class='btn save primary'>save</a> <a href='#' class='btn cancel'>cancel </a></div> "
                           + "<div class='notices'/> </div></div>"); 
     
     $(".class-content", entrydiv_body).append(class_content); 
