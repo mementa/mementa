@@ -36,9 +36,15 @@ function get_state(entrydiv)
 function set_state(entrydiv, state)
 {
     /* Call "set state" when you enter a state */ 
+    
+    var oldstate = $(entrydiv).attr("state"); 
 
     $(entrydiv).attr("state", state); 
-    $(entrydiv).closest(".entrycontainer").trigger('state-change', entrydiv); 
+
+    $(entrydiv).closest(".entrycontainer")
+        .trigger('state-change', {dom: entrydiv, 
+                                  oldstate : oldstate, 
+                                  curstate : state}); 
 }
 
 function copy_attr(elt, attr, obj) {

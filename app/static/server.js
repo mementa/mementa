@@ -74,7 +74,8 @@ function Server(associatedDOM) {
     {
         /* 
          * successful : {entry : new_entry, rev: new_rev}
-         * fail : same thing
+         * fail : {reason : 'conflict' or 'timeout' or 'other', 
+         if conflict, we also have "docs" consisting of the above docs
          * 
          */
         var d = $.Deferred(); 
@@ -97,11 +98,20 @@ function Server(associatedDOM) {
                                  rev: rev_doc}); 
 
                       }); 
-        resp.fail(function(resp) {
+        resp.fail(function(jqxhr, textStatus, errorThrown) {
+                      console.log("server.entryUpdate fail", jqxhr, textStatus, errorThrown); 
                       // FIXME this should return the out-of-date versions
-                      d.reject(); 
-                      
+                      if(textStatus == 'timeout') {
+                          d.reject({reason: 'timeout'});
+                      } else if(textStatus == 'error') {
+                          d.reject({reason: 'error'});                           
+                      } else if (jqxhr.status == 409){
+                          d.reject({reason: 'conflict',} )
+                      } else {
+                          d.reject({reason : "unknown"}); 
+                      }
                   }); 
+
         return d.promise(); 
 
     };
@@ -134,9 +144,16 @@ function Server(associatedDOM) {
 
                       }); 
 
-        resp.fail(function(resp) {
+        resp.fail(function(jqxhr, textStatus, errorThrown) {
                       // FIXME this should return the out-of-date versions
-                      d.reject(); 
+                      if(textStatus == 'timeout') {
+                          d.reject({reason: 'timeout'});                           
+                      } else if (jqxhr.status == 409){
+                          d.reject({reason: 'conflict',} )
+                      } else {
+                          d.reject({reason : "unknown"}); 
+                      }
+
                       
                   }); 
         return d.promise(); 

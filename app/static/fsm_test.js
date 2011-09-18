@@ -327,7 +327,7 @@ function fsm_tests()
 
              }); 
 
-    test("edit_save_attempt 1", function() {
+    test("edit_save_attempt 1 good", function() {
              //setup_handlers(this.server, this.docdb, this.entriesdiv); 
              var tgtn = 2; 
              var tgtdiv = $(this.entriesdiv).children().eq(tgtn); 
@@ -365,6 +365,53 @@ function fsm_tests()
              
              same($("H2", tgtdiv).html(), "THE NEW TITLE"); 
 
+         }); 
+
+    test("edit_save_attempt 1, network error, do we transition back to edit", function() {
+             //setup_handlers(this.server, this.docdb, this.entriesdiv); 
+             var tgtn = 2; 
+             var tgtdiv = $(this.entriesdiv).children().eq(tgtn); 
+             dom_view_edit_click($("a.edit", tgtdiv), this.docdb); 
+             
+             equals(get_state(tgtdiv), 'edit'); 
+
+             // MODIFY THE DOC
+             $("input[name='title']", tgtdiv).val("THE NEW TITLE"); 
+             $("[name='body']", tgtdiv).val("THE NEW BODY"); 
+             dom_edit_save_click($("a.save", tgtdiv), this.server, this.docdb); 
+
+             equal(this.server.queue.length, 1); // should be a page op 
+                 var op = this.server.queue.pop(); 
+             equal(op.op, 'entry_update'); 
+             equal(op.entryid, get_entry_config(tgtdiv)['entryid']); 
+             equal(op.doc.title, "THE NEW TITLE"); 
+             equal(op.doc.body, "THE NEW BODY"); 
+             equal(op.doc['class'], "text"); 
+                              
+             equals(get_state(tgtdiv), 'savepending'); 
+             ok($(tgtdiv).hasClass("pending"), "is pending"); 
+             op.deferred.reject({reason: 'timeout'});    
+             
+             
+             equals(get_state(tgtdiv), 'edit');              
+             ok(!$(tgtdiv).hasClass("pending")); 
+
+             check_notice(tgtdiv, 'error', "Timeout"); 
+
+             // now try again
+             $("input[name='title']", tgtdiv).val("THE NEW TITLE"); 
+             $("[name='body']", tgtdiv).val("THE NEW BODY TWO"); 
+             dom_edit_save_click($("a.save", tgtdiv), this.server, this.docdb); 
+
+             equal(this.server.queue.length, 1); // should be a page op 
+                 var op = this.server.queue.pop(); 
+             equal(op.op, 'entry_update'); 
+             equal(op.entryid, get_entry_config(tgtdiv)['entryid']); 
+             equal(op.doc.title, "THE NEW TITLE"); 
+             equal(op.doc.body, "THE NEW BODY TWO"); 
+             equal(op.doc['class'], "text"); 
+             
+             
          }); 
 
     module("PAGEPENDING state mutations", 
@@ -613,22 +660,28 @@ function fsm_tests()
                                 this.docdb, true); 
              
              var FAILCNT = 3; 
+             var server = this.server; 
              for ( var i = 0; i < FAILCNT; ++i) {
-                 ok(this.server.queue.length > 0, "there is a pending server op"); 
-                 var sop = this.server.queue.pop(); 
+
+                 ok(server.queue.length > 0, "there is a pending server op"); 
+                 var sop = server.queue.pop(); 
                  equals(sop.op, 'page_update'); 
-                 equals(sop.pageid, this.server.pageState.entry._id); 
+                 equals(sop.pageid, server.pageState.entry._id); 
                  equals(sop.doc.entries[tgtn].hidden, true);
-                 
                  // remove 8 - i
-                 var newrev = datagen.refresh_rev(this.server.pageState.rev); 
+
+
+                 var newrev = datagen.refresh_rev(server.pageState.rev); 
                  newrev.entries.splice(8-i, 1); 
-                 sop.deferred.reject(newrev); 
+
+
+                 sop.deferred.reject({reason : 'conflict', 
+                                      docs : newrev}); 
 
              }
-
+             
              var sop = this.server.queue.pop(); 
-             equals(sop.op, 'page_update'); 
+             equals(sop.op, 'page_update', "still retrying"); 
              equals(sop.pageid, this.server.pageState.entry._id); 
              equals(sop.doc.entries[tgtn].hidden, true);
              

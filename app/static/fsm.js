@@ -47,6 +47,25 @@ function is_entry(entrydiv)
 
 }
 
+function entrydiv_set_pending(entrydiv, ispending) {
+    /* Add the "pending" throbber to an entry
+     * 
+     */
+    if(ispending) {
+        $(entrydiv).addClass("pending"); 
+
+
+    } else {
+        // remove the pending status
+        $(entrydiv).removeClass("pending"); 
+
+        
+    }
+
+    
+
+}
+
 
 function create_entry_div(entryid, hidden, pinnedrev)
 {
@@ -159,7 +178,7 @@ function entrydiv_reload_view(entrydiv, docdb, expected_config,
                                     messages.revid && add_entry_notice(entrydiv, messages.revid); 
                                     
                                 }   
-
+                                entrydiv_set_pending(entrydiv, false); 
                                 set_state(entrydiv, "view"); 
                                 
                                 done_deferred.resolve(); 
@@ -181,7 +200,7 @@ function create_entrydiv_body_edit(rev_doc) {
                           + "<div class='right-body'>"
                           + "    <div class='class-content'/>"
                           + "    <div class='control'><a href='#' class='save'>save</a> <a href='#' class='cancel'>cancel </a></div> "
-                          + "</div></div>"); 
+                          + "<div class='notices'/> </div></div>"); 
     
     $(".class-content", entrydiv_body).append(class_content); 
     $("img.avatar", entrydiv_body)
@@ -303,7 +322,8 @@ function add_entry_notice(entrydiv, notice)
      * level : 'info', 'warning', 'success', 'error'
      * message : text
      */
-    var elt = $($.mustache("<div class='notice' level='{{level}}'> {{message}} </div>", notice)); 
+    var elt = $($.mustache("<div class='notice alert-message {{level}}' level='{{level}}'> <a class='close' href='#'>&times;</a>  {{message}} </div>", notice)); 
+
     $("div.notices", entrydiv).append(elt); 
 
 }
@@ -355,12 +375,11 @@ function state_view_to_pagepending(entrydiv, op, server, docdb)
 
     // mutate state 
     set_state(entrydiv, "pagepending"); 
+    entrydiv_set_pending(entrydiv, true); 
 
     $(entrydiv).data("pendingop", op); 
     save_entry_config(entrydiv); 
 
-    $(".entry-body", entrydiv).hide(); 
-    $(entrydiv).append($("<div class='pending'> PENDING </div>")); 
     
     // now we should actually execute the op
     state_pagepending_to_view(entrydiv, server, docdb); 
@@ -560,8 +579,7 @@ function state_edit_to_savepending(entrydiv, server, docdb)
     assert_state(entrydiv, 'edit'); 
     
     set_state(entrydiv, "savepending"); 
-    
-    
+    entrydiv_set_pending(entrydiv, true); 
     // from the entrydiv, attempt to construct the new doc, 
     // with properly set parent
     var entryclass = get_entry_config(entrydiv).entryclass; 
@@ -575,14 +593,13 @@ function state_edit_to_savepending(entrydiv, server, docdb)
     var edited_revid = saved_config.revid; 
     doccontent['parent'] = edited_revid; 
     
-    var MAXTRIES = 4; 
+    var CONFLICT_MAXTRIES = 4; 
 
     function attempt_save(tryiter) {
+        
         if (tryiter == 0) {
             // failed out too many times!
-            
-            
-            
+            state_savepending_to_edit(entrydiv); 
         } else { 
             var resp = server.entryUpdate(saved_config.entryid, doccontent); 
 
@@ -595,18 +612,33 @@ function state_edit_to_savepending(entrydiv, server, docdb)
                       });
 
             resp.fail(function(update) {
+                          if(update.reason == 'conflict' ) {
+                          
+                              // because the server already received the response, 
+                              // the update has propagated. So we attempt to save again
+                              attempt_save(tryiter -1);                               
+                              
+                          } else if (update.reason == 'timeout') {
 
-                           // because the server already received the response, 
-                           // the update has propagated. So we attempt to save again
- 
-                           attempt_save(tryiter -1); 
+                              state_savepending_to_edit(entrydiv, docdb, 
+                                                       [{level : 'error', 
+                                                        message : "Timeout when contacting the server."}]); 
+                              
+
+                          } else {
+                              state_savepending_to_edit(entrydiv, docdb, 
+                                                       [{level : 'error', 
+                                                        message : "Unknown error when contacting the server"}]); 
+
+                          }
+
                        }); 
 
 
         }
     }
 
-    attempt_save(MAXTRIES); 
+    attempt_save(CONFLICT_MAXTRIES); 
     // attempt save 
     // success : done, trigger transition to view
         
@@ -646,7 +678,7 @@ function state_savepending_to_view(entrydiv, server, docdb, retries, new_rev)
 
 }
 
-function state_savepending_to_edit(entrydiv, docdb)
+function state_savepending_to_edit(entrydiv, docdb, messages)
 {
     /* transition : SAVEPENDING -> EDIT
      *  
@@ -655,6 +687,18 @@ function state_savepending_to_edit(entrydiv, docdb)
 
     is_entry(entrydiv); 
     assert_state(entrydiv, 'savepending'); 
+
+    // remove pending view
+    entrydiv_set_pending(entrydiv, false); 
+
+    // add notices
+    _.map(messages, function(m) {
+
+              add_entry_notice(entrydiv, m); 
+              
+          }); 
+
+    set_state(entrydiv, 'edit'); 
 
 }
 
@@ -713,7 +757,7 @@ function dom_add_entry_click(doc, server, docdb) {
     
     var entdef = server.entryNew(doc['class'], doc ); 
     entdef.done(function(docs) {
-                    console.log("Created", docs); 
+
                     var hidden = false; 
                     var pinned = undefined; 
                     // when done

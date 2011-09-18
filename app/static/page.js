@@ -73,9 +73,12 @@ $(document).ready(
         // FIX ME : THERES NO WAY FOR US TO KNOW WHEN AN ELEMENT IS DONE WITH A STATE TRANSITION, SO CHAINING IS ALMOST IMPOSSIBLE
         $(entriesdiv)
             .bind("state-change", 
-                  function(event, element) {
-                      var config  = get_entry_config(element); 
-                      var state = config.state; 
+                  function(event, attr) {
+                      var element = attr.dom; 
+                      var oldstate = attr.oldstate; 
+                      var state = attr.curstate; 
+
+                      var config = get_entry_config(element); 
 
                       if(state == 'none') {
                           var res = state_none_to_view(element, docdb);                                                                                        
@@ -94,6 +97,7 @@ $(document).ready(
 
                       } else if (state == 'edit') {
                           if(config.entryclass == 'text') {
+                              $("textarea", element).addClass("tinymce"); 
                               $("textarea", element).tinymce({mode: "none", 
                                                               theme:"advanced",
                                                               plugins : "autoresize",
@@ -159,6 +163,7 @@ $(document).ready(
 
         
         $(".entry a.save").live('click', function(e) {
+
                                     dom_edit_save_click(this, server, docdb); 
                                 }); 
 
@@ -289,6 +294,11 @@ $(document).ready(
         $(".entry[state='view']")
             .live("dblclick", function(ent) {
                       dom_view_edit_click(this, docdb); 
+                  }); 
+        
+        $(".alert-message a.close")
+            .live("click", function(evenet) {
+                      $(this).closest(".alert-message").remove(); 
                   }); 
         
     }); 

@@ -155,7 +155,7 @@ function ServerMock(associatedDOM) {
     {
         /* 
          * successful : {entry : new_entry, rev: new_rev}
-         * fail : same thing
+         * fail : type, optional docs
          * 
          */
         var d = $.Deferred(); 
@@ -173,8 +173,12 @@ function ServerMock(associatedDOM) {
                }); 
         
         d.fail(function(nd) {
-                   $(dom).trigger('entry-rev-update', nd); 
-                   }); 
+                   if(nd.reason == 'conflict') {
+                       $(dom).trigger('entry-rev-update', nd.docs);                         
+                   }
+                   
+                   
+               }); 
         
         return d.promise(); 
                    
@@ -208,11 +212,13 @@ function ServerMock(associatedDOM) {
                    
                }); 
         
-        d.fail(function(newrev) {
-                   ps.entry.head = newrev._id; 
-                   ps.revdoc = newrev; 
-                   $(dom).trigger('page-rev-update', newrev); 
-                   
+        d.fail(function(resp) {
+                   if(resp.reason == 'conflict') {
+                       ps.entry.head = resp.docs._id; 
+                       ps.revdoc = resp.docs; 
+                       
+                       $(dom).trigger('page-rev-update', resp.docs); 
+                   }
                }); 
         
         return d.promise(); 
