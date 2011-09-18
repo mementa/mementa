@@ -190,10 +190,24 @@ def settings():
         user = g.db.dereference(userref)
         
         if request.form['form'] == 'password' :
-            return render_template("usersettings.html", user=user,
-                                   session = session,
-                                   action='password',
-                                   success = True)
+            pw1 = request.form['password']
+            pw2 = request.form['password2']
+            if pw1 != pw2 :
+                return render_template("usersettings.html", user=user,
+                                       session = session,
+                                       action='password',
+                                       success = False)
+            else:
+                saltpw = saltpassword(pw1, PASSWORDSALT)
+                user['password'] = saltpw
+
+                g.db.users.update({'_id' : user['_id'], },
+                                  user)
+                
+                return render_template("usersettings.html", user=user,
+                                       session = session,
+                                       action='password',
+                                       success = True)
             
         elif request.form['form'] == 'settings' :
 
