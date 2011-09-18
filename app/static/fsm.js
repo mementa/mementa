@@ -19,7 +19,8 @@ var render = {
     entry_rev_get : { 
         text: function(entrydiv) {
             var title = $("input[name='title']", entrydiv).val(); 
-            var body = $("textarea", entrydiv).val(); 
+            var body = $("textarea", entrydiv).html(); 
+
             return {
                 title : title, 
                 body : body}; 
