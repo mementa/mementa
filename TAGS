@@ -1,0 +1,29 @@
+Tags are going to be somewhat like "labels" in gmail, as opposed to "random metadata" 
+
+First, just focus on pages, eventually let you do all entries. Tags
+can contain spaces. Tags are a general property of revisions, and thus
+are versioned, etc.
+
+
+Widgets: 
+http://xoxco.com/clickable/jquery-tags-input
+http://aehlke.github.com/tag-it/
+
+UI goals: 
+Easy to add / autocomplete
+hard to misspell
+easy keyboard shortcut use
+
+Search: 
+let you search by tags, conjunctions of tags, etc. 
+multikey search will let us conjunctively search, and regex searches will 
+let us search case-insensitively for autocomplete
+
+Backend: 
+http://www.mongodb.org/display/DOCS/Full+Text+Search+in+Mongo
+http://www.mongodb.org/display/DOCS/Multikeys
+http://cookbook.mongodb.org/patterns/count_tags/
+
+
+Mongo : db.collection.ensureIndex({revdoc.tags : 1})
+
