@@ -598,7 +598,7 @@ function state_edit_to_savepending(entrydiv, server, docdb)
     function attempt_save(tryiter) {
         
         if (tryiter == 0) {
-            // failed out too many times!
+            // failed out too many times! // FIXME prettys ure this isn't the right invocati
             state_savepending_to_edit(entrydiv); 
         } else { 
             var resp = server.entryUpdate(saved_config.entryid, doccontent); 

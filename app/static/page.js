@@ -97,20 +97,22 @@ $(document).ready(
 
                       } else if (state == 'edit') {
                           if(config.entryclass == 'text') {
-                              $("textarea", element).addClass("tinymce"); 
-                              $("textarea", element).tinymce({mode: "none", 
-                                                              theme:"advanced",
-                                                              plugins : "autoresize",
+                              if(oldstate == 'view') {
 
-                                                              theme_advanced_buttons1 : "bold,italic,underline,|, formatselect, |, bullist,numlist,|,outdent,indent,|, link,unlink",
-                                                              theme_advanced_buttons2 : "",
-                                                              theme_advanced_buttons3 : "", 
+                                  $("textarea", element).tinymce({mode: "none", 
+                                                                  theme:"advanced",
+                                                                  plugins : "autoresize",
 
-                                                              theme_advanced_toolbar_location : "top",
-                                                              theme_advanced_toolbar_align : "left",
-                                                              theme_advanced_resizing : false
-
-                                                             });                                                         
+                                                                  theme_advanced_buttons1 : "bold,italic,underline,|, formatselect, |, bullist,numlist,|,outdent,indent,|, link,unlink",
+                                                                  theme_advanced_buttons2 : "",
+                                                                  theme_advanced_buttons3 : "", 
+                                                                  
+                                                                  theme_advanced_toolbar_location : "top",
+                                                                  theme_advanced_toolbar_align : "left",
+                                                                  theme_advanced_resizing : false
+                                                                  
+                                                                 });  
+                              }                                                       
                           }
 
                           
@@ -163,6 +165,7 @@ $(document).ready(
 
         
         $(".entry a.save").live('click', function(e) {
+                                    var entrydiv = $(this).closest("entry"); 
 
                                     dom_edit_save_click(this, server, docdb); 
                                 }); 
