@@ -36,7 +36,8 @@ def user_create(username, password, name=None, email=None,
             'avatar' : avatar}
 
     
-def revision_create(author, date= None, parent=None, archived=False):
+def revision_create(author, date= None, parent=None, archived=False,
+                    tags = None):
     """
     do smart things with date, parent, author 
 
@@ -53,12 +54,17 @@ def revision_create(author, date= None, parent=None, archived=False):
         if not isinstance(parent, bson.objectid.ObjectId):
             parent = bson.objectid.ObjectId(parent)
         parent = bson.dbref.DBRef("revisions", parent)
-        
-    return {'author' : author,
-            'parent' : parent,
-            'date' : date,
-            'archived' : archived}
 
+    rdoc =  {'author' : author,
+             'parent' : parent,
+             'date' : date,
+             'archived' : archived}
+    if tags:
+        rdoc['tags'] = tags
+
+    return rdoc
+    
+    
 def entry_create(head, dclass, revdoc):
     """
     An entry contains:

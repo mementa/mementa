@@ -65,7 +65,7 @@ def simple_text_entry(db, user_oid, title, body):
     eoid = db.entries.insert(e)
     return eoid
 
-def simple_page_create(db, user_oid, title, entry_oid_list):
+def simple_page_create(db, user_oid, title, entry_oid_list, tags=None):
     """
     Create a page with the list of entries, all visible, unpinned
     """
@@ -73,11 +73,9 @@ def simple_page_create(db, user_oid, title, entry_oid_list):
     entries = [{'entry' : bson.dbref.DBRef("entries", e),
                 'hidden' : False} for e in entry_oid_list]
 
-    
-    
     p = dm.page_entry_revision_create(title, entries)
     
-    p.update(dm.revision_create(user_oid))
+    p.update(dm.revision_create(user_oid, tags=tags))
 
     poid = db.revisions.insert(p)
     p["_id"] = poid
@@ -115,7 +113,11 @@ for wikipedia_title in wikipedia_articles:
     print "Creating page for", wikipedia_title, "="*40
     
     page_title = wikipedia_title.replace("_", " ")
-    
-    entries = [simple_text_entry(db, users['eric'], e['title'], e['body']) for e in wikipediatest.get_page(wikipedia_title)]
 
-    simple_page_create(db, users['eric'], page_title, entries)
+    psecs =  wikipediatest.get_page(wikipedia_title)
+    entries = [simple_text_entry(db, users['eric'], e['title'], e['body']) for e in psecs]
+
+    tags = [x.strip() for x in psecs[0]['textonly'].split(" ")[:5]]
+    print "TAGS=", tags
+    
+    simple_page_create(db, users['eric'], page_title, entries, tags)

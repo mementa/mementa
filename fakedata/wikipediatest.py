@@ -79,7 +79,10 @@ def get_page(title):
             r = BeautifulSoup(body)
             print "Creating entry for", titles
             entries.append({'title' : titles,
-                            'body' : body})
+                            'body' : body,
+                            'textonly' : ''.join(soup.findAll(text=True))})
+
+            
 
 
     return entries
