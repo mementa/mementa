@@ -9,10 +9,15 @@ Widgets:
 http://xoxco.com/clickable/jquery-tags-input
 http://aehlke.github.com/tag-it/
 
+Questions : what happens when the tag set is auto-updated out from underneath you? 
+
+
 UI goals: 
 Easy to add / autocomplete
 hard to misspell
 easy keyboard shortcut use
+
+I love, absolutely love, tag-it. 
 
 Search: 
 let you search by tags, conjunctions of tags, etc. 

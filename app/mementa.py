@@ -232,6 +232,11 @@ def settings():
         raise "Invalid method"
     
         
+@app.route("/tagtest")
+@login_required
+def tagtest():
+    return render_template("tagtest.html", 
+                           session = session)
 
     
 
@@ -415,10 +420,13 @@ def api_entry_get_post(entryid):
             raise Exception("Unknown entry")
         
         author = dbref("users", session["user_id"])
+        tags = rd.get("tags", [])
+        
         pref = dbref("revisions", parent)
         
         rev.update(dm.revision_create(author, parent=pref,
-                                      archived=rd.get('archived', False)))
+                                      archived=rd.get('archived', False),
+                                      tags = tags))
 
 
         # save the revision

@@ -12,6 +12,47 @@ function is_hidden_visible()
     return $("#showhidden").is(':checked');
 }
 
+
+function on_tags_changed(server, add) { 
+    return function (event, tag) {
+        // fixme make this retry
+        console.log("called with", tag);
+        var curdocs = server.getPageState(); 
+        var newdoc = $.extend(true, {}, curdocs.rev); 
+
+        var tagtxt = $(".tagit-label", tag).html(); 
+        
+        if (add) {
+
+
+            var curtags = $("#page_tags").tagit("assignedTags"); 
+            if(newdoc.tags) {
+                newdoc.tags.push(tagtxt); 
+            } else {
+                newdoc.tags = [tagtxt];                 
+            }
+        } else {
+
+            var curdocs = server.getPageState(); 
+            var curtags = $("#page_tags").tagit("assignedTags"); 
+            var newtags = _.without(curtags, tagtxt);            
+            newdoc.tags = newtags;  
+        }
+        
+        
+
+
+        
+        console.log("attempting to set tags to", newtags, tagtxt); 
+
+
+        newdoc.parent = newdoc._id; 
+        
+        var res = server.pageUpdate(curdocs.entry._id, 
+                                    newdoc); 
+        
+}}
+
 $(document).ready(
     function () {
 
@@ -54,7 +95,21 @@ $(document).ready(
                                $(this).data('old-page-rev', doc); 
                                $("#page_title_view").html(doc.title);
 
-                               var datestring = doc.date.substr(0, doc.date.length - 7) + "Z"; 
+                               $("#page_tags").tagit( { onTagAdded: on_tags_changed(server, true) , 
+                                                        onTagRemoved : on_tags_changed(server, false), 
+                                                        allowSpaces: true, 
+                                                        // tagSource : testfunc, 
+                                                        removeConfirmation: true }); 
+
+
+                               $("#page_tags").tagit("removeAll", true); 
+                               _.map(doc.tags, function(t) {
+                                         console.log("Creating tags", t); 
+                                         $("#page_tags").tagit("createTag", t, "", true); 
+                                     }); 
+
+                               var datestring =
+                                   doc.date.substr(0, doc.date.length - 7) + "Z"; 
 
                                $("#page_date").removeAttr("data-timestamp").html(datestring).cuteTime(); 
                                
@@ -314,7 +369,11 @@ $(document).ready(
                     
                 });
 
-        
+        $("#page_tags").tagit({
+                                  allowSpaces: true, 
+                                  // tagSource : testfunc, 
+                                  removeConfirmation: true
+                              });
     }); 
 
 

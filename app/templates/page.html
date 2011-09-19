@@ -8,6 +8,9 @@
   
 </script> 
 
+<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.12/jquery-ui.min.js" type="text/javascript" charset="utf-8"></script>
+<script src="/static/vendor/tag-it/js/tag-it.js" type="text/javascript" charset="utf-8"></script>
+
 <script type="text/javascript" src="/static/vendor/tiny_mce/tiny_mce.js"> </script>
 <script type="text/javascript" src="/static/vendor/tiny_mce/jquery.tinymce.js"> </script>
 
@@ -25,6 +28,9 @@
   src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
 </script>
 
+<link href="/static/vendor/tag-it/css/tagit.ui-zendesk.css" rel="stylesheet" type="text/css">
+
+<link href="/static/vendor/tag-it/css/jquery.tagit.css" rel="stylesheet" type="text/css">
 
 {% endblock %}
 
@@ -64,6 +70,7 @@
     <div class="page-header"> 
       <h3>Tags </h3>
     </div> 
+    <input id="page_tags" name="tags" size="30"> </input>
 
     <div class="page-header"> 
       <h3>Recent </h3>
