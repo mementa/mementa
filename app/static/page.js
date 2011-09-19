@@ -16,7 +16,7 @@ function is_hidden_visible()
 function on_tags_changed(server, add) { 
     return function (event, tag) {
         // fixme make this retry
-        console.log("called with", tag);
+
         var curdocs = server.getPageState(); 
         var newdoc = $.extend(true, {}, curdocs.rev); 
 
@@ -40,12 +40,6 @@ function on_tags_changed(server, add) {
         }
         
         
-
-
-        
-        console.log("attempting to set tags to", newtags, tagtxt); 
-
-
         newdoc.parent = newdoc._id; 
         
         var res = server.pageUpdate(curdocs.entry._id, 
@@ -68,6 +62,12 @@ $(document).ready(
         var ofunc = new opfuncs(docdb); 
 
 
+        $("#page_tags").tagit( { onTagAdded: on_tags_changed(server, true) , 
+                                 onTagRemoved : on_tags_changed(server, false), 
+                                 allowSpaces: true, 
+                                 // tagSource : testfunc, 
+                                 removeConfirmation: true }); 
+
         $(entriesdiv).bind('entry-to-state-none', function(entrydiv) {
                                
 
@@ -82,7 +82,8 @@ $(document).ready(
 
                                if(!oldpage_rev) {
                                    oldpage_rev = {
-                                       entries : {}
+                                       entries : {},
+                                       tags : []
                                    }; 
 
                                }
@@ -95,17 +96,17 @@ $(document).ready(
                                $(this).data('old-page-rev', doc); 
                                $("#page_title_view").html(doc.title);
 
-                               $("#page_tags").tagit( { onTagAdded: on_tags_changed(server, true) , 
-                                                        onTagRemoved : on_tags_changed(server, false), 
-                                                        allowSpaces: true, 
-                                                        // tagSource : testfunc, 
-                                                        removeConfirmation: true }); 
+                               
+                               var old_not_in_new = _.difference(oldpage_rev.tags, 
+                                                                 doc.tags); 
+                               var new_not_in_old = _.difference(doc.tags, 
+                                                                 oldpage_rev.tags); 
+                               _.map(old_not_in_new, function(t) {
+                                         $("#page_tags").tagit("removeTag", t, true, true); 
+                                     }); 
 
-
-                               $("#page_tags").tagit("removeAll", true); 
-                               _.map(doc.tags, function(t) {
-                                         console.log("Creating tags", t); 
-                                         $("#page_tags").tagit("createTag", t, "", true); 
+                               _.map(new_not_in_old, function(t) {
+                                         $("#page_tags").tagit("createTag", t, true, true); 
                                      }); 
 
                                var datestring =
@@ -368,12 +369,9 @@ $(document).ready(
                     $(".control", this).removeClass("hovertargetvisible");
                     
                 });
+        
 
-        $("#page_tags").tagit({
-                                  allowSpaces: true, 
-                                  // tagSource : testfunc, 
-                                  removeConfirmation: true
-                              });
+        
     }); 
 
 

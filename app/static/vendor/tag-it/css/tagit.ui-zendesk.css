@@ -33,8 +33,8 @@ ul.tagit li.tagit-choice .ui-icon {
 ul.tagit li.tagit-choice .tagit-close .text-icon {
     display: inline;
     font-family: arial, sans-serif;
-    font-size: 16px;
-    line-height: 14px;
+    font-size: 15px;
+    line-height: 15px;
     color: #777;
 }
 ul.tagit li.tagit-choice:hover, ul.tagit li.tagit-choice.remove {

@@ -96,11 +96,11 @@ function create_entrydiv_body_view(rev_doc) {
         render.entry_rev_view[rev_doc['class']](rev_doc); 
     
     // update author information
-    var entrydiv_body = $("<div class='entry-body'><div class='meta'><img class='avatar' src='http://www.gravatar.com/avatar/205e460b479e2e5b48aec07710c08d50?s=50'/></div><div class='right-body'> <div class='class-content'></div><div class='control hovertarget'> <span class='timestamp'/> "
-                          + "<a href='#' class='edit'>edit</a> "
-                          + "<a href='#' class='hide'>hide</a> "
-                          + "<a href='#' class='unhide'>unhide</a> "
-                          + "<a href='#' class='remove'>remove</a> "
+    var entrydiv_body = $("<div class='entry-body'><div class='meta'><img class='avatar' src='http://www.gravatar.com/avatar/205e460b479e2e5b48aec07710c08d50?s=50'/></div><div class='right-body'> <div class='class-content'></div><div class='control hovertarget'> <span class='timestamp'/>  &nbsp; &nbsp;"
+                          + "<a href='#' class='edit'>edit</a> &nbsp; &nbsp; "
+                          + "<a href='#' class='hide'>hide</a> &nbsp; &nbsp;"
+                          + "<a href='#' class='unhide'>unhide</a> &nbsp; &nbsp;"
+                          + "<a href='#' class='remove'>remove</a> &nbsp; &nbsp;"
                           + "</div> <div class='notices'/> </div> </div>"); 
     
     var datestring = rev_doc.date.substr(0, rev_doc.date.length - 7) + "Z"; 

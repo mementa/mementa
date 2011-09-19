@@ -301,7 +301,7 @@
         },
 
         createTag: function(value, additionalClass, skipTriggerOnAdded) {
-            console.log("tagit createTag, skipTriggerOnAdded=", skipTriggerOnAdded);
+
             var that = this;
             // Automatically trims the value of leading and trailing whitespace.
             value = $.trim(value);
