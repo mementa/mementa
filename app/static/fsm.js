@@ -11,7 +11,7 @@ var render = {
 
     entry_rev_edit : { 
         text: function(rev_doc) {
-            return $($.mustache("<div> <input name='title' value='{{{title}}}' class='xlarge' size='70'/> <div> <textarea name='body' class='tinymce' style='width:100%'>{{{body}}}</textarea> </div> "
+            return $($.mustache("<div> <input name='title' value='{{{title}}}' class='xlarge' size='70'/> <div class='toolbar'> </div> <div class='textbody'> {{{body}}} </div> "
                                 + "</div>", rev_doc)); 
         }
     },
@@ -19,7 +19,8 @@ var render = {
     entry_rev_get : { 
         text: function(entrydiv) {
             var title = $("input[name='title']", entrydiv).val(); 
-            var body = $("textarea", entrydiv).html(); 
+            var body = $(entrydiv).data("editor").content(); 
+            
 
             return {
                 title : title, 

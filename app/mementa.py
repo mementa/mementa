@@ -232,10 +232,10 @@ def settings():
         raise "Invalid method"
     
         
-@app.route("/tagtest")
+@app.route("/edittest")
 @login_required
-def tagtest():
-    return render_template("tagtest.html", 
+def edittest():
+    return render_template("jqueryedittest.html", 
                            session = session)
 
     

@@ -1,0 +1,55 @@
+
+
+{% extends "mementa.html" %}
+
+{% block javascript_includes %}
+
+
+<script src="/static/vendor/proper/lib/sanitize.js" type="text/javascript" charset="utf-8"></script>
+<script src="/static/vendor/proper/lib/jquery.hotkeys.js" type="text/javascript" charset="utf-8"></script>
+
+<script src="/static/vendor/proper/proper.js" type="text/javascript" charset="utf-8"></script>
+
+
+<script type="text/javascript" src="/static/jqueryedittest.js"></script>    
+
+
+<link href="/static/vendor/proper/stylesheets/proper.css" rel="stylesheet" type="text/css">
+
+
+
+{% endblock %}
+
+{% block bodywithtoolbar %}
+
+<div id='tools'> </div>
+<br>
+<br>
+
+<a href="#" id='editactivate'> activate </a>
+<a href="#" id='deactivate'> deactivate </a>
+<br>
+<br>
+<div class='content'>
+THIS IS SOME TEXT AND MORE AND MORE
+lalalala
+
+what is going on <p>
+and more
+</div>
+
+<div id='tools2'> </div>
+<br>
+<br>
+<a href="#" id='editactivate2'> activate </a>
+<a href="#" id='deactivate2'> deactivate </a>
+<div class='content2'>
+THIS IS SOME TEXT AND MORE AND MORE
+lalalala
+
+what is going on <p>
+and more
+</div>
+
+
+{%endblock %}

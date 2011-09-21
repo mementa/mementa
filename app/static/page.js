@@ -154,20 +154,16 @@ $(document).ready(
                       } else if (state == 'edit') {
                           if(config.entryclass == 'text') {
                               if(oldstate == 'view') {
-
-                                  $("textarea", element).tinymce({mode: "none", 
-                                                                  theme:"advanced",
-                                                                  plugins : "autoresize",
-
-                                                                  theme_advanced_buttons1 : "bold,italic,underline,|, formatselect, |, bullist,numlist,|,outdent,indent,|, link,unlink",
-                                                                  theme_advanced_buttons2 : "",
-                                                                  theme_advanced_buttons3 : "", 
-                                                                  
-                                                                  theme_advanced_toolbar_location : "top",
-                                                                  theme_advanced_toolbar_align : "left",
-                                                                  theme_advanced_resizing : false
-                                                                  
-                                                                 });  
+                       
+                                  var editor1 = new Proper($(".textbody", element));
+                                  
+                                  editor1.activate({
+                                           placeholder: 'Enter Text',
+                                           controlsTarget: $('.toolbar', element),
+                                           codeFontFamily: 'Monaco, Consolas, "Lucida Console", monospace'
+                                       });
+                                  $(element).data("editor", editor1); 
+                       
                               }                                                       
                           }
 
@@ -374,11 +370,3 @@ $(document).ready(
         
     }); 
 
-
-tinyMCE.init({
-        // General options
-        mode : "none",
-        theme : "advanced"
-
-
-}); 
