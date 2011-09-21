@@ -21,22 +21,10 @@
     <link rel="stylesheet/less" type="text/css" href="/static/vendor/bootstrap/bootstrap.less">
     <link rel="stylesheet/less" type="text/css" href="/static/mementa.less">
 
-    <script type="text/javascript" src="/static/vendor/less-1.1.3.min.js"></script
+    <script type="text/javascript" src="/static/vendor/less-1.1.3.min.js"></script>
 
     <script type="text/javascript" src="/static/mementa.js"></script> 
-    <script type="text/javascript">
-      
-      $("body").live("click", function (e) {
-      $('a.menu').parent("li").removeClass("open");
-      });
-      
-      $("a.menu").live('click', function (e) {
-      var $li = $(this).parent("li").toggleClass('open');
-      return false;
-      });
 
-
-    </script>
     {% block javascript_includes %} 
     {% endblock %}
 
@@ -61,7 +49,7 @@
             <input type="text" placeholder="Search" /> 
           </form> 
           <ul class="nav secondary-nav"> 
-            <li> <img src="http://www.gravatar.com/avatar/0bb5021786650564e05f288bd9d1c99b.jpg?s=32">  </li>
+            <li> <img id="logged_in_avitar" src="/api/user/{{session['user_id']}}/avatar/32">  </li>
             <li class="menu"> 
               <a href="#" class="menu">{{session['name']}}</a> 
               <ul class="menu-dropdown"> 
