@@ -120,8 +120,8 @@ $(document).ready(
                                    $("#page_unarchive_click").show(); 
                                } else {
                                    $("#archive_status").hide(); 
-                                   $("#page_archive_click").hide(); 
-                                   $("#page_unarchive_click").show(); 
+                                   $("#page_archive_click").show(); 
+                                   $("#page_unarchive_click").hide(); 
 
                                }
                            }); 
