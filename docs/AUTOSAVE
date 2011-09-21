@@ -1,0 +1,34 @@
+Autosave functionality is completely out of band from the normal FSM
+interface. Upon an entry of the right class transitioning to "edit" mode, 
+a timer will start that will begin periodically saving the 
+
+entry, revision, time, content
+
+Now, should a "save" return successful, this entry will be deleted
+
+
+Questions we need to answer: 
+
+For a given revision, do we want to store autosave data? 
+
+What if I edit an entry, fail to save, and someone else saves in the
+meantime? Does this mean we only save one per entry?
+
+Yes, we store our most recent save attempt for a given entry. Thus if
+there's an update-out-from-under-us, we can still recover. And if we
+accidentally autosave over an old autosaved version, well, fuck it.
+
+If there exists an autosave, do we keep saving the autosave?
+
+"Autosave version of this entry [load] [discard]" 
+
+If there's an autosave for this entry:  
+    show dialog
+else:
+    start autosaving
+
+if save is successful: 
+
+delete autosave
+
+

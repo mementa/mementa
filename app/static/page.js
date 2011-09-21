@@ -163,6 +163,7 @@ $(document).ready(
                                            codeFontFamily: 'Monaco, Consolas, "Lucida Console", monospace'
                                        });
                                   $(element).data("editor", editor1); 
+
                        
                               }                                                       
                           }
