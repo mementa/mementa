@@ -357,14 +357,14 @@ $(document).ready(
                   }); 
 
         $(".entry")
-            .hover(
-                function() {
-                    $(".control", this).addClass("hovertargetvisible");
-                },
-                function() {
-                    $(".control", this).removeClass("hovertargetvisible");
-                    
-                });
+            .live('mouseover mouseout', function(event) {
+                      if(event.type == "mouseover") {
+                          $(".control", this).addClass("hovertargetvisible");
+                      } else {
+                          
+                          $(".control", this).removeClass("hovertargetvisible");
+                          
+                      }}); 
         
 
         
