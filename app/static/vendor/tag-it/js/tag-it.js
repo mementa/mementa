@@ -97,7 +97,7 @@
                 this.tagList = this.element.find('ul, ol').andSelf().last();
             }
             if(this.options.allowInput) {
-                this._tagInput = $('<input type="text" />').addClass('ui-widget-content');                 
+                this._tagInput = $('<input type="text" size=2 />').addClass('ui-widget-content');                 
             } else {
                 this._tagInput = $('<input type="hidden" />').addClass('ui-widget-content');                 
             }
@@ -169,6 +169,13 @@
             this._tagInput
                 .keydown(function(event) {
                     // Backspace is not detected within a keypress, so it must use keydown.
+                    var MARGIN = 3; 
+                    var curlen = that._tagInput.val().length; 
+                    if(curlen  > (parseFloat(that._tagInput.attr("size")) - MARGIN)) {
+                        that._tagInput.attr("size", curlen +MARGIN); 
+                    } else if (curlen < parseFloat(that._tagInput.attr("size") - MARGIN)) {
+                        that._tagInput.attr("size", curlen + MARGIN); 
+                    }
                     if (event.which == $.ui.keyCode.BACKSPACE && that._tagInput.val() === '') {
                         var tag = that._lastTag();
                         if (!that.options.removeConfirmation || tag.hasClass('remove')) {
