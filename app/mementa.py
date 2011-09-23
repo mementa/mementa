@@ -460,7 +460,7 @@ def api_entry_get_post(entryid):
 
             # get the old revisions tags, compute the diff
             olddoc = g.db.dereference(dbref('revisions', parent))
-            tagdeltas = tagutils.tagdelta(olddoc['tags'],
+            tagdeltas = tagutils.tagdelta(olddoc.get('tags', []),
                                           tags)
 
             [tagutils.inc_tag(g.db, t) for t in tagdeltas[0]]
