@@ -7,7 +7,7 @@ import entry_divs
 import datamodel as dm
 import hashlib
 import time
-
+import tags as tagutils
 
 
 DEBUG = True # FIXME SHOULD BE FALSE FOR REAL DEPLOYMENT
@@ -314,7 +314,8 @@ def api_entry_new():
 
     all:
        archived:
-    
+       tags: 
+       
     text:
         title
         body
@@ -346,11 +347,17 @@ def api_entry_new():
         return "Unknown class", HTTP_ERROR_CLIENT_BADREQUEST
 
     rev =  dm.json_to_rev[dclass](request_data)
-    
-    rev.update(dm.revision_create(dbref("users", session["user_id"])))
+
+    archived = request_data.get("archived", False)
+    tags  = request_data.get("tags", [])
+
+    rev.update(dm.revision_create(dbref("users", session["user_id"]),
+                                  archived=archived,
+                                  tags = tags))
 
     revid = g.db.revisions.insert(rev, safe=True)
     rev["_id"] = revid
+
     
     ent_dict = dm.entry_create(dbref("revisions", revid),
                                dclass, rev)
@@ -358,7 +365,9 @@ def api_entry_new():
     entid = g.db.entries.insert(ent_dict, safe=True)
     ent_dict["_id"] = entid
 
-
+    # tag cleanup
+    [tagutils.inc_tag(g.db, t) for t in tags]
+    
 
     rev_json = dm.rev_to_json[dclass](rev)
     
@@ -417,7 +426,7 @@ def api_entry_get_post(entryid):
             rev = dm.page_entry_revision_create(rd['title'],
                                                 rd['entries'])
         else:
-            raise Exception("Unknown entry")
+            raise Exception("Unknown entry class")
         
         author = dbref("users", session["user_id"])
         tags = rd.get("tags", [])
@@ -448,6 +457,15 @@ def api_entry_get_post(entryid):
     
         if res['updatedExisting'] == True:
             # success!
+
+            # get the old revisions tags, compute the diff
+            olddoc = g.db.dereference(dbref('revisions', parent))
+            tagdeltas = tagutils.tagdelta(olddoc['tags'],
+                                          tags)
+
+            [tagutils.inc_tag(g.db, t) for t in tagdeltas[0]]
+            [tagutils.dec_tag(g.db, t) for t in tagdeltas[1]]
+
             new_rev_doc_json = dm.rev_to_json[dclass](rev)
 
             entry_doc_json = dm.entry_to_json(new_entry_doc)
@@ -601,6 +619,29 @@ def user_get_avatar(userid, size=80):
         
     return redirect(url)
 
+@app.route("/api/tags/all/<N>")
+@login_required
+def get_top_n_tags(N):
+    r = tagutils.top_n(g.db, int(N))
+    print "r=", r
+    js = [(t['tag'], t['count']) for t in r]
+
+    return jsonify({'tagcounts': js})
+
+@app.route("/api/tags/count/<tag>")
+@login_required
+def get_tag_count(tag):
+    c = tagutils.count(g.db, tag)
+    return jsonify({'tag' : tag,
+                    'count' : c})
+
+@app.route("/api/tags/subset/<beginstr>/<N>")
+@login_required
+def get_top_n_tags_str(beginstr, N):
+    r = tagutils.top_n_str(g.db, beginstr, int(N))
+    js = [(t['tag'], t['count']) for t in r]
+
+    return jsonify({'tagcounts' : js})
 
 
 @app.route("/page/new")

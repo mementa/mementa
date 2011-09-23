@@ -9,6 +9,7 @@ import iso8601
 
 import simplejson as json
 import time
+import dbutils
 
 
 user_password = "testing"
@@ -47,6 +48,9 @@ class MementaTestCase(unittest.TestCase):
         
 
         self.conn = pymongo.Connection()
+        self.db = self.conn[mementa.app.config['DB_DATABASE']]
+        dbutils.create_indices(self.db)
+        
         self.user_oids = create_users(self.conn)
         
 
@@ -205,8 +209,10 @@ class MementaTestCase(unittest.TestCase):
         rv = self.post_json("/api/entry/new",
                             data={'title' : title,
                                   'class' : 'text', 
-                                  'body' : body})
+                                  'body' : body,
+                                  'tags' : ['foo', 'bar']})
 
+        
         rv_json = json.loads(rv.data)
         page_rev_id = rv_json['entry']['head']
         entry_id = rv_json['entry']['_id']
@@ -327,4 +333,109 @@ class MementaTestCase(unittest.TestCase):
 
         #time.sleep(1000)
                 
-            
+    def test_tag_queries_and_updates(self):
+        """
+
+        """
+
+
+        # create the page with one entry
+        # 
+
+        self.login(self.user_name, self.user_password)
+
+        def get_tag_counts(tlist):
+            ts = {}
+            for t in tlist:
+                rv = self.app.get("/api/tags/count/%s" % t)
+                d = json.loads(rv.data)
+                ts[t] = d['count']
+            return ts
+        
+        # create empty page
+        title = "Test text entry"
+        body = "test body"
+        rv = self.post_json("/api/entry/new",
+                            data={'title' : title,
+                                  'class' : 'text', 
+                                  'body' : body,
+                                  'tags' : ['foo', 'bar']})
+
+        rv_json = json.loads(rv.data)
+        page_rev_id = rv_json['entry']['head']
+        entry_id = rv_json['entry']['_id']
+
+        tc = get_tag_counts(['foo', 'bar', 'baz'])
+                
+        assert_equal(tc['foo'], 1)
+        assert_equal(tc['bar'], 1)
+        assert_equal(tc['baz'], 0)
+
+
+        self.post_json("/api/entry/new",
+                            data={'title' : "another title", 
+                                  'class' : 'text', 
+                                  'body' : body,
+                                  'tags' : ['bar', 'baz']})
+
+
+        tc = get_tag_counts(['foo', 'bar', 'baz'])
+
+        assert_equal(tc['foo'], 1)
+        assert_equal(tc['bar'], 2)
+        assert_equal(tc['baz'], 1)
+
+        
+
+        rv = self.app.get("/api/entry/%s" % entry_id)
+        
+        # try and do an update
+        tc = get_tag_counts(['foo', 'bar', 'baz', 'quxx'])
+
+        
+
+        rv = self.post_json("/api/entry/%s" % entry_id,
+                            data = {'parent' : page_rev_id,
+                                    'title':  "THIS IS A NEW TITLE",
+                                    'class' : 'text', 
+                                    'body' : "NEW BODY",
+                                    'tags' : ['bar', 'quxx']})
+
+        rv_json = json.loads(rv.data)
+        assert(rv_json['latest_revision_doc']['title'] == "THIS IS A NEW TITLE")
+
+        tc = get_tag_counts(['foo', 'bar', 'baz', 'quxx'])
+
+        assert_equal(tc['foo'], 0)
+        assert_equal(tc['bar'], 2)
+        assert_equal(tc['baz'], 1)
+        assert_equal(tc['quxx'], 1)
+
+        # now check queries
+        rv_json = json.loads(self.app.get("/api/tags/all/3").data)
+        tc = rv_json['tagcounts']
+        assert_equal(tc[0], ['bar', 2])
+        assert_equal(len(tc), 3)
+
+        
+        rv_json = json.loads(self.app.get("/api/tags/subset/ba/2").data)
+        tc = rv_json['tagcounts']
+        assert_equal(tc[0], ['bar', 2])
+        assert_equal(tc[1], ['baz', 1])
+
+
+        
+
+        # # now this update should fail; out of date rev
+        # rv = self.post_json("/api/entry/%s" % entry_id,
+        #                     data = {'parent' : page_rev_id,
+        #                             'title':  "THIS IS A NEW TITLE 2",
+        #                             'body' : "wooo",
+        #                             'class' : 'text'})
+                                    
+        # assert_equal(rv.status, "409")
+
+        # rv_json = json.loads(rv.data)
+        # assert_equal(rv_json['reason'], "Incorrect latest")
+        
+                                 

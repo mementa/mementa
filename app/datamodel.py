@@ -61,7 +61,9 @@ def revision_create(author, date= None, parent=None, archived=False,
              'archived' : archived}
     if tags:
         rdoc['tags'] = tags
-
+    else:
+        rdoc['tags'] = []
+        
     return rdoc
     
     

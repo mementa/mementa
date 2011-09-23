@@ -32,3 +32,9 @@ http://cookbook.mongodb.org/patterns/count_tags/
 
 Mongo : db.collection.ensureIndex({revdoc.tags : 1})
 
+Answering the question : "What are popular tags" is really hard to do
+with mongo. Since I don't anticipate there being all that many tags
+per doc, maybe the right thing is to do the page-update delta and simultaneously inc/dec the tags? 
+
+That is, create a separate "tags" collection and just atomically
+increment/decrement the docs?
