@@ -70,8 +70,9 @@
             // Optionally set a tabindex attribute on the input that gets
             // created for tag-it.
             tabIndex: null,
-
-
+            // Eric's custom fields
+            allowInput : null, 
+            removeIcon : true, 
             // Event callbacks.
             onTagAdded  : null,
             onTagRemoved: null,
@@ -95,8 +96,12 @@
             } else {
                 this.tagList = this.element.find('ul, ol').andSelf().last();
             }
+            if(this.options.allowInput) {
+                this._tagInput = $('<input type="text" />').addClass('ui-widget-content');                 
+            } else {
+                this._tagInput = $('<input type="hidden" />').addClass('ui-widget-content');                 
+            }
 
-            this._tagInput = $('<input type="text" />').addClass('ui-widget-content');
             if (this.options.tabIndex) {
                 this._tagInput.attr('tabindex', this.options.tabIndex);
             }
@@ -158,6 +163,9 @@
             }
 
             // Events.
+            if(this.options.allowInput ) {
+                 
+            }
             this._tagInput
                 .keydown(function(event) {
                     // Backspace is not detected within a keypress, so it must use keydown.
@@ -310,7 +318,7 @@
                 return false;
             }
 
-            var label = $(this.options.onTagClicked ? '<a class="tagit-label"></a>' : '<span class="tagit-label"></span>').text(value);
+            var label = $(this.options.onTagClicked ? '<span class="tagit-label"></span>' : '<span class="tagit-label"></span>').text(value);
 
             // Create tag.
             var tag = $('<li></li>')
@@ -319,6 +327,8 @@
                 .append(label);
 
             // Button for removing the tag.
+            if(this.options.removeIcon) {
+                 
             var removeTagIcon = $('<span></span>')
                 .addClass('ui-icon ui-icon-close');
             var removeTag = $('<a><span class="text-icon">\xd7</span></a>') // \xd7 is an X
@@ -329,7 +339,7 @@
                     that.removeTag(tag);
                 });
             tag.append(removeTag);
-
+            }
             // Unless options.singleField is set, each tag has a hidden input field inline.
             if (this.options.singleField) {
                 var tags = this.assignedTags();

@@ -1,4 +1,5 @@
-Tags are going to be somewhat like "labels" in gmail, as opposed to "random metadata" 
+Tags are going to be somewhat like "labels" in gmail, as opposed to
+"random metadata"
 
 First, just focus on pages, eventually let you do all entries. Tags
 can contain spaces. Tags are a general property of revisions, and thus
@@ -12,17 +13,28 @@ http://aehlke.github.com/tag-it/
 Questions : what happens when the tag set is auto-updated out from underneath you? 
 
 
-UI goals: 
-Easy to add / autocomplete
-hard to misspell
-easy keyboard shortcut use
+Page UI goals
+=======================
 
-I love, absolutely love, tag-it. 
+Easy to add / autocomplete tags
+Hard to misspell a particular tag
+Easy keyboard shortcut use
+Aesthetically pleasing
+At most one, maybe two tags
+
+Let you search by your tags, all tags
+
+Click window shows you your tags
+
 
 Search: 
 let you search by tags, conjunctions of tags, etc. 
 multikey search will let us conjunctively search, and regex searches will 
 let us search case-insensitively for autocomplete
+
+
+Mongo Tag Backend
+======================
 
 Backend: 
 http://www.mongodb.org/display/DOCS/Full+Text+Search+in+Mongo
@@ -34,7 +46,8 @@ Mongo : db.collection.ensureIndex({revdoc.tags : 1})
 
 Answering the question : "What are popular tags" is really hard to do
 with mongo. Since I don't anticipate there being all that many tags
-per doc, maybe the right thing is to do the page-update delta and simultaneously inc/dec the tags? 
+per doc, maybe the right thing is to do the page-update delta and
+simultaneously inc/dec the tags?
 
 That is, create a separate "tags" collection and just atomically
 increment/decrement the docs?

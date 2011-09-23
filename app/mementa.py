@@ -623,7 +623,6 @@ def user_get_avatar(userid, size=80):
 @login_required
 def get_top_n_tags(N):
     r = tagutils.top_n(g.db, int(N))
-    print "r=", r
     js = [(t['tag'], t['count']) for t in r]
 
     return jsonify({'tagcounts': js})

@@ -47,6 +47,64 @@ function on_tags_changed(server, add) {
         
 }}
 
+
+function existing_tag_click(event, arg) 
+{
+
+    $("#page_tags").tagit("createTag", arg.text()); 
+    return true; 
+}
+
+function show_tag_suggestions()
+{
+    if($("#existing_tags").is(":visible")) {
+        // if already shown, don't reshow
+    } else {
+        $("#existing_tags").tagit("removeAll"); 
+        
+        $("#tag_suggest").fadeIn(); 
+        
+        refresh_tag_suggestions();          
+    }
+
+
+
+}
+
+function refresh_tag_suggestions(beginstr) {
+    
+    var resp; 
+    if(beginstr) {
+        resp = $.get("/api/tags/subset/" + beginstr + "/10"); 
+        
+    } else {
+        resp = $.get("/api/tags/all/10"); 
+         
+    }
+
+    $("#tag_suggest img.throbber").show(); 
+    resp.done(function(res) {
+                  console.log("RESP=", res); 
+                  $("#tag_suggest img.throbber").hide(); 
+                  $("#existing_tags").tagit("removeAll"); 
+                  
+                  _.map(res.tagcounts, function(tc) {
+                            $("#existing_tags").tagit("createTag", tc[0], true, true); 
+                        }); 
+                  
+              }); 
+    
+    
+}
+
+function hide_tag_suggestions()
+{
+    $("#tag_suggest").fadeOut(); 
+    var loadprom = 
+        $("#tag_suggest").data("pending_load"); 
+    $("#existing_tags").tagit("removeAll"); 
+}
+
 $(document).ready(
     function () {
 
@@ -61,12 +119,52 @@ $(document).ready(
 
         var ofunc = new opfuncs(docdb); 
 
+        $("#tag_suggest").hide(); 
 
         $("#page_tags").tagit( { onTagAdded: on_tags_changed(server, true) , 
                                  onTagRemoved : on_tags_changed(server, false), 
                                  allowSpaces: true, 
+                                 allowInput : true, 
                                  // tagSource : testfunc, 
                                  removeConfirmation: true }); 
+        
+        $("#existing_tags").tagit( { allowInput: false, 
+                                     onTagClicked: existing_tag_click, 
+                                     removeConfirmation: true, 
+                                     removeIcon: false}); 
+
+        var x = 0; 
+
+        $("#page_tags input")
+            .focus($.debounce(250, function() {
+                                  show_tag_suggestions(); 
+
+                              })); 
+
+        $("#tags")
+            .hover(undefined, function() {
+                       if($("#page_tags input").is(":focus")){
+                       } else {
+                           hide_tag_suggestions(); 
+                       }
+                       
+                   });
+        $("#page_tags input")
+            .blur(function() {
+                      console.log("calling blur on tags"); 
+                      if($("#tags").is(":hover")){
+                      } else {
+                                 hide_tag_suggestions(); 
+                      }
+                      
+                  });
+        $("#page_tags input").typeWatch({callback: function(event) {
+                                          refresh_tag_suggestions(event);    
+                                         }, 
+                                        wait: 400, 
+                                        captureLength: 2}); 
+        
+
 
         $(entriesdiv).bind('entry-to-state-none', function(entrydiv) {
                                
@@ -346,6 +444,7 @@ $(document).ready(
                        // to finish and then set that entry editable or something
 
                        }); 
+
         
         $(".entry[state='view']")
             .live("dblclick", function(ent) {

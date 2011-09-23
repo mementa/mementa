@@ -12,6 +12,10 @@
 
 <script src="/static/vendor/tag-it/js/tag-it.js" type="text/javascript" charset="utf-8"></script>
 
+<script src="/static/vendor/jquery.ba-throttle-debounce.js" type="text/javascript" charset="utf-8"></script>
+
+<script src="/static/vendor/jquery.typewatch.js" type="text/javascript" charset="utf-8"></script>
+
 <script type="text/javascript" src="/static/render.js"></script>  
 <script type="text/javascript" src="/static/page_util.js"></script>    
 
@@ -75,7 +79,17 @@
     <input type="checkbox" name="showhidden" value="hidden" id="showhidden" /> Show Hidden Entries <br />
 
     <h5>Tags </h5>
-    <ul id="page_tags" > </ul>
+    <div id="tags" > 
+      <ul id="page_tags" > </ul>
+      
+      <div id="tag_suggest"> Suggested tags: <img class="throbber" src="/static/ajax-loader.gif"> </img> 
+        <ul id="existing_tags"> 
+        </ul>
+      </div> 
+      
+    </div>
+
+
     <div class="page-header"> 
       <h3>Recent </h3>
     </div> 
