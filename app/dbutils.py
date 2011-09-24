@@ -3,8 +3,8 @@ import pymongo
 import bson
 import sys
 
-from app import mementa
-from app import datamodel as dm
+import mementa
+import datamodel as dm
 
 def appmain():
 
@@ -21,8 +21,16 @@ def appmain():
         mongoconn = pymongo.Connection()
 
 
-def create_indices(db):
+def create_system_indices(systemdb):
+    systemdb.notebooks.create_index('name', unique=True)
+    systemdb.notebooks.create_index('dbname', unique=True)
+    systemdb.notebooks.create_index('users')
+    systemdb.notebooks.create_index('admins')
 
+    pass
+
+
+def create_notebook_indices(db):
     
     # tag index
     db.tags.create_index('tag', unique=True)

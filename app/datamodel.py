@@ -4,7 +4,10 @@ import bson
 """
 Datamodel notes:
 
-users live in a collection named "users"
+system database, with:
+   users live in a collection named "users"
+   notebooks living in a collection named "notebooks"
+   
 entries live in a collection named "entries"
 revisions live in a collection named "revisions"
 
@@ -12,6 +15,44 @@ revisions live in a collection named "revisions"
 
 """
 
+def dbref(collection, oid, database=None):
+    """
+    Helper function, turns collection and oid strings into the correct
+    objects
+    
+
+    """
+    if not isinstance(oid, bson.objectid.ObjectId):
+        oid = bson.objectid.ObjectId(oid)
+
+    return bson.dbref.DBRef(collection, oid, database = database)
+
+
+def notebook_create(name, dbname, title, users = None, admins = None) :
+    """
+
+    """
+
+    if users == None:
+        raise Exception("must have at least one user")
+    
+    if admins == None:
+        raise Exception("must have at least one admin")
+
+    users_ref = [dbref('users', u) for u in users]
+    admins_ref = [dbref('users', u) for u in admins]
+    for a in admins_ref:
+        if a not in users_ref:
+            raise Exception("admin is not in user list")
+        
+    
+    doc = {'name' : name,
+           'dbname' : dbname,
+           'title' : title,
+           'users' :  users_ref,
+           'admins' : admins_ref}
+    
+    return doc
 
 def user_create(username, password, name=None, email=None,
                 twitter = None, avatar = (None, None)):
@@ -30,13 +71,13 @@ def user_create(username, password, name=None, email=None,
     return {'username' : username,
             'password' : password,
             'name' : name,
-            'password' : password,
             'email' : email,
             'twitter' : twitter,
             'avatar' : avatar}
 
     
-def revision_create(author, date= None, parent=None, archived=False,
+def revision_create(author, systemdbname,
+                    date= None, parent=None, archived=False,
                     tags = None):
     """
     do smart things with date, parent, author 
@@ -45,10 +86,7 @@ def revision_create(author, date= None, parent=None, archived=False,
     if date == None:
         date = datetime.datetime.utcnow()
 
-    if not isinstance(author, bson.dbref.DBRef):
-        if not isinstance(author, bson.objectid.ObjectId):
-            author = bson.objectid.ObjectId(author)
-        author = bson.dbref.DBRef("users", author)
+    author = dbref('users', author, database=systemdbname)
 
     if parent != None and not isinstance(parent, bson.dbref.DBRef):
         if not isinstance(parent, bson.objectid.ObjectId):
@@ -215,7 +253,18 @@ def page_json_to_rev(jsond):
 
     return rev
 
+def notebook_to_json(nb):
+    r = {'name' : nb['name'],
+         'dbname' : nb['dbname'],
+         'title' : nb['title']}
 
+    for ut in ['users', 'admins']:
+        r[ut] = []
+        for u in nb[ut]:
+            r[ut].append(str(u.id))
+    return r
+            
+         
 
 json_to_rev = {'text' : entry_text_json_to_rev,
                'page' : page_json_to_rev}

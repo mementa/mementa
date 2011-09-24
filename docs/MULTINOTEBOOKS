@@ -22,9 +22,9 @@ notebooks, thankfully, are accessed per URL, so a typical notebook
 will be, for notebook foo,
 
 
-/foo/page
-/foo/ : for the home
-/foo/page/blahblahblah
+/notebook/foo/page
+/notebook/foo/ : for the home
+/notebook/foo/page/blahblahblah
 
 and then for the API: 
 /api/foo/entries
@@ -32,3 +32,4 @@ etc. etc.
 
 Things we do not support: 
 Searching across notebooks
+

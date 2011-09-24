@@ -15,6 +15,7 @@ import wikipediatest
 
 from app import mementa
 from app import datamodel as dm
+from app import dbutils
 
 
 
@@ -24,15 +25,16 @@ else:
     dburl = None
     
 
-DATABASE = 'testdb'
+SYSDATABASE = 'testsystemdb'
+
 if dburl:
     mongoconn = pymongo.Connection(dburl)
 else:
     mongoconn = pymongo.Connection()
     
-mongoconn.drop_database(DATABASE)
+mongoconn.drop_database(SYSDATABASE)
 
-db = mongoconn[DATABASE]
+sysdb = mongoconn[SYSDATABASE]
 
 users = {}
 
@@ -43,19 +45,20 @@ for user, pw, name, email, twitter in \
 
     pwsalt = mementa.saltpassword(pw, mementa.PASSWORDSALT)
     u1 = dm.user_create(user, pwsalt, name, email, twitter=twitter)
-    u1oid = db.users.insert(u1)
+    u1oid = sysdb.users.insert(u1)
     users[user] = u1oid
     
-def simple_text_entry(db, user_oid, title, body):
+def simple_text_entry(db, systemdbname,  user_oid, title, body):
     """
-    Simple creation of text entry with only one revision, using title string and body string.
+    Simple creation of text entry with only one revision,
+    using title string and body string.
     
     """
     
     
     t = dm.text_entry_revision_create(title, body)
     
-    t.update(dm.revision_create(user_oid))
+    t.update(dm.revision_create(user_oid, systemdbname))
     
     toid = db.revisions.insert(t)
     t['_id'] = toid
@@ -65,7 +68,8 @@ def simple_text_entry(db, user_oid, title, body):
     eoid = db.entries.insert(e)
     return eoid
 
-def simple_page_create(db, user_oid, title, entry_oid_list, tags=None):
+def simple_page_create(db, systemdbname,
+                       user_oid, title, entry_oid_list, tags=None):
     """
     Create a page with the list of entries, all visible, unpinned
     """
@@ -75,7 +79,7 @@ def simple_page_create(db, user_oid, title, entry_oid_list, tags=None):
 
     p = dm.page_entry_revision_create(title, entries)
     
-    p.update(dm.revision_create(user_oid, tags=tags))
+    p.update(dm.revision_create(user_oid, systemdbname, tags=tags))
 
     poid = db.revisions.insert(p)
     p["_id"] = poid
@@ -85,13 +89,28 @@ def simple_page_create(db, user_oid, title, entry_oid_list, tags=None):
     
     return eoid
 
+
+nb = dm.notebook_create("testnotebook", "notebook:testnotebook",
+                        "This is a test notebook",
+                        users = [v for k, v in users.iteritems()], 
+                        admins = [users['eric']])
+sysdb.notebooks.insert(nb)
+notebookdbname = 'notebook:testnotebook'
+db = mongoconn[notebookdbname]
+dbutils.create_notebook_indices(db)
+
+
+
 # now we proudly create a collection of entries and keep them around for a bit
 
-mathjax_entries = [simple_text_entry(db, users['eric'], e['title'], e['body']) for e in text_entries.mathjax()]
+mathjax_entries = [simple_text_entry(db, SYSDATABASE, 
+                                     users['eric'], e['title'],
+                                     e['body']) for e in text_entries.mathjax()]
 
 
 # now create a page with these entries
-simple_page_create(db, users['eric'], "MathJax Examples", mathjax_entries)
+simple_page_create(db, SYSDATABASE, 
+                   users['eric'], "MathJax Examples", mathjax_entries)
 
 
 wikipedia_articles = [
@@ -109,15 +128,18 @@ wikipedia_articles = [
     "Momentum_operator",
     "Fourier_transform"
     ]
+
 for wikipedia_title in wikipedia_articles:
     print "Creating page for", wikipedia_title, "="*40
     
     page_title = wikipedia_title.replace("_", " ")
 
     psecs =  wikipediatest.get_page(wikipedia_title)
-    entries = [simple_text_entry(db, users['eric'], e['title'], e['body']) for e in psecs]
+    entries = [simple_text_entry(db, SYSDATABASE,
+                                 users['eric'], e['title'], e['body']) for e in psecs]
 
     tags = [x.strip() for x in psecs[0]['textonly'].split(" ")[:5]]
     print "TAGS=", tags
     
-    simple_page_create(db, users['eric'], page_title, entries, tags)
+    simple_page_create(db, SYSDATABASE, 
+                       users['eric'], page_title, entries, tags)

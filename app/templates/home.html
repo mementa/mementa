@@ -11,48 +11,15 @@
   <H1> Welcome to Mementa </H1>
   
   <div class="page-header"> 
-    <h2>Recent Pages </h2>
+    <h2>Notebooks </h2>
   </div> 
   
-  <div class="row show-grid"> 
-    <div class="span7 columns">
-      <H3>Yours</H3>
-      <div> 
-        <table class='zebra-striped pagelist'> <tbody>
-          {% for p in my_pages %}
-          <tr><td>
-               <span class='pagelist'> 
-                 <b><a href="/page/{{p['_id']}}"> {{p['title']}}</a> </b>  
-                 <span class='meta'> 
-                   <span class='date'>{{p['date'][:-7]}}Z</span>
-                 </span> 
-               </span>
-          </td></tr>
-          {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    </div> 
-    <div class="span7 columns offset2">
-      <H3> All </h3> 
-      <div> 
-        <table class='zebra-striped pagelist'> <tbody>
-          {% for p in all_pages %}
-          <tr><td>
-               <span class='pagelist'> 
-                 <b><a href="/page/{{p['_id']}}">{{p['title']}}</a> </b>  
-                 <span class='meta'> 
-                   by <span>{{p['author']['name']}}</span>
-                   <span class='date'>{{p['date'][:-7]}}Z</span>
-                 </span> 
-               </span>
-          </td></tr>
-          {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div><!-- /row --> 
+  <ul>
+    {% for n in nblist %}
+    <li><a href='/notebook/{{n['name']}}'> {{n['title']}} </a> </li> 
+
+    {% endfor %}
+  </ul>
 
 </div>
 
