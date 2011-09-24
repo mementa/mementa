@@ -1,0 +1,34 @@
+
+Users: 
+
+For mementa, there is a single global user list. These users are
+stored in the "system" database as the "users" collection.
+
+There's a notebooks collection in the system db, that contains records like: 
+
+notebook { 
+    Title
+    name : [globally unique name] 
+    dbname : [globally unique db name]
+    users : list of user IDs
+    admins : list of admins
+}
+
+An admin can add another user, and can control which users are admin or not. 
+
+The main mementa page lists your notebooks, but that's it -- in
+general, the mementa interface is a SINGLE NOTEBOOK interface. But
+notebooks, thankfully, are accessed per URL, so a typical notebook
+will be, for notebook foo,
+
+
+/foo/page
+/foo/ : for the home
+/foo/page/blahblahblah
+
+and then for the API: 
+/api/foo/entries
+etc. etc. 
+
+Things we do not support: 
+Searching across notebooks
