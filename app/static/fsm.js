@@ -19,8 +19,17 @@ var render = {
     entry_rev_get : { 
         text: function(entrydiv) {
             var title = $("input[name='title']", entrydiv).val(); 
-            var body = $(entrydiv).data("editor").content(); 
-            
+            // this is for testing only -- in reality, we want to get
+            // the content from the editor. We should really architect this better
+
+            var body; 
+            if($(entrydiv).data("editor")) {
+                body = $(entrydiv).data("editor").content();  
+            } else {
+                body = $("div.textbody", entrydiv).html(); 
+
+            }
+
 
             return {
                 title : title, 

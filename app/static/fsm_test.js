@@ -337,7 +337,7 @@ function fsm_tests()
 
              // MODIFY THE DOC
              $("input[name='title']", tgtdiv).val("THE NEW TITLE"); 
-             $("[name='body']", tgtdiv).val("THE NEW BODY"); 
+             $("div.textbody", tgtdiv).html("THE NEW BODY"); 
              dom_edit_save_click($("a.save", tgtdiv), this.server, this.docdb); 
              //FIXME not done
              equal(this.server.queue.length, 1); // should be a page op 
@@ -377,7 +377,7 @@ function fsm_tests()
 
              // MODIFY THE DOC
              $("input[name='title']", tgtdiv).val("THE NEW TITLE"); 
-             $("[name='body']", tgtdiv).val("THE NEW BODY"); 
+             $("div.textbody", tgtdiv).html("THE NEW BODY"); 
              dom_edit_save_click($("a.save", tgtdiv), this.server, this.docdb); 
 
              equal(this.server.queue.length, 1); // should be a page op 
@@ -400,7 +400,7 @@ function fsm_tests()
 
              // now try again
              $("input[name='title']", tgtdiv).val("THE NEW TITLE"); 
-             $("[name='body']", tgtdiv).val("THE NEW BODY TWO"); 
+             $("div.textbody", tgtdiv).html("THE NEW BODY TWO"); 
              dom_edit_save_click($("a.save", tgtdiv), this.server, this.docdb); 
 
              equal(this.server.queue.length, 1); // should be a page op 
