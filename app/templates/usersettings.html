@@ -51,12 +51,12 @@
       </div>
       {% if action == 'settings' %} 
       {% if success %} 
-      <div class="alert-message success"> 
+      <div class="alert-message success fade in" data-alert="alert"> 
         <a class="close" href="#">&times;</a> 
         <p><strong>Successfully updated settings</strong></p>
       </div> 
       {% else %} 
-      <div class="alert-message error"> 
+      <div class="alert-message error fade in" data-alert="alert"> 
         <a class="close" href="#">&times;</a> 
         <p><strong>Error updating  settings</strong></p>
       </div> 
@@ -88,12 +88,12 @@
       </div><!-- /clearfix --> 
       {% if action == 'password' %}
       {% if success %}
-      <div class="alert-message success"> 
+      <div class="alert-message success" data-alert="alert"> 
         <a class="close" href="#">&times;</a> 
         <p><strong>Successfully updated password</strong></p>
       </div> 
       {% else %}
-      <div class="alert-message error"> 
+      <div class="alert-message error" data-alert="alert"> 
         <a class="close" href="#">&times;</a> 
         <p><strong>Passwords didn't match</strong></p>
       </div> 
