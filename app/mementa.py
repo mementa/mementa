@@ -51,6 +51,18 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+def check_notebook_acl(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        notebook = kwargs['notebook']
+        nbdb = g.dbconn[get_nb_dbname(notebook)]
+        if not has_notebook_permission(session['user_id'], notebook):
+            return "You don't have permission to access that notebook", HTTP_ERROR_FORBIDDEN            
+        return f(*args, **kwargs)
+    return decorated_function
+
+
+
 def has_notebook_permission(userid, notebook_name):
 
     n = get_notebook(notebook_name)
@@ -58,7 +70,10 @@ def has_notebook_permission(userid, notebook_name):
         if u.id == userid:
             return True
     return False
-    
+
+def get_nb_dbname(notebookname):
+    return "notebook:" + notebookname
+
 def lookup_user(userid):
     """
     FIXME: cache this eventually
@@ -90,18 +105,17 @@ def home():
         nblist.append({'name' : n['name'],
                        'title' : n['title']})
     
-    return render_template("home.html", nblist = nblist, 
+    return render_template("home.html", nblist = nblist,
+                           notebook = None, 
                            session = session)
 
 @app.route('/notebook/<notebook>')
 @login_required
 def notebook_home(notebook):
-    if not has_notebook_permission(session['user_id'], notebook):
-        return "You don't have permission to access that notebook", HTTP_ERROR_FORBIDDEN
     
     LIMIT = 7
-    
-    my_pages = list_entries_query(g.dbconn[notebook],
+    nbdb = g.dbconn[get_nb_dbname(notebook)]
+    my_pages = list_entries_query(nbdb,
                                   {'class' : 'page',
                                    'author' : session['user_id'],
                                    'limit' : LIMIT})
@@ -110,7 +124,7 @@ def notebook_home(notebook):
         p['author'] = lookup_user(p['author'])
 
 
-    all_pages = list_entries_query(g.dbconn[notebook],
+    all_pages = list_entries_query(nbdb,
                                    {'class' : 'page',
                                    'limit' : LIMIT})
     
@@ -119,8 +133,10 @@ def notebook_home(notebook):
 
 
     
-    return render_template("notebook.html", my_pages = my_pages,
-                           all_pages = all_pages, 
+    return render_template("notebook.html",
+                           my_pages = my_pages,
+                           all_pages = all_pages,
+                           notebook = get_notebook(notebook), 
                            session = session)
 
 
@@ -193,11 +209,9 @@ def get_notebook(name):
 
 @app.route("/notebook/<notebook>/settings", methods=['GET', 'POST'])
 @login_required
+@check_notebook_acl
 def notebook_settings(notebook):
-    if not has_notebook_permission(session['user_id'], notebook):
-        return "You don't have permission to access that notebook", HTTP_ERROR_FORBIDDEN
 
-    
     isadmin = has_notebook_admin(session['user_id'], notebook)
 
     nb = get_notebook(name)
@@ -273,51 +287,62 @@ def settings():
     
         
         
-# @app.route("/pages")
-# @login_required
-# def pages():
-
-#     pages = list_entries_query({'class' : 'page'})
-#     for p in pages:
-#         p['author'] = lookup_user(p['author'])
+@app.route("/notebook/<notebook>/pages")
+@login_required
+@check_notebook_acl
+def pages(notebook):
+    nbdb = g.dbconn[get_nb_dbname(notebook)]
+    nb = get_notebook(notebook)
+    pages = list_entries_query(nbdb, {'class' : 'page'})
+    for p in pages:
+        p['author'] = lookup_user(p['author'])
         
-#     return render_template("list_pages.html", pages=pages,
-#                            session = session)
+    return render_template("list_pages.html", pages=pages,
+                           notebook = nb, 
+                           session = session)
 
-# @app.route("/entries")
-# @login_required
-# def entries():
+@app.route("/notebook/<notebook>/entries")
+@login_required
+@check_notebook_acl
+def entries(notebook):
 
-#     pages = list_entries_query({'class' : 'notpage'})
-#     for p in pages:
-#         p['author'] = lookup_user(p['author'])
+    nbdb = g.dbconn[get_nb_dbname(notebook)]
+
+    entries = list_entries_query(nbdb, {'class' : 'notpage'})
+    for e in entries:
+        e['author'] = lookup_user(e['author'])
         
-#     return render_template("list_entries.html", pages=pages,
-#                            session = session)
+    return render_template("list_entries.html", entries=entries,
+                           notebook = get_notebook(notebook), 
+                           session = session)
 
-# @app.route("/page/<entryid>")
-# @login_required
-# def page(entryid):
+@app.route("/notebook/<notebook>/page/<entryid>")
+@login_required
+@check_notebook_acl
+def page(notebook, entryid):
 
-#     # fixme in denormalized land, we don't need to do the double-query
+    nbdb = g.dbconn[get_nb_dbname(notebook)]
+
+    # fixme in denormalized land, we don't need to do the double-query
     
-#     col_entries = g.db['entries']
-#     col_revisions = g.db['revisions']
+    col_entries = nbdb['entries']
+    col_revisions = nbdb['revisions']
 
-#     doc = col_entries.find_one({"_id" : bson.objectid.ObjectId(entryid)})
+    doc = col_entries.find_one({"_id" : bson.objectid.ObjectId(entryid)})
 
-#     if not doc:
-#         return "COULD NOT FIND THAT DOCUMENT"
+    if not doc:
+        return "COULD NOT FIND THAT DOCUMENT"
 
-#     head = doc['head']
+    head = doc['head']
     
-#     rev = g.db.dereference(head)
-#     s =  dm.page_rev_to_json(rev)
-#     return render_template("page.html",
-#                            page_entry_json = json.dumps(dm.entry_to_json(doc)), 
-#                            page_rev_json = json.dumps(s),
-#                            page_rev = s,
-#                            session = session)
+    rev = nbdb.dereference(head)
+    s =  dm.page_rev_to_json(rev)
+    return render_template("page.html",
+                           notebook = get_notebook(notebook), 
+                           page_entry_json = json.dumps(dm.entry_to_json(doc)), 
+                           page_rev_json = json.dumps(s),
+                           page_rev = s,
+                           session = session)
 
 
 # set the secret key.  keep this really secret:
@@ -326,6 +351,7 @@ app.secret_key = 'A0Zr98j/3kdshfkdsajhfasdkj239r12nc-95h1pi34r1143yX R~XHH!jmN]L
     
 @app.route("/api/<notebook>/entry/new", methods=["POST"])
 @login_required
+@check_notebook_acl
 def api_entry_new(notebook):
     """
     Create a new revision and entry.
@@ -360,9 +386,6 @@ def api_entry_new(notebook):
     if request.mimetype != "application/json":
         return "Invalid request type, must be application/json", HTTP_ERROR_CLIENT_BADREQUEST
 
-    if not has_notebook_permission(session['user_id'], notebook):
-        return "You don't have permission to access that notebook", HTTP_ERROR_FORBIDDEN
-    
 
     request_data = request.json
 
@@ -383,20 +406,20 @@ def api_entry_new(notebook):
                                   app.config['DB_SYSTEM_DATABASE'], 
                                   archived=archived,
                                   tags = tags))
-    db = g.dbconn[notebook]
+    nbdb = g.dbconn[get_nb_dbname(notebook)]
 
-    revid = db.revisions.insert(rev, safe=True)
+    revid = nbdb.revisions.insert(rev, safe=True)
     rev["_id"] = revid
 
     
     ent_dict = dm.entry_create(dbref("revisions", revid),
                                dclass, rev)
 
-    entid = db.entries.insert(ent_dict, safe=True)
+    entid = nbdb.entries.insert(ent_dict, safe=True)
     ent_dict["_id"] = entid
 
     # tag cleanup
-    [tagutils.inc_tag(db, t) for t in tags]
+    [tagutils.inc_tag(nbdb, t) for t in tags]
     
 
     rev_json = dm.rev_to_json[dclass](rev)
@@ -409,6 +432,7 @@ def api_entry_new(notebook):
 
 @app.route('/api/<notebook>/entry/<entryid>',  methods = ['GET', 'POST'])
 @login_required
+@check_notebook_acl
 def api_entry_get_post(notebook, entryid):
     """
     GET the latest entry and rev for an entry
@@ -433,10 +457,8 @@ def api_entry_get_post(notebook, entryid):
     
     
     """
-    if not has_notebook_permission(session['user_id'], notebook):
-        return "You don't have permission to access that notebook", HTTP_ERROR_FORBIDDEN
 
-    db = g.dbconn[notebook]
+    nbdb = g.dbconn[get_nb_dbname(notebook)]
 
     if request.method == 'POST':
         """
@@ -475,14 +497,14 @@ def api_entry_get_post(notebook, entryid):
                                       tags = tags))
 
         # save the revision
-        new_rev_oid = db.revisions.insert(rev, safe=True)
+        new_rev_oid = nbdb.revisions.insert(rev, safe=True)
         rev["_id"] = new_rev_oid
 
         new_entry_doc = dm.entry_create(dbref('revisions', new_rev_oid),
                                         dclass, rev)
 
         
-        res = db.entries.update({'_id' : bson.objectid.ObjectId(entryid),
+        res = nbdb.entries.update({'_id' : bson.objectid.ObjectId(entryid),
                                    'head' : dbref('revisions', parent), 
                                    'class' : dclass},
                                   new_entry_doc, safe=True)
@@ -495,12 +517,12 @@ def api_entry_get_post(notebook, entryid):
             # success!
 
             # get the old revisions tags, compute the diff
-            olddoc = db.dereference(dbref('revisions', parent))
+            olddoc = nbdb.dereference(dbref('revisions', parent))
             tagdeltas = tagutils.tagdelta(olddoc.get('tags', []),
                                           tags)
 
-            [tagutils.inc_tag(db, t) for t in tagdeltas[0]]
-            [tagutils.dec_tag(db, t) for t in tagdeltas[1]]
+            [tagutils.inc_tag(nbdb, t) for t in tagdeltas[0]]
+            [tagutils.dec_tag(nbdb, t) for t in tagdeltas[1]]
 
             new_rev_doc_json = dm.rev_to_json[dclass](rev)
 
@@ -513,13 +535,13 @@ def api_entry_get_post(notebook, entryid):
         else:
             # failed to update, meaning someone else updated the entry ahead of us
 
-            db.revisions.remove({'_id' : new_rev_oid})
+            nbdb.revisions.remove({'_id' : new_rev_oid})
 
             entry_ref = dbref("entries", entryid)
-            latest_entry_doc = db.dereference(entry_ref)
+            latest_entry_doc = nbdb.dereference(entry_ref)
 
             true_latest_rev_ref = latest_entry_doc['head']
-            latest_rev_doc = db.dereference(true_latest_rev_ref)
+            latest_rev_doc = nbdb.dereference(true_latest_rev_ref)
             latest_rev_json = dm.page_rev_to_json(latest_rev_doc)
 
             resp =  jsonify({"reason" : "Incorrect latest", 
@@ -532,11 +554,11 @@ def api_entry_get_post(notebook, entryid):
         # fixme update this to use denormalized stuff
         
         entry_ref = dbref("entries", entryid)
-        entry_doc = db.dereference(entry_ref)
+        entry_doc = nbdb.dereference(entry_ref)
         
         latest_page_ref = entry_doc['head']
 
-        latest_page_rev = db.dereference(latest_page_ref)
+        latest_page_rev = nbdb.dereference(latest_page_ref)
 
 
         return jsonify({"entry" : dm.entry_to_json(entry_doc),
@@ -558,7 +580,7 @@ def api_notebookadmin_new():
     admins = [session['user_id']]
     
     doc = dm.notebook_create(rd['name'],
-                             "notebook:" + rd['name'],
+                             get_nb_dbname(rd['name']),
                              rd['title'],
                              users=users,
                              admins = admins)
@@ -641,15 +663,13 @@ def api_notebookadmin_config(notebook):
 
 @app.route('/api/<notebook>/rev/<revid>')
 @login_required
+@check_notebook_acl
 def api_rev_get(notebook, revid):
     """
     get rev
     
     """
-    if not has_notebook_permission(session['user_id'], notebook):
-        return "You don't have permission to access that notebook", HTTP_ERROR_FORBIDDEN
-
-    db = g.dbconn[notebook]
+    db = g.dbconn[get_nb_dbname(notebook)]
 
     rev = db.dereference(dbref('revisions', revid))
 
@@ -699,7 +719,6 @@ def list_entries_query(db, req):
                   'revdoc.title' : 1,
                   'revdoc.author' : 1,
                   'revdoc.date' : 1}
-    
     if query == {}:
         results = db.entries.find(fields=tgt_fields).sort('revdoc.date', -1).limit(limit)
     else:
@@ -721,6 +740,7 @@ def list_entries_query(db, req):
 
 @app.route('/api/<notebook>/list/entries')
 @login_required
+@check_notebook_acl
 def list_entries(notebook):
     """
     Generic listing interface for entries, always returns the latest.
@@ -734,10 +754,9 @@ def list_entries(notebook):
     # fixme implement offset
     
     """
-    if not has_notebook_permission(session['user_id'], notebook):
-        return "You don't have permission to access that notebook", HTTP_ERROR_FORBIDDEN
+    nbdb = g.dbconn[get_nb_dbname(notebook)]
 
-    results_data = list_entries_query(g.dbconn[notebook], request.args)
+    results_data = list_entries_query(nbdb, request.args)
     
     return jsonify({'results' : results_data})
 
@@ -760,70 +779,66 @@ def user_get_avatar(userid, size=80):
 
 @app.route("/api/<notebook>/tags/all/<N>")
 @login_required
+@check_notebook_acl
 def get_top_n_tags(notebook, N):
-    if not has_notebook_permission(session['user_id'], notebook):
-        return "You don't have permission to access that notebook", HTTP_ERROR_FORBIDDEN
+    nbdb = g.dbconn[get_nb_dbname(notebook)]
 
-    db = g.dbconn[notebook]
-    r = tagutils.top_n(db, int(N))
+    r = tagutils.top_n(nbdb, int(N))
     js = [(t['tag'], t['count']) for t in r]
 
     return jsonify({'tagcounts': js})
 
 @app.route("/api/<notebook>/tags/count/<tag>")
 @login_required
+@check_notebook_acl
 def get_tag_count(notebook, tag):
-    if not has_notebook_permission(session['user_id'], notebook):
-        return "You don't have permission to access that notebook", HTTP_ERROR_FORBIDDEN
     
-    db = g.dbconn[notebook]
+    nbdb = g.dbconn[get_nb_dbname(notebook)]
 
-    c = tagutils.count(db, tag)
+    c = tagutils.count(nbdb, tag)
     return jsonify({'tag' : tag,
                     'count' : c})
 
 @app.route("/api/<notebook>/tags/subset/<beginstr>/<N>")
 @login_required
+@check_notebook_acl
 def get_top_n_tags_str(notebook, beginstr, N):
-    if not has_notebook_permission(session['user_id'], notebook):
-        return "You don't have permission to access that notebook", HTTP_ERROR_FORBIDDEN
     
-    db = g.dbconn[notebook]
+    nbdb = g.dbconn[get_nb_dbname(notebook)]
 
-    r = tagutils.top_n_str(db, beginstr, int(N))
+    r = tagutils.top_n_str(nbdb, beginstr, int(N))
     js = [(t['tag'], t['count']) for t in r]
 
     return jsonify({'tagcounts' : js})
 
 
-@app.route("/<notebook>/page/new")
+@app.route("/notebook/<notebook>/page/new")
 @login_required
+@check_notebook_acl
 def page_new(notebook):
     """
     
     """
-    if not has_notebook_permission(session['user_id'], notebook):
-        return "You don't have permission to access that notebook", HTTP_ERROR_FORBIDDEN
 
 
-    db = g.dbconn[notebook]
+    nbdb = g.dbconn[get_nb_dbname(notebook)]
     
     title = "New Page"
     entries = []
 
     page_rev = dm.page_entry_revision_create(title, entries)
-    author = dbref("users", session["user_id"])
+    author =  session["user_id"]
     
-    page_rev.update(dm.revision_create(author))
+    page_rev.update(dm.revision_create(author, app.config['DB_SYSTEM_DATABASE']))
 
-    revid = db.revisions.insert(page_rev, safe=True)
+    revid = nbdb.revisions.insert(page_rev, safe=True)
     page_rev["_id"] = revid
     
     ent_dict = dm.entry_create(dbref("revisions", revid), 'page', page_rev)
     
-    entid = db.entries.insert(ent_dict, safe=True)
+    entid = nbdb.entries.insert(ent_dict, safe=True)
     
-    return redirect("/page/%s" % entid)
+    return redirect("/notebook/%s/page/%s" % (notebook, entid))
 
 
 if __name__ == '__main__':

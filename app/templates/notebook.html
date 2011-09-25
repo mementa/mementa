@@ -8,7 +8,7 @@
 {% block content %} 
 
 <div class="container">
-  <H1> Welcome to Mementa </H1>
+  <H1> {{notebook.title}}</H1>
   
   <div class="page-header"> 
     <h2>Recent Pages </h2>
@@ -22,7 +22,7 @@
           {% for p in my_pages %}
           <tr><td>
                <span class='pagelist'> 
-                 <b><a href="/page/{{p['_id']}}"> {{p['title']}}</a> </b>  
+                 <b><a href="/notebook/{{notebook.name}}/page/{{p['_id']}}"> {{p['title']}}</a> </b>  
                  <span class='meta'> 
                    <span class='date'>{{p['date'][:-7]}}Z</span>
                  </span> 
@@ -40,7 +40,7 @@
           {% for p in all_pages %}
           <tr><td>
                <span class='pagelist'> 
-                 <b><a href="/page/{{p['_id']}}">{{p['title']}}</a> </b>  
+                 <b><a href="/notebook/{{notebook.name}}/page/{{p['_id']}}">{{p['title']}}</a> </b>  
                  <span class='meta'> 
                    by <span>{{p['author']['name']}}</span>
                    <span class='date'>{{p['date'][:-7]}}Z</span>

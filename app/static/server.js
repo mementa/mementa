@@ -1,4 +1,4 @@
-function Server(associatedDOM) {
+function Server(associatedDOM, notebook) {
     /* 
      * For the server, almost all queries are async, returning promises
      * 
@@ -17,6 +17,7 @@ function Server(associatedDOM) {
      * 
      */
     this.dom = associatedDOM; 
+    this.notebook = notebook; 
 
     this.pageState = {entry: null, rev : null};
     this.setPageState = function(entry, rev)  {
@@ -36,7 +37,7 @@ function Server(associatedDOM) {
         var doc = $.extend(true, { 'class' : dclass}, info); 
         
         var resp = $.ajax({'type' : "POST", 
-                           'url' : "/api/entry/new",
+                           'url' : "/api/" + this.notebook + "/entry/new",
                            contentType:"application/json",
                            dataType : "json" , 
                            data : JSON.stringify(doc)}); 
@@ -82,7 +83,7 @@ function Server(associatedDOM) {
         
         
         var resp = $.ajax({'type' : "POST", 
-                           'url' : "/api/entry/" + entryid,
+                           'url' : "/api/" + this.notebook + "/entry/" + entryid,
                            contentType:"application/json",
                            dataType : "json" , 
                            data : JSON.stringify(doc)}); 
@@ -128,7 +129,7 @@ function Server(associatedDOM) {
         
         console.log("posting doc", doc); 
         var resp = $.ajax({'type' : "POST", 
-                           'url' : "/api/entry/" + entryid,
+                           'url' : "/api/" + this.notebook + "/entry/" + entryid,
                            contentType:"application/json",
                            dataType : "json" , 
                            data : JSON.stringify(doc)}); 
@@ -178,7 +179,7 @@ function Server(associatedDOM) {
          */   
 
         var d = $.Deferred(); 
-        var ajaxresp = $.getJSON("/api/entry/" + entryid); 
+        var ajaxresp = $.getJSON("/api/" + this.notebook + "/entry/" + entryid); 
         ajaxresp.done(function(data) { 
                       
                       $(this.dom).trigger('entry-rev-update', 
@@ -202,7 +203,7 @@ function Server(associatedDOM) {
          */
         
         var d = $.Deferred(); 
-        var ajaxresp = $.getJSON("/api/rev/" + revid); 
+        var ajaxresp = $.getJSON("/api/" + this.notebook + "/rev/" + revid); 
         ajaxresp.done(function(data) { 
                           d.resolve(data); 
                       }); 

@@ -412,7 +412,6 @@ class MementaTestCase(unittest.TestCase):
 
             url = "/api/%s/list/entries" % nbname
             for user, oid in self.user_oids.iteritems():
-                print "Running queries for", user, oid
                 rv = self.app.get(url + "?author=%s" % str(oid ))
                 rv_json = json.loads(rv.data)
                 assert_equal(len(rv_json['results']), ENTRY_N + PAGE_N)

@@ -54,7 +54,7 @@ function existing_tag_click(event, arg)
     return true; 
 }
 
-function show_tag_suggestions()
+function show_tag_suggestions(notebook)
 {
     if($("#existing_tags").is(":visible")) {
         // if already shown, don't reshow
@@ -63,29 +63,28 @@ function show_tag_suggestions()
         
         $("#tag_suggest").fadeIn(); 
         
-        refresh_tag_suggestions();          
+        refresh_tag_suggestions(notebook);          
     }
 
 
 
 }
 
-function refresh_tag_suggestions(beginstr) {
+function refresh_tag_suggestions(notebook, beginstr) {
     
-    var resp; 
+    var url; 
     if(beginstr) {
-        resp = $.get("/api/tags/subset/" + beginstr + "/10"); 
-        
+        url = "/api/" + notebook + "/tags/subset/" + beginstr + "/10"; 
     } else {
-        resp = $.get("/api/tags/all/10"); 
-         
+        url = "/api/" + notebook + "/tags/all/10"; 
     }
 
+    var resp = $.get(url); 
     $("#tag_suggest img.throbber").show(); 
     resp.done(function(res) {
                   $("#tag_suggest img.throbber").hide(); 
                   $("#existing_tags").tagit("removeAll"); 
-                  
+                  console.log("The tags are", res.tagcounts, url); 
                   _.map(res.tagcounts, function(tc) {
                             $("#existing_tags").tagit("createTag", tc[0], true, true); 
                         }); 
@@ -106,10 +105,10 @@ function hide_tag_suggestions()
 $(document).ready(
     function () {
 
-
+        var notebook = CURRENT_NOTEBOOK; 
         // create the docdb
         var entriesdiv = $("#entries"); 
-        var server = new Server(entriesdiv); 
+        var server = new Server(entriesdiv, notebook); 
         var docdb = new DocumentDB(server); 
         
         docdb.update(init_page_entry); 
@@ -135,7 +134,7 @@ $(document).ready(
 
         $("#page_tags input")
             .focus($.debounce(250, function() {
-                                  show_tag_suggestions(); 
+                                  show_tag_suggestions(notebook); 
 
                               })); 
 
@@ -156,7 +155,8 @@ $(document).ready(
                       
                   });
         $("#page_tags input").typeWatch({callback: function(event) {
-                                          refresh_tag_suggestions(event);    
+                                          refresh_tag_suggestions(notebook, 
+                                                                  event);    
                                          }, 
                                         wait: 400, 
                                         captureLength: 2}); 

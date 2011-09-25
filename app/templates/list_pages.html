@@ -11,7 +11,7 @@
   <H1> Current Pages </H1>
   <ul> 
   {%for p in pages %}
-    <li> <h3> <a href="/page/{{p._id}}">{{p.title}}</a> 
+    <li> <h3> <a href="/notebook/{{notebook.name}}/page/{{p._id}}">{{p.title}}</a> 
     <small> <span class='timestamp'> {{p.date}}Z</span>, Last modified by: {{p.author.name}} </small>
     </h3> </li>
   {%endfor%}

@@ -10,9 +10,9 @@
 <div class="container">
   <H1> Current Entries </H1>
   <ul> 
-  {%for p in pages %}
-    <li> <h3> <a href="/page/{{p._id}}">{{p.title}}</a> 
-    <small> <span class='timestamp'> {{p.date}}Z</span>, Last modified by: {{p.author.name}} </small>
+  {%for e in entries %}
+    <li> <h3> <a href="/{{notebook.name}}/page/{{e._id}}">{{e.title}}</a> 
+    <small> <span class='timestamp'> {{e.date}}Z</span>, Last modified by: {{e.author.name}} </small>
     </h3> </li>
   {%endfor%}
   </ul>
