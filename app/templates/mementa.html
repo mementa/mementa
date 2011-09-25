@@ -65,6 +65,9 @@
               <a href="#" class="dropdown-toggle">{{session['name']}}</a>
               <ul class="dropdown-menu">
                 <li><a href="/settings">User Profile</a></li> 
+                {% if notebook %}
+                <li><a href="/notebook/{{notebook.name}}/settings">Notebook Settings</a></li> 
+                {% endif %}
                 <li><a href="#">Help</a></li> 
                 <li class="divider"></li> 
                 <li><a href="/logout">Logout</a></li> 

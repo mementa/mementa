@@ -132,7 +132,7 @@ class MementaTestCase(unittest.TestCase):
         rv = self.get_json("/api/%s/config" % name)
 
         rvd = json.loads(rv.data)
-        assert_equal(rvd['name'], name)
+        assert_equal(rvd['notebook']['name'], name)
         
         
         self.notebooks = [name]  # for cleanup
@@ -151,7 +151,7 @@ class MementaTestCase(unittest.TestCase):
         rv = self.get_json("/api/%s/config" % name)
 
         rvd = json.loads(rv.data)
-        assert_equal(rvd['title'], title)
+        assert_equal(rvd['notebook']['title'], title)
 
         # Mutate the title
         newtitle = "This is the new title"
@@ -159,20 +159,20 @@ class MementaTestCase(unittest.TestCase):
         rv = self.post_json('/api/%s/config' % name,
                              {'title' : newtitle})
         rvd = json.loads(rv.data)
-        assert_equal(rvd['title'], newtitle)
+        assert_equal(rvd['notebook']['title'], newtitle)
         
         rv = self.get_json("/api/%s/config" % name)
         rvd = json.loads(rv.data)
-        assert_equal(rvd['title'], newtitle)
+        assert_equal(rvd['notebook']['title'], newtitle)
 
-        users = rvd['users']
+        users = rvd['notebook']['users']
         uid = self.user_oids['cap']
         users.append(str(uid))
         rv = self.post_json('/api/%s/config' % name,
                             {'users' : users})
 
         rvd = json.loads(rv.data)
-        assert(str(uid) in rvd['users'])
+        assert(str(uid) in rvd['notebook']['users'])
         
         self.notebooks = [name]  # for cleanup
 

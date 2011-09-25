@@ -1,7 +1,7 @@
 {% extends "mementa.html" %}
 
 {% block javascript_includes %}
-<script type="text/javascript" src="/static/home.js"></script>    
+<script type="text/javascript" src="/static/notebook.js"></script>    
 
 {%endblock %}
 {% block title %} Welcome to Mementa {% endblock %}
@@ -26,6 +26,9 @@
                  <span class='meta'> 
                    <span class='date'>{{p['date'][:-7]}}Z</span>
                  </span> 
+                 {% for t in p.tags %} 
+                 <span class='label'>{{t}}</span>
+                 {% endfor %} 
                </span>
           </td></tr>
           {% endfor %}

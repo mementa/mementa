@@ -1,9 +1,12 @@
 $(document).ready(
     function () {
-        $("span.date").cuteTime(); 
-
-        $.fn.cuteTime.settings.refresh = 10000;
         
+        $("#newnotebookcancel").hide(); 
+
+        $("#newnotebook").click(function() { 
 
 
+                                }); 
+
+        
     }); 

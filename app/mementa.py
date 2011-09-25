@@ -64,9 +64,17 @@ def check_notebook_acl(f):
 
 
 def has_notebook_permission(userid, notebook_name):
-
+    # FIXME linear search? 
     n = get_notebook(notebook_name)
     for u in n['users']:
+        if u.id == userid:
+            return True
+    return False
+
+def has_notebook_admin(userid, notebook_name):
+    # FIXME lienar searcH? 
+    n = get_notebook(notebook_name)
+    for u in n['admins']:
         if u.id == userid:
             return True
     return False
@@ -214,7 +222,7 @@ def notebook_settings(notebook):
 
     isadmin = has_notebook_admin(session['user_id'], notebook)
 
-    nb = get_notebook(name)
+    nb = get_notebook(notebook)
 
     if request.method == "GET" : 
         # look up user records
@@ -222,7 +230,8 @@ def notebook_settings(notebook):
         users = [{'name' : u['name'],
                   'username' : u['username']} for u in users]
         
-        return render_template("notebooksettings.html", nb =nb,
+        return render_template("notebooksettings.html",
+                               notebook =nb,
                                users = users, 
                                session = session)
 
@@ -596,6 +605,7 @@ def api_notebookadmin_new():
 
 @app.route('/api/<notebook>/config', methods=['GET', 'POST'])
 @login_required
+@check_notebook_acl
 def api_notebookadmin_config(notebook):
     """
     Configure notebook settings, updates the indicated fields
@@ -609,56 +619,75 @@ def api_notebookadmin_config(notebook):
 
     """
 
-
     if request.mimetype != "application/json":
         return "Invalid request type, must be application/json", HTTP_ERROR_CLIENT_BADREQUEST
 
+    def denorm_users(ul):
+        users = {}
+        for u in ul:
+            ud = g.sysdb.dereference(u)
+            users[str(ud["_id"])] = {'name' : ud['name'],
+                                    'username' : ud['username'],
+                                     '_id' : str(ud['_id'])}
+        return users; 
+            
     if request.method == 'POST':
+        # check if user is on admin list, otherwise this can't pass
+        if not has_notebook_admin(session['user_id'], notebook):
+            return "Don't have access", HTTP_ERROR_FORBIDDEN
 
+        
         rd = request.json
 
         d = g.sysdb.notebooks.find({'name' : notebook})
         n = d[0]
-
-        # check if user is on admin list, otherwise this can't pass
-        has_permission = False
-        for u in n['users']:
-            if u.id == session['user_id']:
-                has_permission = True
-        if not has_permission :
-            return "Don't have access", HTTP_ERROR_FORBIDDEN
-
 
         raw_nb_doc =  d[0]
 
         if 'title' in rd:
             raw_nb_doc['title'] = rd['title']
 
+        # check unique
+        
         if 'users' in rd:
+            if len(set(rd['users']) ) != len(rd['users']):
+                return "Duplicate in user list, error!", HTT_ERROR_CLIENT_BADREQUEST
+            
             raw_nb_doc['users'] = []
             for u in rd['users'] :
                 raw_nb_doc['users'].append(dbref('users', u))
 
         if 'admins' in rd:
+            if len(set(rd['admins']) ) != len(rd['admins']):
+                return "Duplicate in user list, error!", HTT_ERROR_CLIENT_BADREQUEST
+
             raw_nb_doc['admins'] = []
             for u in rd['admins'] :
-                if dbref('admins', u) not in raw_nb_doc['users']:
+                if dbref('users', u) not in raw_nb_doc['users']:
                     return "Admin must also be user", HTTP_ERROR_CLIENT_BADREQUEST
-
-                raw_nb_doc['admins'].append(dbref('admins', u))
+                
+                raw_nb_doc['admins'].append(dbref('users', u))
 
 
         r = g.sysdb.notebooks.update({'_id' : raw_nb_doc['_id']},
                                      raw_nb_doc, safe=True)
 
         d = g.sysdb.notebooks.find({'name' : notebook})
-        return jsonify(dm.notebook_to_json(d[0]))
+        users = denorm_users(d[0]['users'])
+
+        
+        return jsonify({'notebook' : dm.notebook_to_json(d[0]),
+                        'users' : users});
+    
     
 
     elif request.method == "GET":
-        d = g.sysdb.notebooks.find({'name' : notebook})
-        return jsonify(dm.notebook_to_json(d[0]))
 
+        d = g.sysdb.notebooks.find({'name' : notebook})
+        # this is a hack, but whatever -- get the user info
+        users = denorm_users(d[0]['users'])
+        return jsonify({'notebook' : dm.notebook_to_json(d[0]),
+                        'users' : users})
 
 
 @app.route('/api/<notebook>/rev/<revid>')
@@ -718,7 +747,8 @@ def list_entries_query(db, req):
                   'head' : 1,
                   'revdoc.title' : 1,
                   'revdoc.author' : 1,
-                  'revdoc.date' : 1}
+                  'revdoc.date' : 1,
+                  'revdoc.tags' : 1}
     if query == {}:
         results = db.entries.find(fields=tgt_fields).sort('revdoc.date', -1).limit(limit)
     else:
@@ -732,7 +762,8 @@ def list_entries_query(db, req):
               'head' : str(r['head'].id),
               'title' : str(r['revdoc']['title']),
               'author' : str(r['revdoc']['author'].id),
-              'date' : str(r['revdoc']['date'].isoformat())}
+              'date' : str(r['revdoc']['date'].isoformat()),
+              'tags' : r['revdoc']['tags']}
         
         results_data.append(rd)
     return results_data
@@ -811,6 +842,34 @@ def get_top_n_tags_str(notebook, beginstr, N):
 
     return jsonify({'tagcounts' : js})
 
+
+@app.route("/api/users/search/<searchstring>")
+@login_required
+def user_search_string(searchstring):
+    """
+    Search through the users and return any records that contain this string
+    in either name or other
+
+    """
+    
+    db = g.sysdb
+    s = searchstring 
+    users = db.users.find({"$or" : [{"username" : {"$regex" : ".*%s.*" % s,
+                                                   "$options" : "i"}},
+                                    {"name" : {"$regex" : ".*%s.*" % s,
+                                                  "$options" : "i"}},
+                                    {"email" : {"$regex" : ".*%s.*" % s,
+                                               "$options" : "i"}},
+                                    {"twitter" : {"$regex" : ".*%s.*" % s,
+                                                 "$options" : "i"}}]})
+
+    res = []
+    for u in users:
+        res.append({'username' : u['username'],
+                    'name' : u['name'],
+                    '_id' : str(u['_id'])})
+
+    return jsonify({'usersuggestions' : res})
 
 @app.route("/notebook/<notebook>/page/new")
 @login_required

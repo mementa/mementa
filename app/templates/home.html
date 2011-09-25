@@ -16,11 +16,27 @@
   
   <ul>
     {% for n in nblist %}
-    <li><a href='/notebook/{{n['name']}}'> {{n['title']}} </a> </li> 
+    <li><H2> <a href='/notebook/{{n['name']}}'> {{n['title']}} </a></H2>  </li> 
 
     {% endfor %}
   </ul>
+  <input type="submit" class="btn primary" value="Create new notebook"> </input>
 
+  <form>
+    <fieldset>
+      <legend>Example form legend</legend>
+      
+      <div class="clearfix">
+        <label for="xlInput2">X-Large input</label>
+        <div class="input">
+          <input class="xlarge" id="xlInput2" name="xlInput2" size="30" type="text" />
+          <span class="help-inline">Small snippet of help text</span>
+        </div>
+      </div><!-- /clearfix -->
+    </fieldset>
+  </form>
+
+  
 </div>
 
 {% endblock %}
