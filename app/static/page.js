@@ -249,15 +249,21 @@ $(document).ready(
                       } else if (state == 'edit') {
                           if(config.entryclass == 'text') {
                               if(oldstate == 'view') {
+                                  $(".textbody", element )
+                                      .ckeditor(function() { 
+                                                    console.log('THIS WAS THE INIT CALLBACK');}, 
+                                                {
+		                                            extraPlugins : 'autogrow',
+                                                    toolbar_Custom : 
+                                                    [
+	                                                    ['Bold', 'Italic', '-', 'Format', '-', 'NumberedList', 'BulletedList', '-', 'Link', 'Unlink']
+                                                    ], 
+                                                    toolbar : 'Custom', 
+		                                         // Remove the Resize plugin as it does not make sense to use it in conjunction with the AutoGrow plugin.
+		                                         removePlugins : 'resize',
+                                                    contentsCss : "/static/vendor/bootstrap/bootstrap.min.css"
+});
                        
-                                  var editor1 = new Proper($(".textbody", element));
-                                  
-                                  editor1.activate({
-                                           placeholder: 'Enter Text',
-                                           controlsTarget: $('.toolbar', element),
-                                           codeFontFamily: 'Monaco, Consolas, "Lucida Console", monospace'
-                                       });
-                                  $(element).data("editor", editor1); 
 
                        
                               }                                                       

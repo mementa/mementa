@@ -25,9 +25,17 @@ YUI rich text?
 Still no YUI3 widget
 
 
-Ohh, I like Proper
 
+Ohh, I like Proper
 https://github.com/michael/proper/branches
+Except it seems like proper has issues with the latest chrome
+
+New options: 
+http://speckedit.com/demo
+
+CKeditor survival guide from stack overflow: 
+http://stackoverflow.com/questions/1957156/ckeditor-how-to-add-a-custom-button-to-the-toolbar-that-calls-a-javascript-funct/1966239#1966239
+
 
 TODO
 =========

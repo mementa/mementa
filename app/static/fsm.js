@@ -11,7 +11,7 @@ var render = {
 
     entry_rev_edit : { 
         text: function(rev_doc) {
-            return $($.mustache("<div> <input name='title' value='{{{title}}}' class='xlarge' size='70'/> <div class='toolbar'> </div> <div class='textbody'> {{{body}}} </div> "
+            return $($.mustache("<div> <input name='title' value='{{{title}}}' class='xlarge' size='70'/> <div class='toolbar'> </div> <textarea class='textbody'> {{{body}}} </textarea> "
                                 + "</div>", rev_doc)); 
         }
     },
@@ -23,12 +23,15 @@ var render = {
             // the content from the editor. We should really architect this better
 
             var body; 
-            if($(entrydiv).data("editor")) {
-                body = $(entrydiv).data("editor").content();  
-            } else {
-                body = $("div.textbody", entrydiv).html(); 
 
-            }
+            body = $( '.textbody', entrydiv ).val( ); 
+            console.log("The content is: ", body); 
+            // if($(entrydiv).data("editor")) {
+            //     body = $(entrydiv).data("editor").content();  
+            // } else {
+            //     body = $("div.textbody", entrydiv).html(); 
+
+            // }
 
 
             return {
