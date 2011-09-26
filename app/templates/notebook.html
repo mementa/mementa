@@ -8,10 +8,16 @@
 {% block content %} 
 
 <div class="container">
-  <H1> {{notebook.title}}</H1>
-  
   <div class="page-header"> 
-    <h2>Recent Pages </h2>
+  <H1> {{notebook.title}} <small> {{notebook.name}}
+      <div class='users'>
+        <small> authors: </small>
+        {% for u in notebook_users %}
+        <img id="logged_in_avitar" src="/api/user/{{u['_id']}}/avatar/32">  
+        
+        {% endfor %}
+      </div> 
+  </H1>
   </div> 
   
   <div class="row show-grid"> 

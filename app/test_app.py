@@ -13,7 +13,8 @@ import dbutils
 from contextlib import contextmanager
 
 user_password = "testing"
-    
+
+NBBASENAME = "testapp"
 def create_users(conn):
 
 
@@ -37,10 +38,12 @@ def create_users(conn):
 
 @contextmanager
 def newnotebook(self, name):
-    
+    print "Creating nb name=", name
     rv = self.post_json("/api/notebookadmin/new",
                         {'name' : name,
                          'title' : "title-" + name})
+    print rv.data
+    assert_equal(rv.status_code, 200)
     
     assert_equal(json.loads(rv.data)['name'], name)
 
@@ -115,17 +118,17 @@ class MementaTestCase(unittest.TestCase):
 
         body = "11, 22, 33, 44"
         title = "This is a title"
-        name = "testnotebook1"
+        name = NBBASENAME + "testnotebook1"
         rv = self.post_json("/api/notebookadmin/new",
                             {'name' : name, 
                              'title' : title})
         
-        assert_equal(json.loads(rv.data)['name'], 'testnotebook1')
+        assert_equal(json.loads(rv.data)['name'], name)
         rv = self.post_json("/api/notebookadmin/new",
                             {'name' : name, 
                              'title' : title})
         
-        assert_equal(rv.status_code, 400)
+        assert_equal(rv.status_code, 409)
 
         # now check get-notebook code
 
@@ -142,7 +145,7 @@ class MementaTestCase(unittest.TestCase):
 
         body = "11, 22, 33, 44"
         title = "This is a title"
-        name = "testnotebook1"
+        name = NBBASENAME + "testnotebook1"
         rv = self.post_json("/api/notebookadmin/new",
                             {'name' : name, 
                              'title' : title})
@@ -180,7 +183,7 @@ class MementaTestCase(unittest.TestCase):
     def test_create_text_entry(self):
         self.login(self.user_name, self.user_password)
 
-        nbname = "testnotebook1"
+        nbname = NBBASENAME + "testnotebook1"
         with newnotebook(self, nbname):
             body = "11, 22, 33, 44"
             title = "This is a title"
@@ -206,7 +209,7 @@ class MementaTestCase(unittest.TestCase):
         
         self.login(self.user_name, self.user_password)
 
-        nbname = "testnotebook2" 
+        nbname = NBBASENAME + "testnotebook2" 
         with newnotebook(self, nbname):
             # create empty page
             title = "Empty Page"
@@ -253,7 +256,7 @@ class MementaTestCase(unittest.TestCase):
         # 
 
         self.login(self.user_name, self.user_password)
-        nbname = "test_page_mutate"
+        nbname = NBBASENAME + "testpagemutate"
         
         with newnotebook(self, nbname) : 
             # create empty page
@@ -285,11 +288,8 @@ class MementaTestCase(unittest.TestCase):
                                          'entries' : [],
                                          'class' : 'page',
                                          'parent' : page_rev_id})
-            assert_equal(rv.status, "409")
+            assert_equal(rv.status_code, 409)
 
-            rv_json = json.loads(rv.data)
-            assert_equal(rv_json['reason'], "Incorrect latest")
-        
                      
     def test_entry_text_mutate(self):
         """
@@ -303,7 +303,7 @@ class MementaTestCase(unittest.TestCase):
 
         self.login(self.user_name, self.user_password)
 
-        nbname = "test1"
+        nbname = NBBASENAME + "test1"
         with newnotebook(self, nbname):
             # create empty page
             title = "Test text entry"
@@ -341,8 +341,9 @@ class MementaTestCase(unittest.TestCase):
                                         'body' : "wooo",
                                         'class' : 'text'})
 
-            assert_equal(rv.status, "409")
 
+            assert_equal(rv.status_code, 409)
+            
             rv_json = json.loads(rv.data)
             assert_equal(rv_json['reason'], "Incorrect latest")
 
@@ -354,7 +355,7 @@ class MementaTestCase(unittest.TestCase):
 
         """
 
-        nbname = "testnb3"
+        nbname = NBBASENAME + "testnb3"
 
         self.login(self.user_name, self.user_password)
 
@@ -457,7 +458,7 @@ class MementaTestCase(unittest.TestCase):
 
         # create the page with one entry
         # 
-        nbname = "testnb3"
+        nbname = NBBASENAME + "testnb3"
 
         self.login(self.user_name, self.user_password)
 

@@ -20,22 +20,46 @@
 
     {% endfor %}
   </ul>
-  <input type="submit" class="btn primary" value="Create new notebook"> </input>
+  <button class="btn primary" data-controls-modal="modal-new-notebook" data-backdrop="true" data-keyboard="true" >Create new notebook </button>
+  
+  
+  <div id="modal-new-notebook" class="modal hide fade">
+    <div class="modal-header">
+      <a href="#" class="close">&times;</a>
+      <h3>Create a new notebook</h3>
+    </div>
+    <div class="modal-body">
+      <p>To create a new notebook, you must first pick a short name
+      for your notebook and a longer title. The <b>name</b> can be thought
+      of like the "domain name" for your notebook -- it wil be
+      referenced in all URLs. It must be < 20 characters, and there
+      must be no other notebooks with this name. </p>
 
-  <form>
-    <fieldset>
-      <legend>Example form legend</legend>
-      
-      <div class="clearfix">
-        <label for="xlInput2">X-Large input</label>
-        <div class="input">
-          <input class="xlarge" id="xlInput2" name="xlInput2" size="30" type="text" />
-          <span class="help-inline">Small snippet of help text</span>
-        </div>
-      </div><!-- /clearfix -->
-    </fieldset>
-  </form>
+      <form action="" class="form-stacked">
+        <fieldset>
+          <div class="clearfix" id="notebook-name">
+            <label for="notebook-name-input">Notebook name</label>
+            <div class="input">
+              <input class="xlarge" id="notebook-name-input" name="notebook-name" size="30" type="text" />
+              <span class="help-inline" id='notebook-name-help'>  The notebook name must be short, with no spaces</span>
+            </div>
+          </div>
+          <div class="clearfix">
+            <label for="notebook-title-input">Notebook title</label>
+            <div class="input">
+              <input class="xlarge" id="notebook-title-input" name="notebook-title" size="50" type="text" />
+              <span class="help-inline">The notebook title can be anything you want and as long as you like. </span>
+            </div>
+          </div><!-- /clearfix -->
+        </fieldset>
+      </form>
 
+    <div class="modal-footer">
+      <a href="#" id="create-new-notebook" class="btn primary">Create Notebook <img src="/static/ajax-loader.gif"></a>
+      <a href="#" class="btn secondary">Cancel</a>
+    </div>
+  </div>
+  
   
 </div>
 

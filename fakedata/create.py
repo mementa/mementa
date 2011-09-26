@@ -35,6 +35,7 @@ else:
 mongoconn.drop_database(SYSDATABASE)
 
 sysdb = mongoconn[SYSDATABASE]
+dbutils.create_system_indices(sysdb)
 
 users = {}
 

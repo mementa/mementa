@@ -27,6 +27,8 @@ def create_system_indices(systemdb):
     systemdb.notebooks.create_index('users')
     systemdb.notebooks.create_index('admins')
 
+    systemdb.users.create_index("username", unique=True)
+    
     pass
 
 

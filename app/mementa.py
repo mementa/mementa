@@ -3,6 +3,7 @@ from flask import Flask, session, redirect, url_for, escape, request, g, render_
 import simplejson as json
 import pymongo
 import bson
+import string
 import entry_divs
 import datamodel as dm
 from datamodel import dbref
@@ -21,14 +22,20 @@ DB_HOST = "127.0.0.1"
 DB_PORT = 27017
 DB_URL = "mongodb://127.0.0.1:27017"
 
-HTTP_ERROR_CLIENT_CONFLICT = "409"
-HTTP_ERROR_CLIENT_BADREQUEST = "400"
-HTTP_ERROR_FORBIDDEN = "403"
+HTTP_ERROR_CLIENT_CONFLICT = 409
+HTTP_ERROR_CLIENT_BADREQUEST = 400
+HTTP_ERROR_FORBIDDEN = 403
 
 PASSWORDSALT = "3wSnElYBSaphFAB76f78"
 
 app = Flask(__name__)
 app.config.from_object(__name__)
+
+def jsonify_error(d, e) :
+    x = jsonify(d)
+    x.status_code = e
+
+    return x
 
 @app.before_request
 def before_request():
@@ -130,7 +137,7 @@ def notebook_home(notebook):
     
     for p in my_pages:
         p['author'] = lookup_user(p['author'])
-
+        
 
     all_pages = list_entries_query(nbdb,
                                    {'class' : 'page',
@@ -139,12 +146,15 @@ def notebook_home(notebook):
     for p in all_pages:
         p['author'] = lookup_user(p['author'])
 
-
+    notebook = get_notebook(notebook)
+    notebook_users = [lookup_user(u) for u in notebook['users']]
+    
     
     return render_template("notebook.html",
                            my_pages = my_pages,
                            all_pages = all_pages,
-                           notebook = get_notebook(notebook), 
+                           notebook = notebook,
+                           notebook_users = notebook_users, 
                            session = session)
 
 
@@ -553,10 +563,9 @@ def api_entry_get_post(notebook, entryid):
             latest_rev_doc = nbdb.dereference(true_latest_rev_ref)
             latest_rev_json = dm.page_rev_to_json(latest_rev_doc)
 
-            resp =  jsonify({"reason" : "Incorrect latest", 
-                             "latest_revision_doc" : latest_rev_json})
-            resp.status = HTTP_ERROR_CLIENT_CONFLICT
-            return resp
+            return jsonify_error({"reason" : "Incorrect latest", 
+                                  "latest_revision_doc" : latest_rev_json},
+                                 HTTP_ERROR_CLIENT_CONFLICT)
         
         
     elif request.method == "GET":
@@ -587,21 +596,48 @@ def api_notebookadmin_new():
     rd = request.json
     users = [session['user_id']]
     admins = [session['user_id']]
+
+    # validate the name
+
+    all = string.ascii_letters +  string.digits
+    name = rd['name'].strip()
+    name = name.lower()
+
+    if len(name) < 5 :
+        return 'name too short',  HTTP_ERROR_CLIENT_BADREQUEST
+
     
-    doc = dm.notebook_create(rd['name'],
+    if name[0] not in string.ascii_letters:
+        return 'name must start with a letter',     HTTP_ERROR_CLIENT_BADREQUEST
+
+
+    for c in name :
+        if c not in all:
+            return 'name contains invalid character', HTTP_ERROR_CLIENT_BADREQUEST
+
+        
+            
+    if 'title' in rd:
+        title = rd['title'].strip()
+    else:
+        title = name
+    doc = dm.notebook_create(name, 
                              get_nb_dbname(rd['name']),
-                             rd['title'],
+                             title, 
                              users=users,
                              admins = admins)
     
-
+    
     try:
+        print "Trying to create notebook", doc
+        
         g.sysdb.notebooks.insert(doc, safe=True)
         dbutils.create_notebook_indices(g.dbconn[rd['name']])
 
         return jsonify({'name' : rd['name']})
     except pymongo.errors.DuplicateKeyError, e:
-        return jsonify({'errormsg' : 'name already exists'}), HTTP_ERROR_CLIENT_BADREQUEST
+        print "There was an error!" 
+        return 'name already exists', HTTP_ERROR_CLIENT_CONFLICT
 
 @app.route('/api/<notebook>/config', methods=['GET', 'POST'])
 @login_required
@@ -626,9 +662,8 @@ def api_notebookadmin_config(notebook):
         users = {}
         for u in ul:
             ud = g.sysdb.dereference(u)
-            users[str(ud["_id"])] = {'name' : ud['name'],
-                                    'username' : ud['username'],
-                                     '_id' : str(ud['_id'])}
+            users[str(ud["_id"])] = lookup_user(ud['_id'])
+            
         return users; 
             
     if request.method == 'POST':
