@@ -1,0 +1,34 @@
+{% extends "mementa.html" %}
+
+{% block javascript_includes %}
+
+<link href="/static/vendor/file-uploader/client/fileuploader.css" rel="stylesheet" type="text/css">
+
+<script type="text/javascript" src="/static/vendor/file-uploader/client/fileuploader.js"></script>    
+
+
+
+
+<script type="text/javascript">
+  var CURRENT_NOTEBOOK = "{{notebook.name}}"; 
+</script> 
+
+
+<script type="text/javascript" src="/static/upload.js"></script>    
+
+{%endblock %}
+{% block title %} Upload {% endblock %}
+{% block content %} 
+
+<div class="container">
+
+  <div id="dropzone"> 
+  </div> 
+  <p><p><p>
+    <h1> Drop zone two </h1>
+  <div id="dropzone1"> 
+  </div> 
+
+</div> 
+
+{% endblock %}

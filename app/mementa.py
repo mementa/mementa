@@ -2,6 +2,7 @@ from functools import wraps
 from flask import Flask, session, redirect, url_for, escape, request, g, render_template, jsonify, make_response
 import simplejson as json
 import pymongo
+import gridfs
 import bson
 import string
 import entry_divs
@@ -11,7 +12,7 @@ import hashlib
 import time
 import tags as tagutils
 import dbutils
-
+import figure
 
 DEBUG = True # FIXME SHOULD BE FALSE FOR REAL DEPLOYMENT
 SECRET_KEY = "Development key" # fixme in general hide this
@@ -21,6 +22,8 @@ DB_SYSTEM_DATABASE = 'testsystemdb'
 DB_HOST = "127.0.0.1"
 DB_PORT = 27017
 DB_URL = "mongodb://127.0.0.1:27017"
+
+FIGURE_TEMP_DIR = "/tmp"
 
 HTTP_ERROR_CLIENT_CONFLICT = 409
 HTTP_ERROR_CLIENT_BADREQUEST = 400
@@ -142,6 +145,7 @@ def notebook_home(notebook):
     all_pages = list_entries_query(nbdb,
                                    {'class' : 'page',
                                    'limit' : LIMIT})
+    
     
     for p in all_pages:
         p['author'] = lookup_user(p['author'])
@@ -960,22 +964,114 @@ def upload(notebook):
 
     """
 
-    notebook = get_notebook(notebook)
+    nb = get_notebook(notebook)
     
     if request.method == 'POST':
+        gf = gridfs.GridFS(g.dbconn[get_nb_dbname(notebook)])
+
+        
+        filename = request.headers["X-File-Name"]
+        import mimetypes
+        mimetype = mimetypes.guess_type(filename)
+
+
+        f = gf.new_file(content_type=mimetype)
+        
+        print "headers=", request.headers
         print "UPLOADING"
         print "request.files=", request.files
         print "Len data=", len(request.data)
+
+        f.write(request.data)
+        f.close()
         
-        
-        return jsonify({"success":True})
+        return jsonify({"success":True,
+                        "id" : str(f._id)})
 
     elif request.method == "GET":
         
         return render_template("upload.html",
-                               notebook = notebook,
+                               notebook = nb,
                                session = session)
         
+@app.route("/api/<notebook>/files/<fileid>", methods=['GET'])
+@login_required
+@check_notebook_acl
+def files(notebook, fileid):
+    if "." in fileid:
+        fileid, ext = fileid.split(".")
+    else:
+        ext = None
+        
+    nbdb = g.dbconn[get_nb_dbname(notebook)]
+    # construct convert request
+    conv_req = None
+    if len(request.args) > 0:
+        conv_req = {}
+        conv_req['outputformat'] = ext
+        if "max_height" or "max_width" in request.args:
+            conv_req["max"] = {}
+            if "max_height" in request.args:
+                conv_req['max']['height'] = int(request.args['max_height'])
+            if "max_width" in request.args:
+                conv_req['max']['width'] = int(request.args['max_width'])
+    else:
+            
+        if ext == None or \
+        (content_type == "image/jpeg" and ext == "jpeg") or \
+        (content_type == "image/jpeg" and ext == "jpg") or \
+        (content_type == "image/png" and ext == "png") or \
+        (content_type == "application/pdf" and ext == "pdf"):
+               r =  make_response(fid.read())
+               r.mime_type = content_type
+               r.content_type = content_type
+               return r
+
+
+        conv_req = {'outputformat' :  ext}
+    
+    gfs = gridfs.GridFS(nbdb)
+    fid = gfs.get(bson.objectid.ObjectId(fileid))
+    # we do this lookup to make sure that the FID is valid
+    
+    content_type = fid.content_type[0]
+
+    ext_to_mime = {'jpeg' : "image/jpeg",
+                   'jpg' : "image/jpeg",
+                   'png' : "image/png",
+                   'pdf' : "application/pdf"}
+    
+    
+    conv_res  = figure.convert_request(nbdb.fs, fid._id, conv_req,
+                                       app.config["FIGURE_TEMP_DIR"])
+    if conv_res['state'] == "pending":
+        return "PENDING", 202
+
+    if conv_res['state'] == "done":
+        # fixme include error handling
+        of = gfs.get(conv_res['output'])
+        r = make_response(of.read())
+        
+        r.mime_type = ext_to_mime[ext]
+        r.content_type = ext_to_mime[ext]
+        return r
+    
+        
+
+@app.route("/api/cachetest/<resource>")
+def cachetest(resource):
+    s = "THis is the resource : " + resource
+    r =  make_response(s)
+    m = hashlib.md5()
+    time.sleep(0.10)
+    m.update(s)
+    r.headers['ETag'] = m.hexdigest()
+    r.headers['Cache-Control'] = "max-age=3218319841"
+    r.headers['Expires'] = "Expires: 19 Jun 2012 11:30:24 GMT"
+    
+    return r
+
 
 if __name__ == '__main__':
     app.run()
+    

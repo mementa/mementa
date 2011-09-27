@@ -1,0 +1,36 @@
+How do we convert figures? 
+
+Upload canonical fig
+
+Then you can request it scaled to some size, and in some other format
+
+That conversion process is cached in gridfs for easy retrieval
+and we really aggressively make use of etags, etc. there
+
+1. look up file in database, get ID
+2. look up dimensions / type in DB : if there, return
+
+Cycle: 
+
+the actual converter process is a wrapper around convert that takes in
+a "maxseconds" argument and kills the child if it takes longer than
+that
+
+
+
+1. look up file in DB
+2. look up image request properties for this file in the database: 
+     if there: 
+        if done : 
+             if error, return erro
+             else return image
+        if pending: 
+             check if done by inspecting the filesystem
+               if done, copy to gridfs, delete files associated
+               if errors, delete files associated, set error
+             else:
+               if too old, retry, update date
+             
+             
+        if done, set pending to "not pending", copy file, or write in error
+    
