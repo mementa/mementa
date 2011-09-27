@@ -392,6 +392,11 @@ def api_entry_new(notebook):
     page:
         title
         entries : [ {entry:, hidden:, rev:},]
+
+    figure:
+        title
+        caption
+        images
         
     returns :
        {'entry' : standard entry doc,
@@ -409,7 +414,7 @@ def api_entry_new(notebook):
     request_data = request.json
 
     if 'class' not in request_data:
-        return "'class' not present in request",HTTP_ERROR_CLIENT_BADREQUEST
+        return "'class' not present in request", HTTP_ERROR_CLIENT_BADREQUEST
     
     dclass = request_data['class']
 
@@ -497,7 +502,17 @@ def api_entry_get_post(notebook, entryid):
 
         if dclass == 'text':
             rev = dm.text_entry_revision_create(rd['title'],
-                                                     rd['body'])
+                                                rd['body'])
+        elif dclass == 'figure':
+            rev = dm.figure_entry_revision_create(rd['title'],
+                                                  rd['caption'],
+                                                  rd.get('maxsize', None),
+                                                  gallery = rd.get("gallery", False),
+                                                  images = rd['images'])
+
+            
+                                                         
+        
         elif dclass == 'page':
             rev = dm.page_entry_revision_create(rd['title'],
                                                 rd['entries'])
@@ -760,6 +775,8 @@ def list_entries_query(db, req):
             query['class'] = {"$ne" : "page"}
         elif req['class'] == 'text':
             query['class'] = "text"
+        elif req['class'] == 'figure':
+            query['class'] = "figure"
 
     if 'archived' in req:
         # three values: yes, no, all
@@ -812,7 +829,7 @@ def list_entries(notebook):
     Generic listing interface for entries, always returns the latest.
 
     query string:
-    class: [page, notpage, text]
+    class: [page, notpage, text, figure]
     author: specific author (none returns all)
     # right now we always sort by date
     limit: number to show
@@ -934,6 +951,31 @@ def page_new(notebook):
     
     return redirect("/notebook/%s/page/%s" % (notebook, entid))
 
+@app.route("/api/<notebook>/upload", methods=['GET', 'POST'])
+@login_required
+@check_notebook_acl
+def upload(notebook):
+    """
+    File upload interface
+
+    """
+
+    notebook = get_notebook(notebook)
+    
+    if request.method == 'POST':
+        print "UPLOADING"
+        print "request.files=", request.files
+        print "Len data=", len(request.data)
+        
+        
+        return jsonify({"success":True})
+
+    elif request.method == "GET":
+        
+        return render_template("upload.html",
+                               notebook = notebook,
+                               session = session)
+        
 
 if __name__ == '__main__':
     app.run()

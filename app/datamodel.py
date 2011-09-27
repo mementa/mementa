@@ -132,6 +132,32 @@ def text_entry_revision_create(title, body, **kargs) :
             'body' : body,
             'class' : "text"}
 
+def figure_entry_revision_create(title, caption, maxsize = None,
+                                 gallery = False,
+                                 images = None):
+   """
+   images are an ordered list of :
+   {id : filename,
+   caption : caption
+   visible : true/false,
+   maxsize : {'height' : maxsize['height'],
+                        'width' : maxsize['width']},
+   }
+   
+   """
+   if images == None:
+      images = []
+   
+   return {'title' : title,
+           'caption' : caption,
+           'maxsize' : maxsize, 
+           'gallery' : gallery,
+           'images' : images, 
+           'class' : "figure"}
+
+
+
+
 def page_entry_revision_create(title, entries, **kargs) :
     """
     entries is a list of {'entry' : dbref to doc,
@@ -216,6 +242,30 @@ def entry_text_rev_to_json(text):
             
     return new_entry_json    
 
+def entry_figure_rev_to_json(text):
+    new_entry_json = {}
+    for k, v in text.iteritems():
+        if k == "author":
+            new_entry_json['author'] = str(v.id)
+        elif k == "parent":
+            if v:
+                new_entry_json['parent'] = str(v.id)
+        elif k == "_id":
+            new_entry_json['_id'] = str(v)
+        elif k == "date":
+            new_entry_json['date'] = v.isoformat()
+        elif k == 'images':
+           imgs = []
+           for i in v:
+              newv = i
+              newv['id'] = str(i['id'])
+              imgs.append(newv)
+           new_entry_json['images'] = imgs
+        else:
+            new_entry_json[k] = v
+            
+    return new_entry_json    
+
 def entry_to_json(entry_doc):
     """
     Does not currently return the included (denormed) doc
@@ -228,7 +278,8 @@ def entry_to_json(entry_doc):
 
    
 rev_to_json = {'page' : page_rev_to_json,
-               'text' : entry_text_rev_to_json }
+               'text' : entry_text_rev_to_json,
+               'figure' : entry_figure_rev_to_json}
 
 
 
@@ -239,6 +290,25 @@ def entry_text_json_to_rev(jsond) :
     body = jsond['body']
 
     rev = text_entry_revision_create(title, body)
+    
+    return rev
+ 
+def entry_figure_json_to_rev(jsond) :
+    print "entry_figure_json_to_rev", jsond
+    title = jsond['title']
+    caption = jsond['caption']
+    maxsize = jsond.get("maxsize", None)
+    gallery = jsond.get("gallery", False)
+
+    images = []
+    for i in jsond['images']:
+       ent = i
+       ent['id'] = bson.objectid.ObjectId(i['id'])
+       images.append(ent)
+       
+    rev = figure_entry_revision_create(title, caption, maxsize, gallery,
+                                      images)
+                                      
 
     return rev
 
@@ -267,4 +337,5 @@ def notebook_to_json(nb):
          
 
 json_to_rev = {'text' : entry_text_json_to_rev,
+               'figure' : entry_figure_json_to_rev,
                'page' : page_json_to_rev}

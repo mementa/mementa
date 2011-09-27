@@ -7,6 +7,7 @@ import mementa
 import datamodel as dm
 import iso8601
 
+
 import simplejson as json
 import time
 import dbutils
@@ -15,6 +16,11 @@ from contextlib import contextmanager
 user_password = "testing"
 
 NBBASENAME = "testapp"
+
+def generate_oid(i):
+    return "0"*22 + "%02d" % i
+    
+
 def create_users(conn):
 
 
@@ -201,6 +207,31 @@ class MementaTestCase(unittest.TestCase):
             assert_equal(rv_json['revision']['body'], body)
             pass
     
+    def test_create_figure_entry(self):
+        self.login(self.user_name, self.user_password)
+
+        nbname = NBBASENAME + "testfigcreate"
+        with newnotebook(self, nbname):
+            title = "This is a title"
+            caption = "new caption"
+            print "POSTING JSON"
+            rv = self.post_json("/api/%s/entry/new" % nbname,
+                               {'class' : 'figure',
+                                'title' : title,
+                                'caption' : caption,
+                                'images' : []})
+            print "Posted JSON" 
+
+            rv_json = json.loads(rv.data)
+            assert_equal(rv_json['revision']['caption'], caption)
+            assert_equal(rv_json['revision']['title'], title)
+            assert_equal(rv_json['revision']['images'], [])
+
+            rv = self.app.get("/api/%s/entry/%s" % (nbname, rv_json['entry']['_id']))
+            rv_json = json.loads(rv.data)
+            assert_equal(rv_json['revision']['caption'], caption)
+            pass
+
     def test_create_page(self):
         """
 
@@ -346,6 +377,90 @@ class MementaTestCase(unittest.TestCase):
             
             rv_json = json.loads(rv.data)
             assert_equal(rv_json['reason'], "Incorrect latest")
+
+
+    def test_entry_figure_mutate(self):
+        """
+        Simple figure entry mutation tests. No concurrency tests.
+
+        """
+
+
+        # create the page with one entry
+        # 
+
+        self.login(self.user_name, self.user_password)
+
+        nbname = NBBASENAME + "test1figure"
+        with newnotebook(self, nbname):
+            # create empty page
+            title = "Test text entry"
+            caption = "test caption"
+            images = [{'id' : generate_oid(0)},
+                      {'id' : generate_oid(1)}]
+            rv = self.post_json("/api/%s/entry/new" % nbname,
+                                data={'title' : title,
+                                      'class' : 'figure', 
+                                      'caption' : caption,
+                                      'maxsize' : {'x' : 100, 'y' : 200},
+                                      'images' : images,
+                                      'gallery' : True, 
+                                      'tags' : ['foo', 'bar']})
+
+
+            rv_json = json.loads(rv.data)
+            page_rev_id = rv_json['entry']['head']
+            entry_id = rv_json['entry']['_id']
+
+            rv = self.app.get("/api/%s/entry/%s" % (nbname, entry_id))
+            rv_json =  json.loads(rv.data)
+            assert_equal(rv_json['revision']['title'], title)
+            assert_equal(rv_json['revision']['gallery'], True)
+            assert_equal(rv_json['revision']['images'], images)
+
+
+            # try and do an update
+            images.append({'id' : generate_oid(2)})
+            
+            rv = self.post_json("/api/%s/entry/%s" % (nbname, entry_id),
+                                data={'title' : title + " AND MORE",
+                                      'class' : 'figure',
+                                      'parent' : page_rev_id, 
+                                      'caption' : caption + " MORE CAPTION",
+                                      'maxsize' : {'x' : 100, 'y' : 300},
+                                      'images' : images,
+                                      'gallery' : False, 
+                                      'tags' : ['foo', 'bar', 'baz']})
+
+            rv_json = json.loads(rv.data)
+            assert_equal(rv_json['latest_revision_doc']['title'],
+                         title + " AND MORE")
+            assert_equal(rv_json['latest_revision_doc']['caption'],
+                         caption + " MORE CAPTION")
+                         
+            assert_equal(rv_json['latest_revision_doc']['maxsize'],
+                         {'x' : 100, 'y' : 300})
+
+            assert_equal(rv_json['latest_revision_doc']['images'],
+                         images)
+            assert_equal(rv_json['latest_revision_doc']['tags'],
+                         ['foo', 'bar', 'baz'])
+            
+            rv = self.post_json("/api/%s/entry/%s" % (nbname, entry_id),
+                                data={'title' : title + " AND MORE",
+                                      'class' : 'figure',
+                                      'parent' : page_rev_id, 
+                                      'caption' : caption + " MORE CAPTION",
+                                      'maxsize' : {'x' : 100, 'y' : 300},
+                                      'images' : images,
+                                      'gallery' : False, 
+                                      'tags' : ['foo', 'bar', 'baz']})
+            
+
+            assert_equal(rv.status_code, 409)
+            
+            # rv_json = json.loads(rv.data)
+            # assert_equal(rv_json['reason'], "Incorrect latest")
 
                      
     def test_query_sort(self):

@@ -37,11 +37,51 @@ CKeditor survival guide from stack overflow:
 http://stackoverflow.com/questions/1957156/ckeditor-how-to-add-a-custom-button-to-the-toolbar-that-calls-a-javascript-funct/1966239#1966239
 
 
-TODO
-=========
-Try getting the correct tinyMCE toolbar in there, with headings
-TinyMCE using correct CSS
-How does tinyMCE handle links? Do I really need the ugly widget thing? 
+Figure
+========================
+We want to support a few figure data types, including: 
+png
+jpeg
+PDF
 
-Actually try aloha, see if you can get around it's horrible UI decisions
+For all of these, we would like to be able to render a certain size
+inline, while preserving the link to the original.
 
+Backend: 
+have a /files interface where you can put (post) and get files
+Files are write-only
+
+Figure: 
+title : optional title
+caption : optional caption
+display-width : max width for rendering each picture
+
+images : array of 
+   { file : link to file,
+     // denormed data about the file, like size, mime type, etc. 
+     
+     caption : optional per-image caption? 
+   }         
+        
+Backend operation: 
+1. create figure
+2. upload file
+3. add link to file
+4. that's it! 
+
+GUI: 
+Create new figure
+drag/drop files in
+add captions if you want
+a "gallery" sort of interface
+
+File upload options: 
+http://www.uploadify.com/
+http://www.plupload.com/
+http://pixelcone.com/fileuploader/
+
+http://onehub.com/blog/posts/designing-an-html5-drag-drop-file-uploader-using-sinatra-and-jquery-part-1/
+
+http://www.html5rocks.com/en/tutorials/file/dndfiles/
+http://html5doctor.com/native-drag-and-drop/
+http://www.thebuzzmedia.com/html5-drag-and-drop-and-file-api-tutorial/
