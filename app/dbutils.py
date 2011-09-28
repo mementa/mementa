@@ -13,8 +13,6 @@ def appmain():
     else:
         dburl = None
 
-
-    DATABASE = 'testdb'
     if dburl:
         mongoconn = pymongo.Connection(dburl)
     else:

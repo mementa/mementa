@@ -13,10 +13,12 @@ import time
 import tags as tagutils
 import dbutils
 import figure
+import sys
 
-DEBUG = True # FIXME SHOULD BE FALSE FOR REAL DEPLOYMENT
-SECRET_KEY = "Development key" # fixme in general hide this
 
+# most of these should change for real deployment
+
+DEBUG = True
 
 DB_SYSTEM_DATABASE = 'testsystemdb'
 DB_HOST = "127.0.0.1"
@@ -29,7 +31,7 @@ HTTP_ERROR_CLIENT_CONFLICT = 409
 HTTP_ERROR_CLIENT_BADREQUEST = 400
 HTTP_ERROR_FORBIDDEN = 403
 
-PASSWORDSALT = "3wSnElYBSaphFAB76f78"
+
 
 app = Flask(__name__)
 app.config.from_object(__name__)
@@ -367,9 +369,6 @@ def page(notebook, entryid):
                            page_rev = s,
                            session = session)
 
-
-# set the secret key.  keep this really secret:
-app.secret_key = 'A0Zr98j/3kdshfkdsajhfasdkj239r12nc-95h1pi34r1143yX R~XHH!jmN]LWX/,?RT'
 
     
 @app.route("/api/<notebook>/entry/new", methods=["POST"])
@@ -1073,5 +1072,8 @@ def cachetest(resource):
 
 
 if __name__ == '__main__':
+    app.config.from_pyfile(sys.argv[1])
+    app.config['DEBUG'] = True
+    
     app.run()
     
