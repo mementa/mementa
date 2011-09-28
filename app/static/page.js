@@ -267,9 +267,16 @@ $(document).ready(
 
                        
                               }                                                       
+                          }  else if (config.entryclass == 'figure') {
+                              var uploader = 
+                                  new qq.FileUploader({
+                                                          element: $(".droptarget", element)[0], 
+                                                          debug: true,
+                                                          // path to server-side upload script
+                                                          action: '/api/' + CURRENT_NOTEBOOK + '/upload', 
+                                                          onComplete : figure_edit_file_upload_complete
+                                }); 
                           }
-
-                          
                       }
                       
                   }); 
@@ -448,6 +455,20 @@ $(document).ready(
 
                        }); 
 
+        $("#button_add_entry_figure")
+            .click(function() { 
+                       var resp = dom_add_entry_click(
+                           {
+                               'class' : 'figure', 
+                               title : "",
+                               caption: "",
+                               images : []
+                           }, server, docdb); 
+                       // fixme : this is where we would wait for resp
+                       // to finish and then set that entry editable or something
+
+                       }); 
+
         
         $(".entry[state='view']")
             .live("dblclick", function(ent) {
@@ -469,6 +490,10 @@ $(document).ready(
                           
                       }}); 
         
+        $(".entry[state='edit'][entry-class='figure'] li span.remove")
+            .live("click", function(elt) {
+                      $(this).closest("li").remove(); 
+                  }); 
 
         
     }); 

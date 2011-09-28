@@ -6,14 +6,47 @@ var render = {
 
             return $($.mustache("<div> <h2>{{{title}}}</h2> <div class='body'> {{{body}}} </div> "
                                 + "</div>", rev_doc)); 
+        }, 
+
+        figure: function(rev_doc) {
+            /* figures are more complex than text ! */ 
+
+            var view = $($.mustache("<div> <h2>{{{title}}}</h2> "
+                                    + "<ul class='images'></ul> "
+                                    + " <div class='caption'> {{{caption}}} </div> "
+                                + "</div>", rev_doc)); 
+            var imglist = $("ul", view); 
+            _.each(rev_doc.images, function( elt, index) { 
+                       figure_view_render_image(imglist, elt); 
+                   }); 
+            return view; 
         }
+
     }, 
 
     entry_rev_edit : { 
         text: function(rev_doc) {
-            return $($.mustache("<div> <input name='title' value='{{{title}}}' class='xlarge' size='70'/> <div class='toolbar'> </div> <textarea class='textbody'> {{{body}}} </textarea> "
+            return $($.mustache("<div> <input name='title' value='{{{title}}}' class='xlarge' size='70' placeholder='optional title for figure'/> <div class='toolbar'> </div> <textarea class='textbody'> {{{body}}} </textarea> "
                                 + "</div>", rev_doc)); 
+        },
+
+        figure: function(rev_doc) {
+            var view = $($.mustache("<div>"
+                                + " <div> <input name='title' value='{{{title}}}' placeholder='title for figure' class='xlarge' size='70'/> </div> "
+                                + "<ul class='images'> </ul> "
+                                + "<div class='caption'> <textarea class='caption' placeholder='Caption for entire figure' name='caption'> {{{caption}}} </textarea> </div> "
+                                + "<div class='droptarget'> </div>" 
+
+                                + "</div>", rev_doc)); 
+            var imglist = $("ul.images", view);
+            _.each(rev_doc.images, function( elt, index) { 
+                       figure_edit_render_image(imglist, elt); 
+                   }); 
+
+            return view; 
         }
+
+
     },
 
     entry_rev_get : { 
@@ -25,18 +58,48 @@ var render = {
             var body; 
 
             body = $( '.textbody', entrydiv ).val( ); 
-            console.log("The content is: ", body); 
-            // if($(entrydiv).data("editor")) {
-            //     body = $(entrydiv).data("editor").content();  
-            // } else {
-            //     body = $("div.textbody", entrydiv).html(); 
-
-            // }
-
 
             return {
                 title : title, 
                 body : body}; 
+        }, 
+
+        figure :  function(entrydiv) {
+            var title = $("input[name='title']", entrydiv).val(); 
+            var caption = $("textarea[name='caption']", entrydiv).val(); 
+            
+            var imglist = $("ul.images", entrydiv); 
+            var images = []; 
+            $("li", imglist)
+                .each(function(index, elt) {
+                          var id = $("div.imagecontainer", elt).attr("fileid"); 
+
+                          var visible = $("input[name='visible']", elt).is(":checked"); 
+                          var max = {
+                              height : parseFloat($("input[name='max-height']", elt).val()) ,
+                              width : parseFloat($("input[name='max-width']", elt).val()) 
+          
+                          }; 
+
+                          var minicaption = 
+                              $("textarea[name='caption']", elt).val(); 
+                          
+                          
+                          
+                          images.push({
+                                          id : id, 
+                                          visible : visible, 
+                                          maxsize : max, 
+                                          caption : minicaption
+                                      }); 
+                      }); 
+            return {
+                title : title, 
+                caption : caption, 
+                images : images, 
+                gallery : false
+            }; 
+
         }
     }
 
@@ -834,3 +897,177 @@ function dom_edit_save_click(entrydom_link, server, docdb)
     var entrydom = $(entrydom_link).closest(".entry"); 
     state_edit_to_savepending(entrydom, server, docdb); 
 } 
+
+
+
+/* Figures */
+
+function figure_image_downloader(tgtdiv, url)
+{
+    // Repeatedly try and download the image URL until success or error
+    // show throbber on error
+    
+    var RETRIES = 6; 
+
+
+    function retry_function(count) {
+        if (count == 0) {
+            $(tgtdiv).html("<img src='/static/figure-fail.gif'>"); 
+            // give up
+            return; 
+
+        }
+        $(tgtdiv).html("<img src='/static/ajax-loader.gif'>"); 
+        
+        var resp = $.get(url); 
+        resp.done(function(res, textstatus, jqxhr) { 
+                      if(jqxhr.status == 202) {
+                          $.doTimeout(1500, function() {
+                                          console.log("RETRYING FUNCTION", url); 
+                                          retry_function(count -1); 
+                                      });
+                      } else if (jqxhr.status == 200) {
+                          $(tgtdiv).html("<img src='" + url + "'>");                          
+                      }
+                      
+                      
+                  }); 
+        resp.fail(function(jqxhr, txt) {
+                          // FIXME file couldn't be converted
+                      
+                  }); 
+
+    }
+
+    retry_function(RETRIES); 
+
+}
+
+function figure_edit_render_image(containerdiv, image)
+{
+    /* Create the div / etc for a single image
+     * populate the caption, the visible checkbox
+     * append to div
+     * start the downloader 
+     */
+    
+    var outdiv = $("<li><div class='imagecontainer'><div class='image'> </div>   "
+                   + "<B>max</b> height : <input type='number' min='50' max='1000' step='50' value='100' name='max-width' >"
+                   + "width : <input type='number' min='50' max='1000' step='50' value='100' name='max-height'>"
+                   + "<div> <textarea placeholder='Caption for this subfigure' name='caption'></textarea></div>  "
+                   + "visible : <input type='checkbox' name='visible' value='option'  /> <a><span class='remove' > &times;  </span></a>"
+
+
+                   + "</div></li>")
+    
+    var id = image.id; 
+    var caption = image.caption; 
+    var visible = image.visible; 
+    $("div.imagecontainer", outdiv).attr("fileid", id);
+    $("textarea[name='caption']", outdiv).html(caption); 
+
+    // create the URL 
+    var url = "/api/" + CURRENT_NOTEBOOK + "/files/" + id + ".png"; 
+    var max = image.maxsize; 
+    if (max) {
+        url += "?" 
+        if(max.height) { 
+            url += "max_height=" + max.height + "&"; 
+            $("input[name='max-height']", outdiv).attr("value", max.height); 
+        }
+        if(max.width) { 
+            url += "max_width=" + max.width; 
+            $("input[name='max-width']", outdiv).attr("value",  max.width); 
+        }
+    }
+
+    $(containerdiv).append(outdiv); 
+
+    figure_image_downloader($(".image", outdiv), url); 
+
+    
+}
+
+function figure_view_render_image(containerdiv, image)
+{
+    /* Create the div / etc for a single image
+     * populate the caption, 
+     */
+    
+    var outdiv = $("<li><div class='imagecontainer'><a href='' target='_blank'><div class='image'> </div></a>"
+                   + "<div class='caption'></div>"
+                   + "</div></li>")
+    
+    var id = image.id; 
+    var caption = image.caption; 
+
+
+    var visible = image.visible; 
+    $("div.imagecontainer", outdiv).attr("fileid", id); 
+    $("div.caption", outdiv).html(caption); 
+    var original_url = "/api/" + CURRENT_NOTEBOOK + "/files/" + id ; 
+
+    $("a", outdiv).attr("href", original_url); 
+    // create the URL 
+    var url = "/api/" + CURRENT_NOTEBOOK + "/files/" + id + ".png"; 
+    var maxsize = image.maxsize; 
+
+    if (maxsize) {
+        url += "?" 
+        if(maxsize.height) { 
+            url += "max_height=" + maxsize.height + "&"; 
+        }
+        if(maxsize.width) { 
+            url += "max_width=" + maxsize.width; 
+        }
+    }
+
+    $(containerdiv).append(outdiv); 
+
+    figure_image_downloader($(".image", outdiv), url); 
+
+    
+}
+
+
+function figure_edit_render_proofs(tgtdiv, images, max) {
+    // render the images into the target div (not an entry div, but the div inside
+    // that 
+    // 
+    //  max is optional, and if defined can contain height and width
+
+    // FIXME if undefined, do something clever
+    
+    // Fixme eventually this should be smart and diff
+
+    $(tgtdiv).html(""); // clear what we have in there now
+
+}
+
+function  figure_edit_file_upload_complete(id, filename, responseJSON)
+{
+    var max = { // defaults 
+        height : 300, 
+        width : 300
+    }; 
+
+    
+    var entrydiv = $(this.element).closest(".entry"); 
+    
+    console.log("this=", this); 
+    console.log("filename", filename); 
+    console.log("responseJSON", responseJSON); 
+    
+    // every time this is done, we append it to the proofs, and start a new renderer
+    
+    // add a div, append it to proofs
+    var containerdiv = $("ul.images", entrydiv);  
+    figure_edit_render_image(containerdiv, {'id' : responseJSON.id, 
+                                            'visible' : true, 
+                                            'caption' : "", 
+                                           'max' : max}); 
+
+
+
+    
+}

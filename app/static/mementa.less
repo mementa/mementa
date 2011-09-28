@@ -1,9 +1,35 @@
 @import "/static/vendor/bootstrap/lib/bootstrap.less";
 
 div.entry {
-    display: table-row;
     /* border-collapse: collapse; */
     width: 100%;
+
+    &[state='edit'] { 
+        border: 1px solid #ddd;
+        padding: 4px;
+        /*margin: 4px 4px 20px 20px;*/
+        .border-radius(4px);
+        .box-shadow(0 1px 1px rgba(0,0,0,.075));
+        .right-body { 
+            padding : 4px 0px 4px 0px; 
+        }
+    }
+    
+    
+    &[entry-class='text'] { 
+        input { 
+            margin : 2px 0px 2px 0px; 
+        }
+        span.cke_skin_kama { 
+            margin : 4px 0px 4px 0px; 
+            
+        }
+        textarea.textbody { 
+            display: none; 
+            
+        }
+        
+    }
     .entry-body { 
         width: 100%;
         .meta { 
@@ -15,16 +41,65 @@ div.entry {
             width: 95%;
             display: table-cell;
         }
-
+        
         .control {
             font-size: 11px;
         /* background-color: @grayLighter; */
         }
+        
+    }
 
-        textarea.textbody { 
-            display: none; 
-        }                         
+    &[entry-class='figure'] {
+        ::-webkit-input-placeholder {
+            color:    #999;
+        }
+        :-moz-placeholder {
+            color:    #999;
+        }
 
+        ul.images { 
+            .clearfix(); 
+            margin: 0; 
+            li { 
+                display: table-cell; //inline;
+                float : left; 
+                margin : 4px 4px 0px 0px; 
+            }
+
+            div.imagecontainer { 
+                display: inline-block; 
+                position: relative; 
+                width: auto; 
+                border: 1px solid #ddd;
+                padding: 6px;
+                border: 1px solid #ddd;
+
+                .border-radius(7px);
+                .box-shadow(0 1px 1px rgba(0,0,0,.075));
+                img {
+
+                    margin-left:auto;
+                    margin-right:auto;
+                    display: block;
+                }
+
+                input[type='number'] {
+                    width : 50px;
+                }
+                textarea  {
+                    margin-left:auto;
+                    margin-right:auto;                    
+                    resize: none;
+                    width : 95%; 
+                }
+                span.remove { 
+                    float: right; 
+                    font-size: large; 
+                }
+            }
+
+        }
+        
     }
 
 }

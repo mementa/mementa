@@ -140,8 +140,7 @@ def figure_entry_revision_create(title, caption, maxsize = None,
    {id : filename,
    caption : caption
    visible : true/false,
-   maxsize : {'height' : maxsize['height'],
-                        'width' : maxsize['width']},
+   maxsize : {height, width}
    }
    
    """
@@ -259,6 +258,7 @@ def entry_figure_rev_to_json(text):
            for i in v:
               newv = i
               newv['id'] = str(i['id'])
+              print "newv =", newv
               imgs.append(newv)
            new_entry_json['images'] = imgs
         else:

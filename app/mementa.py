@@ -423,7 +423,7 @@ def api_entry_new(notebook):
     dclass = request_data['class']
 
     if dclass not in dm.json_to_rev:
-        return "Unknown class", HTTP_ERROR_CLIENT_BADREQUEST
+        return "Unknown class",  HTTP_ERROR_CLIENT_BADREQUEST
 
     rev =  dm.json_to_rev[dclass](request_data)
 
@@ -513,8 +513,7 @@ def api_entry_get_post(notebook, entryid):
                                                   rd.get('maxsize', None),
                                                   gallery = rd.get("gallery", False),
                                                   images = rd['images'])
-
-            
+            print "UPDATING WITH figure rev=", rev            
                                                          
         
         elif dclass == 'page':
@@ -973,9 +972,9 @@ def upload(notebook):
         filename = request.headers["X-File-Name"]
         import mimetypes
         mimetype = mimetypes.guess_type(filename)
+        print ("MIME TYPE=", mimetype[0])
 
-
-        f = gf.new_file(content_type=mimetype)
+        f = gf.new_file(content_type=mimetype[0])
         
         print "headers=", request.headers
         print "UPLOADING"
@@ -1004,6 +1003,11 @@ def files(notebook, fileid):
         ext = None
         
     nbdb = g.dbconn[get_nb_dbname(notebook)]
+    gfs = gridfs.GridFS(nbdb)
+    fid = gfs.get(bson.objectid.ObjectId(fileid))
+    # we do this lookup to make sure that the FID is valid
+    
+    content_type = fid.content_type
     # construct convert request
     conv_req = None
     if len(request.args) > 0:
@@ -1023,18 +1027,14 @@ def files(notebook, fileid):
         (content_type == "image/png" and ext == "png") or \
         (content_type == "application/pdf" and ext == "pdf"):
                r =  make_response(fid.read())
-               r.mime_type = content_type
+               r.mimetype = content_type
                r.content_type = content_type
                return r
 
 
         conv_req = {'outputformat' :  ext}
     
-    gfs = gridfs.GridFS(nbdb)
-    fid = gfs.get(bson.objectid.ObjectId(fileid))
-    # we do this lookup to make sure that the FID is valid
-    
-    content_type = fid.content_type[0]
+
 
     ext_to_mime = {'jpeg' : "image/jpeg",
                    'jpg' : "image/jpeg",
@@ -1052,7 +1052,7 @@ def files(notebook, fileid):
         of = gfs.get(conv_res['output'])
         r = make_response(of.read())
         
-        r.mime_type = ext_to_mime[ext]
+        r.mimetype = ext_to_mime[ext]
         r.content_type = ext_to_mime[ext]
         return r
     

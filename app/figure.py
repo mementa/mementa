@@ -21,7 +21,7 @@ def convert_request(dbcol, sourceid, conv_req, tempdir):
     query = {'type' : 'conversion',
              'source' : sourceid}
     query.update(conv_req)
-    print "query = ", query
+
     doc = dbcol.find_one(query)
 
     if doc == None:
@@ -38,20 +38,17 @@ def convert_request(dbcol, sourceid, conv_req, tempdir):
     
     else:
         # we found a single doc:
-        print "found doc!", doc
         
         if doc['state'] == 'done':
             return doc
 
         if doc['state'] == 'pending':
             donestate = conversion_check_done(dbcol.database, doc, tempdir)
-            print "donestate = ", donestate
             if donestate['done'] == False:
                 # not done yet
                 return doc
             elif donestate['done'] == True:
                 # it's done, yay!
-                print "DOC IS DONE!"
                 doc['state'] = 'done'
                 if donestate['error'] == None:
                     # success
@@ -108,7 +105,7 @@ def conversion_start(db, reqdoc, tempdir):
             req_dict[k] = v
         
     f = file(req_filename, 'w')
-    print "req_dict=", req_dict
+
     json.dump(req_dict, f)
     f.close()
 
