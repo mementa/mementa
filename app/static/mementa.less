@@ -3,6 +3,7 @@
 div.entry {
     /* border-collapse: collapse; */
     width: 100%;
+    margin : 4px 0px 6px 0px; 
 
     &[state='edit'] { 
         border: 1px solid #ddd;
@@ -56,7 +57,10 @@ div.entry {
         :-moz-placeholder {
             color:    #999;
         }
-
+        
+        textarea { 
+            width: 100%; 
+        }
         ul.images { 
             .clearfix(); 
             margin: 0; 

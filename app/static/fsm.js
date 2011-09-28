@@ -34,7 +34,7 @@ var render = {
             var view = $($.mustache("<div>"
                                 + " <div> <input name='title' value='{{{title}}}' placeholder='title for figure' class='xlarge' size='70'/> </div> "
                                 + "<ul class='images'> </ul> "
-                                + "<div class='caption'> <textarea class='caption' placeholder='Caption for entire figure' name='caption'> {{{caption}}} </textarea> </div> "
+                                + "<div class='caption'> <hr><textarea class='caption' placeholder='Caption for entire figure' name='caption'> {{{caption}}} </textarea> </div> "
                                 + "<div class='droptarget'> </div>" 
 
                                 + "</div>", rev_doc)); 
