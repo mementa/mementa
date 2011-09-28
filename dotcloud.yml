@@ -1,5 +1,6 @@
 www:
   type: python
-
+  environment: 
+     SECRETS=~/secrets.py
 data:
   type: mongodb
