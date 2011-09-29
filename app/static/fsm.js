@@ -1065,7 +1065,7 @@ function  figure_edit_file_upload_complete(id, filename, responseJSON)
     figure_edit_render_image(containerdiv, {'id' : responseJSON.id, 
                                             'visible' : true, 
                                             'caption' : "", 
-                                           'max' : max}); 
+                                            'maxsize' : max}); 
 
 
 
