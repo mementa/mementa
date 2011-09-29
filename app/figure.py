@@ -171,7 +171,7 @@ def run_convert(img_filename, req_filename, result_filename, out_filename):
 
     """
     
-    p = Popen(["python", "figure_convert_runner.py",
+    p = Popen(["python", "-m", "app.figure_convert_runner",
                img_filename, req_filename, result_filename, out_filename])
 
     

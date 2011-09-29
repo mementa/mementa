@@ -8,8 +8,15 @@ import pymongo
 
 
 def create_system_db(dburl, systemdb):
-    conn = pymongo.Connection(dburl)
+    if dburl == "":
+        conn = pymongo.Connection()
+
+    else:
+        
+        conn = pymongo.Connection(dburl)
+
     db = conn[systemdb]
+
     app.dbutils.create_system_indices(db)
 
 def add_user(dburl, saltstr, systemdb, username):
@@ -18,15 +25,22 @@ def add_user(dburl, saltstr, systemdb, username):
     that we then print
 
     """
-    conn = pymongo.Connection(dburl)
+    if dburl == "":
+        conn = pymongo.Connection()
+
+    else:
+        
+        conn = pymongo.Connection(dburl)
+
     db = conn[systemdb]
     
-    pwstr = str(random.rand())
+    pwstr = str(random.random())
     pw_salted = app.mementa.saltpassword(pwstr, saltstr)
 
     user = app.datamodel.user_create(username, pw_salted)
-    oid = db.users.insert(User)
-    print "The user id =", user
+    oid = db.users.insert(user)
+    print "The user id =", oid
+    print "The password is:", pwstr
              
 
 def set_password(dburl, saltstr, systemdb, username, newpassword):

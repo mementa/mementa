@@ -9,4 +9,6 @@ config = json.load(file('/home/dotcloud/environment.json', 'r'))
 
 application.config['DB_URL'] = config['DOTCLOUD_DATA_MONGODB_URL']
 secret_file = config['SECRETS']
-application.config.from_pyfile(secret_file, silent=True)
+
+application.config.from_pyfile(secret_file)
+
