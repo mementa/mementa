@@ -32,7 +32,6 @@ HTTP_ERROR_CLIENT_BADREQUEST = 400
 HTTP_ERROR_FORBIDDEN = 403
 
 
-
 app = Flask(__name__)
 app.config.from_object(__name__)
 
@@ -277,7 +276,7 @@ def settings():
                                        action='password',
                                        success = False)
             else:
-                saltpw = saltpassword(pw1, PASSWORDSALT)
+                saltpw = saltpassword(pw1, app.config['PASSWORDSALT'])
                 user['password'] = saltpw
 
                 g.sysdb.users.update({'_id' : user['_id'], },

@@ -28,3 +28,24 @@ def add_user(dburl, saltstr, systemdb, username):
     oid = db.users.insert(User)
     print "The user id =", user
              
+
+def set_password(dburl, saltstr, systemdb, username, newpassword):
+    """
+    Set the password
+    
+    """
+    if dburl == "":
+        conn = pymongo.Connection()
+
+    else:
+        
+        conn = pymongo.Connection(dburl)
+    db = conn[systemdb]
+    
+    res = db.users.find_one({'username' : username})
+    
+    saltedpw = app.mementa.saltpassword(newpassword, saltstr)
+    res['password'] = saltedpw
+    db.users.update({'_id' : res['_id']}, res, safe=True)
+
+    
