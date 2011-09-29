@@ -495,6 +495,19 @@ $(document).ready(
                       $(this).closest("li").remove(); 
                   }); 
 
+        $(".entry[state='edit'][entry-class='figure'] .imagecontainer input[name='visible']")
+            .live("click", function(elt) {
+                      if($(this).is(":checked")) {
+                          $(this).closest("li").addClass("visible"); 
+                      } else {
+
+                          $(this).closest("li").removeClass("visible"); 
+                          
+
+                      }
+                      
+                  }); 
+
         
     }); 
 

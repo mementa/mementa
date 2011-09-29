@@ -61,15 +61,51 @@ div.entry {
         textarea { 
             width: 100%; 
         }
-        ul.images { 
+        
+
+        li { 
+            display: table-cell; //inline;
+            float : left; 
+            margin : 4px 4px 0px 0px; 
+        }
+
+        &[state='edit'] ul.images { 
             .clearfix(); 
             margin: 0; 
             li { 
-                display: table-cell; //inline;
-                float : left; 
-                margin : 4px 4px 0px 0px; 
-            }
 
+                img {
+                    margin-left:auto;
+                    margin-right:auto;
+                    display: block;
+
+                    opacity: 0.1; 
+                }
+                
+                &.visible {
+                    img {
+                        opacity: 1.0; 
+                    }
+                }
+            }
+        }
+
+        &[state='view'] ul.images { 
+            .clearfix(); 
+            margin: 0; 
+            li { 
+
+                img {
+                    
+                    margin-left:auto;
+                    margin-right:auto;
+                    display: block;
+
+                }
+            }
+        }
+
+        ul.images { 
             div.imagecontainer { 
                 display: inline-block; 
                 position: relative; 
@@ -80,12 +116,7 @@ div.entry {
 
                 .border-radius(7px);
                 .box-shadow(0 1px 1px rgba(0,0,0,.075));
-                img {
 
-                    margin-left:auto;
-                    margin-right:auto;
-                    display: block;
-                }
 
                 input[type='number'] {
                     width : 50px;
@@ -105,6 +136,8 @@ div.entry {
         }
         
     }
+
+
 
 }
 

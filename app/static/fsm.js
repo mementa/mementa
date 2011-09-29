@@ -964,6 +964,11 @@ function figure_edit_render_image(containerdiv, image)
     var caption = image.caption; 
     var visible = image.visible; 
     $("div.imagecontainer", outdiv).attr("fileid", id);
+    if(visible) { 
+
+        $( outdiv).addClass("visible"); 
+    }
+
     $("textarea[name='caption']", outdiv).html(caption); 
 
     // create the URL 
@@ -980,6 +985,8 @@ function figure_edit_render_image(containerdiv, image)
             $("input[name='max-width']", outdiv).attr("value",  max.width); 
         }
     }
+
+    $("input[name='visible']", outdiv).prop("checked", visible);
 
     $(containerdiv).append(outdiv); 
 
@@ -1003,6 +1010,10 @@ function figure_view_render_image(containerdiv, image)
 
 
     var visible = image.visible; 
+    if (!visible) {
+        return;         
+
+    }
     $("div.imagecontainer", outdiv).attr("fileid", id); 
     $("div.caption", outdiv).html(caption); 
     var original_url = "/api/" + CURRENT_NOTEBOOK + "/files/" + id ; 
@@ -1054,9 +1065,6 @@ function  figure_edit_file_upload_complete(id, filename, responseJSON)
     
     var entrydiv = $(this.element).closest(".entry"); 
     
-    console.log("this=", this); 
-    console.log("filename", filename); 
-    console.log("responseJSON", responseJSON); 
     
     // every time this is done, we append it to the proofs, and start a new renderer
     
