@@ -2,8 +2,8 @@
 function setup_page_dnd(entry_container, server)
 {
     
-    $("div.entry").live('dragstart', function(evt)  {
-                            
+    $("div.entry", entry_container).live('dragstart', function(evt)  {
+
                             $(this).addClass("dragging"); 
                             $("div.entry", entry_container)
                                 .each(function(index, elt) {
@@ -19,6 +19,7 @@ function setup_page_dnd(entry_container, server)
                             var dt = evt.originalEvent.dataTransfer;
                             
                             dt.setData("Text", $(this).attr("entry-pos")); 
+                            dt.setData("Type", "entry"); 
                             
                             return true; 
                         }); 
@@ -39,6 +40,10 @@ function setup_page_dnd(entry_container, server)
                   evt.preventDefault(); 
                   
                   var dt = evt.originalEvent.dataTransfer;
+                  if(dt.getData("Type") !== "entry") {
+                      return; 
+                  }
+
                   var source_pos = parseFloat(dt.getData("Text")); 
                   var dest_pos = parseFloat($(this).attr("pos")); 
                       
@@ -56,7 +61,11 @@ function setup_page_dnd(entry_container, server)
     
     $("div.entry", entry_container)
         .live("drop", function(evt) {
+                  console.log("HOLY CRAP RECEIVED DROP EVENT"); 
                   var dt = evt.originalEvent.dataTransfer;
+                  if(dt.getData("Type") !== "entry") {
+                      return; 
+                  }
                   var source_pos = parseFloat(dt.getData("Text")); 
                   var dest_pos = parseFloat($(this).attr("entry-pos")); 
                   
