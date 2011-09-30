@@ -1,5 +1,11 @@
 @import "/static/vendor/bootstrap/lib/bootstrap.less";
 
+.scale(@ratio:1.5){
+  -webkit-transform:scale(@ratio);
+  -moz-transform:scale(@ratio);
+  transform:scale(@ratio);
+}
+
 div.entry {
     /* border-collapse: collapse; */
     width: 100%;
@@ -16,6 +22,10 @@ div.entry {
         }
     }
     
+    &.dragging { 
+        opacity: 0.5;
+        
+    }
     
     &[entry-class='text'] { 
         input { 
@@ -239,5 +249,13 @@ ul.userlist  {
 
 .users {
     float : right;
+
+}
+
+.entrydroptarget {
+    height: 20px; 
+    border: 3px dashed #ccc;
+    .border-radius(4px);
+    .box-shadow(0 1px 1px rgba(0,0,0,.075));
 
 }

@@ -127,7 +127,6 @@ function Server(associatedDOM, notebook) {
          */
         var d = $.Deferred(); 
         
-        console.log("posting doc", doc); 
         var resp = $.ajax({'type' : "POST", 
                            'url' : "/api/" + this.notebook + "/entry/" + entryid,
                            contentType:"application/json",

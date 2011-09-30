@@ -151,6 +151,7 @@ function create_entry_div(entryid, hidden, pinnedrev)
      */
     var entrydiv = $("<div>"); 
     $(entrydiv).addClass("entry"); 
+    $(entrydiv).attr("draggable", true); 
     $(entrydiv).attr("entryid", entryid); 
     $(entrydiv).attr("id", "entry"+generate_seq_uuid()); 
 
@@ -304,7 +305,6 @@ function opfuncs(docdb) {
     
     this.hide = function(entrydiv, entryptr) { 
         if(entryptr.hidden) {
-            console.log("setting page-hidden", entrydiv); 
             $(entrydiv).attr("page-hidden", true); 
         } else {
             $(entrydiv).removeAttr("page-hidden"); 
@@ -778,6 +778,30 @@ function state_savepending_to_edit(entrydiv, docdb, messages)
 
 }
 
+function move_entry(server, entrycontainer, pos_from, pos_to) {
+    /* Attempt to move the entry from position to position. 
+     * 
+     * 
+     */
+    
+    // get info about the two entries that we're trying to work with, just to confirm
+    var ent  = $("div.entry.page-active", entrycontainer).eq(pos_from);
+
+    var conf = get_entry_config(ent); 
+
+    // we do the add first
+    var hidden = conf['page-hidden'] || false; 
+    var pinned = conf['page-pinned'] || false; 
+    
+    var d = insert_entry_retry(server, pos_to, conf.entryid, hidden,  
+                               conf['page-pinned'], 5); 
+    
+    d.done(function(args) { 
+               // now remove the original 
+               state_view_to_pagepending(ent, {cmd: 'remove'}, server); 
+           }); 
+}
+
 function insert_entry_retry(server, pos, entryid, hidden, pinned, RETRYN) 
 {
     var d = $.Deferred(); 
@@ -819,7 +843,7 @@ function insert_entry_retry(server, pos, entryid, hidden, pinned, RETRYN)
     }
     attempt(RETRYN); 
 
-    return d; 
+    return d.promise(); 
 
 }
 

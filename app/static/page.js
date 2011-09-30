@@ -84,7 +84,7 @@ function refresh_tag_suggestions(notebook, beginstr) {
     resp.done(function(res) {
                   $("#tag_suggest img.throbber").hide(); 
                   $("#existing_tags").tagit("removeAll"); 
-                  console.log("The tags are", res.tagcounts, url); 
+
                   _.map(res.tagcounts, function(tc) {
                             $("#existing_tags").tagit("createTag", tc[0], true, true); 
                         }); 
@@ -118,17 +118,17 @@ $(document).ready(
 
         $("#tag_suggest").hide(); 
 
-        $("#page_tags").tagit( { onTagAdded: on_tags_changed(server, true) , 
-                                 onTagRemoved : on_tags_changed(server, false), 
-                                 allowSpaces: true, 
-                                 allowInput : true, 
-                                 // tagSource : testfunc, 
-                                 removeConfirmation: true }); 
+        // $("#page_tags").tagit( { onTagAdded: on_tags_changed(server, true) , 
+        //                          onTagRemoved : on_tags_changed(server, false), 
+        //                          allowSpaces: true, 
+        //                          allowInput : true, 
+        //                          // tagSource : testfunc, 
+        //                          removeConfirmation: true }); 
         
-        $("#existing_tags").tagit( { allowInput: false, 
-                                     onTagClicked: existing_tag_click, 
-                                     removeConfirmation: true, 
-                                     removeIcon: false}); 
+        // $("#existing_tags").tagit( { allowInput: false, 
+        //                              onTagClicked: existing_tag_click, 
+        //                              removeConfirmation: true, 
+        //                              removeIcon: false}); 
 
         var x = 0; 
 
@@ -243,15 +243,17 @@ $(document).ready(
 
                           if(config.entryclass == 'text') {
                               var id = $(element).attr('id'); 
-                              MathJax.Hub.Queue(["Typeset",MathJax.Hub, id]);                              
+                              if(MathJax) { // conditional because the CDN might fail to load
+                                  MathJax.Hub.Queue(["Typeset",MathJax.Hub, id]);                                                                
+                              }
+
                           }
 
                       } else if (state == 'edit') {
                           if(config.entryclass == 'text') {
                               if(oldstate == 'view') {
                                   $(".textbody", element )
-                                      .ckeditor(function() { 
-                                                    console.log('THIS WAS THE INIT CALLBACK');}, 
+                                      .ckeditor(function() { },
                                                 {
 		                                            extraPlugins : 'autogrow',
                                                     toolbar_Custom : 
@@ -507,7 +509,8 @@ $(document).ready(
                       }
                       
                   }); 
-
         
+        setup_page_dnd($("#entries"), server); 
+
     }); 
 
