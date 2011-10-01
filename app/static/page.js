@@ -510,7 +510,7 @@ $(document).ready(
                       
                   }); 
         
-        setup_page_dnd($("#entries"), server); 
+        //setup_page_dnd($("#entries"), server); 
 
     }); 
 
