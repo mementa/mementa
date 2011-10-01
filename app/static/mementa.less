@@ -6,10 +6,20 @@
   transform:scale(@ratio);
 }
 
+img.avatar {
+    padding : 2px;
+    border: 1px solid #ddd;
+    .border-radius(2px);
+
+}
+
+
 div.entry {
     /* border-collapse: collapse; */
     width: 100%;
     margin : 4px 0px 6px 0px; 
+    display: table; 
+    border-collapse: collapse;
 
     &[state='edit'] { 
         border: 1px solid #ddd;
@@ -17,17 +27,54 @@ div.entry {
         /*margin: 4px 4px 20px 20px;*/
         .border-radius(4px);
         .box-shadow(0 1px 1px rgba(0,0,0,.075));
+
         .right-body { 
             padding : 4px 0px 4px 0px; 
         }
+
     }
-    
+
+
+    .entry-body { 
+        width: 100%;
+        display: table-row; 
+
+        .meta { 
+            display: table-cell; 
+            padding : 0 4px 0 0; 
+            width: 60px;
+
+        }
+        
+        .right-body { 
+            display: table-cell;
+            width: 95%;
+            text-alginment: top; 
+            vertical-align : top; 
+
+        }
+        
+        .control {
+            font-size: 11px;
+        /* background-color: @grayLighter; */
+        }
+        
+    }
+
+    img.avatar { 
+        align: top; 
+    }
+
+
     &.dragging { 
         opacity: 0.5;
         
     }
     
     &[entry-class='text'] { 
+        h2  { 
+            margin-top: -4px; 
+        }
         input { 
             margin : 2px 0px 2px 0px; 
         }
@@ -41,24 +88,7 @@ div.entry {
         }
         
     }
-    .entry-body { 
-        width: 100%;
-        .meta { 
-            display: table-cell;
-            width: 60px;
-        }
-        
-        .right-body { 
-            width: 95%;
-            display: table-cell;
-        }
-        
-        .control {
-            font-size: 11px;
-        /* background-color: @grayLighter; */
-        }
-        
-    }
+
 
     &[entry-class='figure'] {
         ::-webkit-input-placeholder {
@@ -121,8 +151,7 @@ div.entry {
                 position: relative; 
                 width: auto; 
                 border: 1px solid #ddd;
-                padding: 6px;
-                border: 1px solid #ddd;
+                padding: 0px;
 
                 .border-radius(7px);
                 .box-shadow(0 1px 1px rgba(0,0,0,.075));
@@ -171,10 +200,6 @@ div.entry[page-hidden] {
         }
     }
 
-img.avatar {
-    display: inline;
-    vertical-align: top; 
-}
 
 
 
