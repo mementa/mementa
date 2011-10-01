@@ -1,6 +1,12 @@
 {% extends "mementa.html" %}
 
 {% block javascript_includes %}
+<script type="text/javascript">
+  var CURRENT_NOTEBOOK = "{{notebook.name}}"; 
+</script> 
+
+<script type="text/javascript" src="/static/server.js"></script>    
+
 <script type="text/javascript" src="/static/notebook.js"></script>    
 
 {%endblock %}
@@ -13,7 +19,8 @@
       <div class='users'>
         <small> authors: </small>
         {% for u in notebook_users %}
-        <img id="logged_in_avitar" src="/api/user/{{u['_id']}}/avatar/32">  
+        <img class='avatar' src="/api/user/{{u['_id']}}/avatar/32"
+             user_id="{{u['_id']}}">  
         
         {% endfor %}
       </div> 

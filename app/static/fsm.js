@@ -185,7 +185,8 @@ function create_entrydiv_body_view(rev_doc) {
     $(".timestamp", entrydiv_body).html(datestring).cuteTime(); 
     $(".class-content", entrydiv_body).append(class_content); 
     $("img.avatar", entrydiv_body)
-        .attr("src", "/api/user/" + rev_doc['author'] + "/avatar/48");     
+        .attr("src", "/api/user/" + rev_doc['author'] + "/avatar/48")
+        .attr("user_id", rev_doc['author']); 
     return entrydiv_body; 
 
 

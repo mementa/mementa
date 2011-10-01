@@ -213,6 +213,23 @@ function Server(associatedDOM, notebook) {
         return d.promise(); 
 
     }; 
+
+    this.getUserInfo = function(userid) { 
+        var d = $.Deferred(); 
+        
+
+        var ajaxresp = $.getJSON("/api/user/" + userid); 
+
+        ajaxresp.done(function(data) { 
+                          d.resolve(data); 
+                      }); 
+        ajaxresp.fail(function(reason) {
+                            // FIXME need better semantics here? 
+                            d.reject(reason); 
+                        }); 
+        return d.promise(); 
+        
+    }; 
     
     
 }; 

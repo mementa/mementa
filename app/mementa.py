@@ -114,7 +114,8 @@ def lookup_user(userid):
             'username' : doc['username'],
             'name' : doc['name'],
             'email' : doc['email'],
-            'avatar' : doc['avatar']}
+            'avatar' : doc['avatar'],
+            'twitter' : doc['twitter']}
     
 
 @app.route('/')
@@ -883,6 +884,21 @@ def user_get_avatar(userid, size=80):
     
         
     return redirect(url)
+
+@app.route('/api/user/<userid>')
+@login_required
+def user_get_info(userid):
+    """
+    """
+    u =  lookup_user(userid)
+
+    res = {'username' : u['username'],
+           'name' : u['name'],
+           'twitter' : u['twitter']}
+    
+    return jsonify(res);
+
+
 
 @app.route("/api/<notebook>/tags/all/<N>")
 @login_required
