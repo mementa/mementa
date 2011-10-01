@@ -241,7 +241,7 @@ $(document).ready(
                               
                           }                                       
 
-                          if(config.entryclass == 'text') {
+                          if((config.entryclass == 'text') || (config.entryclass == 'figure')) {
                               var id = $(element).attr('id'); 
                               if(MathJax) { // conditional because the CDN might fail to load
                                   MathJax.Hub.Queue(["Typeset",MathJax.Hub, id]);                                                                
