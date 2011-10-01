@@ -151,7 +151,6 @@ function create_entry_div(entryid, hidden, pinnedrev)
      */
     var entrydiv = $("<div>"); 
     $(entrydiv).addClass("entry"); 
-    $(entrydiv).attr("draggable", true); 
     $(entrydiv).attr("entryid", entryid); 
     $(entrydiv).attr("id", "entry"+generate_seq_uuid()); 
 
@@ -178,6 +177,7 @@ function create_entrydiv_body_view(rev_doc) {
                           + "<a href='#' class='hide'>hide</a> &nbsp; &nbsp;"
                           + "<a href='#' class='unhide'>unhide</a> &nbsp; &nbsp;"
                           + "<a href='#' class='remove'>remove</a> &nbsp; &nbsp;"
+                          + "<span class='move' draggable='true'>reorder/move</span> &nbsp; &nbsp;"
                           + "</div> <div class='notices'/> </div> </div>"); 
     
     var datestring = rev_doc.date.substr(0, rev_doc.date.length - 7) + "Z"; 
