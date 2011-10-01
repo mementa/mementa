@@ -14,7 +14,7 @@ import tags as tagutils
 import dbutils
 import figure
 import sys
-
+import gitversion
 
 # most of these should change for real deployment
 
@@ -30,10 +30,12 @@ FIGURE_TEMP_DIR = "/tmp"
 HTTP_ERROR_CLIENT_CONFLICT = 409
 HTTP_ERROR_CLIENT_BADREQUEST = 400
 HTTP_ERROR_FORBIDDEN = 403
-
+VERSION_GIT_DESCRIBE = gitversion.describe()
 
 app = Flask(__name__)
 app.config.from_object(__name__)
+
+
 
 def jsonify_error(d, e) :
     x = jsonify(d)
@@ -126,7 +128,8 @@ def home():
     
     return render_template("home.html", nblist = nblist,
                            notebook = None, 
-                           session = session)
+                           session = session,
+                           version = app.config['VERSION_GIT_DESCRIBE'])
 
 @app.route('/notebook/<notebook>')
 @login_required
@@ -160,7 +163,9 @@ def notebook_home(notebook):
                            all_pages = all_pages,
                            notebook = notebook,
                            notebook_users = notebook_users, 
-                           session = session)
+                           session = session,
+                           version = app.config['VERSION_GIT_DESCRIBE'])
+
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -201,7 +206,9 @@ def login():
             
     
     return render_template("login.html", nexturl=nexturl,
-                           loginfail = loginfail)
+                           loginfail = loginfail,
+                           version = app.config['VERSION_GIT_DESCRIBE'])
+
 
  
 @app.route('/test')
@@ -248,7 +255,9 @@ def notebook_settings(notebook):
         return render_template("notebooksettings.html",
                                notebook =nb,
                                users = users, 
-                               session = session)
+                               session = session,
+                               version = app.config['VERSION_GIT_DESCRIBE'])
+
 
     
 @app.route("/settings", methods=['GET', 'POST'])
@@ -259,7 +268,9 @@ def settings():
         userref = dbref("users", session["user_id"])
         user = g.sysdb.dereference(userref)
         return render_template("usersettings.html", user=user,
-                               session = session)
+                               session = session,
+                               version = app.config['VERSION_GIT_DESCRIBE'])
+
 
     elif request.method == "POST":
         # FIXME add password changing
@@ -274,7 +285,9 @@ def settings():
                 return render_template("usersettings.html", user=user,
                                        session = session,
                                        action='password',
-                                       success = False)
+                                       success = False,
+                                       version = app.config['VERSION_GIT_DESCRIBE'])
+
             else:
                 saltpw = saltpassword(pw1, app.config['PASSWORDSALT'])
                 user['password'] = saltpw
@@ -285,7 +298,9 @@ def settings():
                 return render_template("usersettings.html", user=user,
                                        session = session,
                                        action='password',
-                                       success = True)
+                                       success = True,
+                                       version = app.config['VERSION_GIT_DESCRIBE'])
+            
             
         elif request.form['form'] == 'settings' :
 
@@ -300,7 +315,9 @@ def settings():
             return render_template("usersettings.html", user=user,
                                    session = session,
                                    action='settings',
-                                   success = True)
+                                   success = True,
+                                   version = app.config['VERSION_GIT_DESCRIBE'])
+
         else:
             print "UNKNOWN FORM" # FIXME throw real error
 
@@ -323,7 +340,9 @@ def pages(notebook):
         
     return render_template("list_pages.html", pages=pages,
                            notebook = nb, 
-                           session = session)
+                           session = session,
+                           version = app.config['VERSION_GIT_DESCRIBE'])
+
 
 @app.route("/notebook/<notebook>/entries")
 @login_required
@@ -338,7 +357,9 @@ def entries(notebook):
         
     return render_template("list_entries.html", entries=entries,
                            notebook = get_notebook(notebook), 
-                           session = session)
+                           session = session,
+                           version = app.config['VERSION_GIT_DESCRIBE'])
+
 
 @app.route("/notebook/<notebook>/page/<entryid>")
 @login_required
@@ -366,7 +387,9 @@ def page(notebook, entryid):
                            page_entry_json = json.dumps(dm.entry_to_json(doc)), 
                            page_rev_json = json.dumps(s),
                            page_rev = s,
-                           session = session)
+                           session = session,
+                           version = app.config['VERSION_GIT_DESCRIBE'])
+
 
 
     
