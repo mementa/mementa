@@ -118,17 +118,17 @@ $(document).ready(
 
         $("#tag_suggest").hide(); 
 
-        // $("#page_tags").tagit( { onTagAdded: on_tags_changed(server, true) , 
-        //                          onTagRemoved : on_tags_changed(server, false), 
-        //                          allowSpaces: true, 
-        //                          allowInput : true, 
-        //                          // tagSource : testfunc, 
-        //                          removeConfirmation: true }); 
+        $("#page_tags").tagit( { onTagAdded: on_tags_changed(server, true) , 
+                                 onTagRemoved : on_tags_changed(server, false), 
+                                 allowSpaces: true, 
+                                 allowInput : true, 
+                                 // tagSource : testfunc, 
+                                 removeConfirmation: true }); 
         
-        // $("#existing_tags").tagit( { allowInput: false, 
-        //                              onTagClicked: existing_tag_click, 
-        //                              removeConfirmation: true, 
-        //                              removeIcon: false}); 
+        $("#existing_tags").tagit( { allowInput: false, 
+                                     onTagClicked: existing_tag_click, 
+                                     removeConfirmation: true, 
+                                     removeIcon: false}); 
 
         var x = 0; 
 
