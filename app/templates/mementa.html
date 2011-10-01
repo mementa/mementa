@@ -42,6 +42,21 @@
 </head>
 <body style='padding-top: 50px;'>
 
+{% macro footer_ver() -%}
+<div class="footer-info" </div>
+     <span class="links"> 
+        <a href="https://github.com/mementa/mementa/" target="_blank">Mementa</a>  | 
+
+        <a href="https://github.com/mementa/mementa/" target="_blank">get the source </a>  | 
+        <a href="https://github.com/mementa/mementa/issues" target="_blank">report a bug </a> |  
+        <a href="http://mementa.tumblr.com" target="_blank">blog </a>  | 
+
+        <a href="http://twitter.com/mementanotebook/" target="_blank">follow on twitter </a>  
+     </span>
+     <p> Revision 0.11 </p> 
+</div>
+{%- endmacro %}
+
 {% block body %}
 
 
@@ -87,14 +102,7 @@
   {% block footer %}
     <footer class="footer">
       <div class="container">
-        <a href="https://github.com/mementa/mementa/" target="_blank">Mementa</a>  | 
-
-        <a href="https://github.com/mementa/mementa/" target="_blank">get the source </a>  | 
-        <a href="https://github.com/mementa/mementa/issues" target="_blank">report a bug </a> |  
-        <a href="http://mementa.tumblr.com" target="_blank">blog </a>  | 
-
-        <a href="http://twitter.com/mementanotebook/" target="_blank">follow on twitter </a>  
-
+        {{footer_ver()}}
       </div>
     </footer>
   {% endblock %}
