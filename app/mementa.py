@@ -636,48 +636,46 @@ def api_notebookadmin_new():
     rd = request.json
     users = [session['user_id']]
     admins = [session['user_id']]
-
-    # validate the name
-
-    all = string.ascii_letters +  string.digits
-    name = rd['name'].strip()
-    name = name.lower()
-
-    if len(name) < 5 :
-        return 'name too short',  HTTP_ERROR_CLIENT_BADREQUEST
-
+    NBNAME_PREFIX = "nb"
     
-    if name[0] not in string.ascii_letters:
-        return 'name must start with a letter',     HTTP_ERROR_CLIENT_BADREQUEST
-
-
-    for c in name :
-        if c not in all:
-            return 'name contains invalid character', HTTP_ERROR_CLIENT_BADREQUEST
-
+    nbns = g.sysdb.notebooks.find({'name' : {'$regex': "^" + NBNAME_PREFIX}}, sort = [("name", pymongo.DESCENDING)], limit=1)
+    startpos = 0
+    for nbn in nbns:
+        print "NBN =", nbn
+        existing_name = nbn['name']
+        existing_num_str = existing_name[2:]
+        existing_num = int(existing_num_str)
         
-            
-    if 'title' in rd:
-        title = rd['title'].strip()
-    else:
-        title = name
-    doc = dm.notebook_create(name, 
-                             get_nb_dbname(rd['name']),
-                             title, 
-                             users=users,
-                             admins = admins)
-    
-    
-    try:
-        print "Trying to create notebook", doc
+        startpos = existing_num
         
-        g.sysdb.notebooks.insert(doc, safe=True)
-        dbutils.create_notebook_indices(g.dbconn[rd['name']])
+    while True:
+        startpos += 1
 
-        return jsonify({'name' : rd['name']})
-    except pymongo.errors.DuplicateKeyError, e:
-        print "There was an error!" 
-        return 'name already exists', HTTP_ERROR_CLIENT_CONFLICT
+        name = NBNAME_PREFIX + ("%04d" % startpos)
+    
+        if 'title' in rd:
+            title = rd['title'].strip()
+        else:
+            title = name
+
+        doc = dm.notebook_create(name, 
+                                 get_nb_dbname(name), 
+                                 title, 
+                                 users=users,
+                                 admins = admins)
+
+        try:
+            print "Trying to create notebook", doc
+
+            g.sysdb.notebooks.insert(doc, safe=True)
+
+            dbutils.create_notebook_indices(g.dbconn[get_nb_dbname(name)])
+
+            return jsonify({'name' :name})
+
+        except pymongo.errors.DuplicateKeyError, e:
+            print "There was an error!" 
+            return 'name already exists', HTTP_ERROR_CLIENT_CONFLICT
 
 @app.route('/api/<notebook>/config', methods=['GET', 'POST'])
 @login_required
