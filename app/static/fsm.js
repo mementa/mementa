@@ -35,7 +35,7 @@ var render = {
                                 + " <div> <input name='title' value='{{{title}}}' placeholder='title for figure' class='xlarge' size='70'/> </div> "
                                 + "<ul class='images'> </ul> "
                                 + "<hr><div class='control' > <div class='hover'>Drop Files Here </div>"
-                                + "<div class='files'><input type='file' name='files' multiple='true'> Upload Files </input></div>"
+                                + "<div class='files'><input type='file' name='files' multiple='true'></input></div>"
                                 + "<div class='caption'><textarea class='caption' placeholder='Caption for entire figure' name='caption'>{{{caption}}}</textarea> </div> "
 
 
