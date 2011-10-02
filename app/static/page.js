@@ -270,11 +270,11 @@ $(document).ready(
                        
                               }                                                       
                           }  else if (config.entryclass == 'figure') {
-                              var upload_button = $("button.upload", element)[0]; 
-                              console.log("upload button =", upload_button);
+                              // var upload_button = $("button.upload", element)[0]; 
+                              // console.log("upload button =", upload_button);
                               var uploader = 
                                   new qq.FileUploaderBasic({
-                                                               button: upload_button, 
+//                                                               button: upload_button, 
                                                                debug: true,
                                                                // path to server-side upload script
                                                                action: '/api/' + CURRENT_NOTEBOOK + '/upload', 
@@ -282,10 +282,16 @@ $(document).ready(
                                                                onProgress : figure_edit_file_upload.progress,
                                                                onSubmit : figure_edit_file_upload.submit,
                                                                onCancel : figure_edit_file_upload.cancel,
+                                                               entrydiv : element[0]
                           
 
                                                                
-                                }); 
+                                                           });
+                              $("input[name='files']", element)
+                                  .change(function(x) { 
+                                              uploader._onInputChange(this); 
+
+                                          }); 
                           }
                       }
                       

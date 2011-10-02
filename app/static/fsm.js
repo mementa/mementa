@@ -13,7 +13,7 @@ var render = {
 
             var view = $($.mustache("<div> <h2>{{{title}}}</h2> "
                                     + "<ul class='images'></ul> "
-                                    + " <div class='caption'> {{{caption}}} </div> "
+                                    + " <div class='caption'>{{{caption}}}</div> "
                                 + "</div>", rev_doc)); 
             var imglist = $("ul", view); 
             _.each(rev_doc.images, function( elt, index) { 
@@ -34,8 +34,8 @@ var render = {
             var view = $($.mustache("<div>"
                                 + " <div> <input name='title' value='{{{title}}}' placeholder='title for figure' class='xlarge' size='70'/> </div> "
                                 + "<ul class='images'> </ul> "
-                                + "<div class='caption'> <hr><textarea class='caption' placeholder='Caption for entire figure' name='caption'> {{{caption}}} </textarea> </div> "
-                                + "<div class='droptarget'> </div>" 
+                                + "<div class='caption'> <hr><textarea class='caption' placeholder='Caption for entire figure' name='caption'>{{{caption}}}</textarea> </div> "
+                                + "<input type='file' name='files' multiple='true'> Upload Files </input>"
 
                                 + "</div>", rev_doc)); 
             var imglist = $("ul.images", view);
@@ -984,7 +984,7 @@ function figure_edit_render_image(outli, image)
      * append to div
      * start the downloader 
      */
-    
+    console.log("figure_edit_render_image", outli, image); 
     $(".imagecontainer", outli).empty(); 
     
     $(".imagecontainer", outli).append("<div class='image'> </div>   "
@@ -1083,24 +1083,34 @@ var figure_edit_file_upload = {
         }; 
         
         
-        var entrydiv = $(this.button).closest(".entry"); 
+        var entrydiv = this.entrydiv; 
 
-        var imgli = $("ul.images[upload_id='" + upload_id + "']", entrydiv);  
-        figure_edit_render_image(imageli, {'id' : responseJSON.id, 
-                                           'visible' : true, 
-                                                'caption' : "", 
-                                                'maxsize' : max}); 
+
+        var imgli = $("ul.images li[upload_id='" + upload_id + "']", entrydiv);  
+        figure_edit_render_image(imgli, {'id' : responseJSON.id, 
+                                         'visible' : true, 
+                                         'caption' : "", 
+                                         'maxsize' : max}); 
         
         
     },
     
     progress : function(upload_id, fileName, loaded, total) {
-         
+        var entrydiv = this.entrydiv; 
+        var imgli = $("ul.images li[upload_id='" + upload_id + "']", entrydiv);  
 
+        var pbar = $("progress", imgli); 
+        $(pbar).attr("value", loaded); 
+        $(pbar).attr("max", total); 
+        $("div.filename", imgli).html(fileName); 
+        $("div.filesize", imgli).html("" + loaded + " of " + total); 
+        
+        
     }, 
     
     submit : function(upload_id, fileName) {
-        var entrydiv = $(this.button).closest(".entry"); 
+        var entrydiv = this.entrydiv; 
+        //var entrydiv = $(this.button).closest(".entry"); 
 
         var imglist = $("ul.images", entrydiv); 
 
@@ -1109,7 +1119,12 @@ var figure_edit_file_upload = {
         imglist.append(li); 
         
         $(li).attr("upload_id", upload_id); 
-
+        // I HATE THE FACT that we have to combine content and presentation
+        // here, but there were strange chrome css bugs that made it
+        // hard for me to do what I want. 
+        $(".imagecontainer", li).append("<div> <progress> </progress></div>"); 
+        $(".imagecontainer", li).append("<div class='filename'></div>");
+        $(".imagecontainer", li).append("<div class='filesize'></div>"); 
     },
 
     cancel : function(upload_id, fileName)  {
