@@ -976,7 +976,7 @@ function figure_edit_render_image(containerdiv, image)
      * start the downloader 
      */
     
-    var outdiv = $("<li><div class='imagecontainer'><div class='image'> </div>   "
+    var outli = $("<li><div class='imagecontainer'><div class='image'> </div>   "
                    + "<B>max</b> height : <input type='number' min='50' max='1000' step='50' value='100' name='max-width' >"
                    + "width : <input type='number' min='50' max='1000' step='50' value='100' name='max-height'>"
                    + "<div> <textarea placeholder='Caption for this subfigure' name='caption'></textarea></div>  "
@@ -988,13 +988,13 @@ function figure_edit_render_image(containerdiv, image)
     var id = image.id; 
     var caption = image.caption; 
     var visible = image.visible; 
-    $("div.imagecontainer", outdiv).attr("fileid", id);
+    $("div.imagecontainer", outli).attr("fileid", id);
     if(visible) { 
 
-        $( outdiv).addClass("visible"); 
+        $( outli).addClass("visible"); 
     }
 
-    $("textarea[name='caption']", outdiv).html(caption); 
+    $("textarea[name='caption']", outli).html(caption); 
 
     // create the URL 
     var url = "/api/" + CURRENT_NOTEBOOK + "/files/" + id + ".png"; 
@@ -1003,19 +1003,19 @@ function figure_edit_render_image(containerdiv, image)
         url += "?" 
         if(max.height) { 
             url += "max_height=" + max.height + "&"; 
-            $("input[name='max-height']", outdiv).attr("value", max.height); 
+            $("input[name='max-height']", outli).attr("value", max.height); 
         }
         if(max.width) { 
             url += "max_width=" + max.width; 
-            $("input[name='max-width']", outdiv).attr("value",  max.width); 
+            $("input[name='max-width']", outli).attr("value",  max.width); 
         }
     }
 
-    $("input[name='visible']", outdiv).prop("checked", visible);
+    $("input[name='visible']", outli).prop("checked", visible);
 
-    $(containerdiv).append(outdiv); 
+    $(containerdiv).append(outli); 
 
-    figure_image_downloader($(".image", outdiv), url); 
+    figure_image_downloader($(".image", outli), url); 
 
     
 }
@@ -1026,7 +1026,7 @@ function figure_view_render_image(containerdiv, image)
      * populate the caption, 
      */
     
-    var outdiv = $("<li><div class='imagecontainer'><a href='' target='_blank'><div class='image'> </div></a>"
+    var outli = $("<li><div class='imagecontainer'><a href='' target='_blank'><div class='image'> </div></a>"
                    + "<div class='caption'></div>"
                    + "</div></li>")
     
@@ -1039,11 +1039,11 @@ function figure_view_render_image(containerdiv, image)
         return;         
 
     }
-    $("div.imagecontainer", outdiv).attr("fileid", id); 
-    $("div.caption", outdiv).html(caption); 
+    $("div.imagecontainer", outli).attr("fileid", id); 
+    $("div.caption", outli).html(caption); 
     var original_url = "/api/" + CURRENT_NOTEBOOK + "/files/" + id ; 
 
-    $("a", outdiv).attr("href", original_url); 
+    $("a", outli).attr("href", original_url); 
     // create the URL 
     var url = "/api/" + CURRENT_NOTEBOOK + "/files/" + id + ".png"; 
     var maxsize = image.maxsize; 
@@ -1058,26 +1058,11 @@ function figure_view_render_image(containerdiv, image)
         }
     }
 
-    $(containerdiv).append(outdiv); 
+    $(containerdiv).append(outli); 
 
-    figure_image_downloader($(".image", outdiv), url); 
+    figure_image_downloader($(".image", outli), url); 
 
     
-}
-
-
-function figure_edit_render_proofs(tgtdiv, images, max) {
-    // render the images into the target div (not an entry div, but the div inside
-    // that 
-    // 
-    //  max is optional, and if defined can contain height and width
-
-    // FIXME if undefined, do something clever
-    
-    // Fixme eventually this should be smart and diff
-
-    $(tgtdiv).html(""); // clear what we have in there now
-
 }
 
 function  figure_edit_file_upload_complete(id, filename, responseJSON)
