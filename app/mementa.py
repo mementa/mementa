@@ -1089,6 +1089,13 @@ def files(notebook, fileid):
         
         r.mimetype = ext_to_mime[ext]
         r.content_type = ext_to_mime[ext]
+        m = hashlib.md5()
+        m.update(json.dumps(conv_req))
+
+        r.headers['ETag'] = of.md5 + m.hexdigest()
+        r.headers['Cache-Control'] = "max-age=3218319841"
+        r.headers['Expires'] = "Expires: 19 Jun 2012 11:30:24 GMT"
+
         return r
     
         
@@ -1102,7 +1109,7 @@ def cachetest(resource):
     m.update(s)
     r.headers['ETag'] = m.hexdigest()
     r.headers['Cache-Control'] = "max-age=3218319841"
-    r.headers['Expires'] = "Expires: 19 Jun 2012 11:30:24 GMT"
+    r.headers['Expires'] = "Expires: 19 Jun 2030 11:30:24 GMT"
     
     return r
 
