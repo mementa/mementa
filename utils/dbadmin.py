@@ -63,3 +63,16 @@ def set_password(dburl, saltstr, systemdb, username, newpassword):
     db.users.update({'_id' : res['_id']}, res, safe=True)
 
     
+def add_indices(mongoconn, sysdbname):
+
+    sysdb = mongoconn[sysdbname]
+
+    for r in sysdb.notebooks.find():
+        name = r['name']
+
+        db = mongoconn['notebook:' + name]
+
+        print db.tags.count()
+                       
+        app.dbutils.create_notebook_indices(db)
+    
