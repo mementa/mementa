@@ -2,8 +2,6 @@
 function setup_page_dnd(entry_container, server)
 {
     PAGE_KEY = "page-dnd-entry-active"; 
-
-    jQuery.event.props.push("dataTransfer");
     
     
     $("span.move", entry_container)

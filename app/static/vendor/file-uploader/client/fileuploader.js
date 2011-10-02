@@ -375,7 +375,7 @@ qq.FileUploaderBasic.prototype = {
                 this._uploadFile(input);                                    
             }                      
         }               
-        this._button.reset();   
+        //this._button.reset();   
     },  
     _uploadFileList: function(files){
         for (var i=0; i<files.length; i++){

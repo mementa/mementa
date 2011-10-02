@@ -1,3 +1,8 @@
+
+
+jQuery.event.props.push("dataTransfer");
+
+
 var uuid_pos = 0; 
 function generate_uuid()
 {

@@ -34,10 +34,12 @@ var render = {
             var view = $($.mustache("<div>"
                                 + " <div> <input name='title' value='{{{title}}}' placeholder='title for figure' class='xlarge' size='70'/> </div> "
                                 + "<ul class='images'> </ul> "
-                                + "<div class='caption'> <hr><textarea class='caption' placeholder='Caption for entire figure' name='caption'>{{{caption}}}</textarea> </div> "
-                                + "<input type='file' name='files' multiple='true'> Upload Files </input>"
+                                + "<hr><div class='control' > <div class='hover'>Drop Files Here </div>"
+                                + "<div class='files'><input type='file' name='files' multiple='true'> Upload Files </input></div>"
+                                + "<div class='caption'><textarea class='caption' placeholder='Caption for entire figure' name='caption'>{{{caption}}}</textarea> </div> "
 
-                                + "</div>", rev_doc)); 
+
+                                + "</div></div>", rev_doc)); 
             var imglist = $("ul.images", view);
             _.each(rev_doc.images, function(imgconfig) { 
                        var li = figure_edit_create_li(); 

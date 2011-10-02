@@ -287,10 +287,12 @@ $(document).ready(
 
                                                                
                                                            });
+                              $("input[name='files']", element).data('uploader', uploader); 
                               $("input[name='files']", element)
                                   .change(function(x) { 
+                                              //yeah, it's a private method -- bite me. '
                                               uploader._onInputChange(this); 
-
+w
                                           }); 
                           }
                       }
@@ -524,10 +526,46 @@ $(document).ready(
                       
                   }); 
         
-        //setup_page_dnd($("#entries"), server); 
+        setup_page_dnd($("#entries"), server); 
         
         setup_avatars(server, $("body")); 
 
+        // file drag and drop for images
+        function noopHandler(evt) {
+            evt.stopPropagation();
+            evt.preventDefault();
+        }
+
+        var insel = $("div.entry[state='edit'][entry-class='figure'] .control"); 
+        insel.live('dragenter', function(evt) {
+                       console.log("dragenter", this, evt); 
+                       $(".hover", this).show(); 
+                       evt.stopPropagation();
+                       evt.preventDefault();
+                       
+                   }); 
+
+        insel.live('dragover', noopHandler);
+        $(".hover", insel).live('dragleave', function(evt) {
+                       console.log("dragleave", this, evt); 
+                       $(this).hide(); 
+                       evt.stopPropagation();
+                       evt.preventDefault();
+                       
+                   }); 
+
+        insel.live('drop', function(evt) { 
+                       $(".hover", this).hide(); 
+                       
+                       var files = evt.dataTransfer.files; 
+                       console.log("You dropped", files); 
+                       var entrydiv = $(this).closest(".entry"); 
+                       var uploader = $("input[name='files']", entrydiv).data("uploader"); 
+                       console.log("uploader=", uploader);
+                       uploader._onInputChange(evt.dataTransfer); 
+
+                       
+                   }); 
         
     }); 
 
