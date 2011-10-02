@@ -270,13 +270,21 @@ $(document).ready(
                        
                               }                                                       
                           }  else if (config.entryclass == 'figure') {
+                              var upload_button = $("button.upload", element)[0]; 
+                              console.log("upload button =", upload_button);
                               var uploader = 
-                                  new qq.FileUploader({
-                                                          element: $(".droptarget", element)[0], 
-                                                          debug: true,
-                                                          // path to server-side upload script
-                                                          action: '/api/' + CURRENT_NOTEBOOK + '/upload', 
-                                                          onComplete : figure_edit_file_upload_complete
+                                  new qq.FileUploaderBasic({
+                                                               button: upload_button, 
+                                                               debug: true,
+                                                               // path to server-side upload script
+                                                               action: '/api/' + CURRENT_NOTEBOOK + '/upload', 
+                                                               onComplete : figure_edit_file_upload_complete,
+                                                               onProgress : figure_edit_file_upload_progress,
+                                                               onSubmit : figure_edit_file_upload_submit,
+                                                               onCancel : figure_edit_file_upload_cancel,
+                          
+
+                                                               
                                 }); 
                           }
                       }
