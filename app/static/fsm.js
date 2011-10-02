@@ -39,8 +39,10 @@ var render = {
 
                                 + "</div>", rev_doc)); 
             var imglist = $("ul.images", view);
-            _.each(rev_doc.images, function( elt, index) { 
-                       figure_edit_render_image(imglist, elt); 
+            _.each(rev_doc.images, function(imgconfig) { 
+                       var li = figure_edit_create_li(); 
+                       imglist.append(li); 
+                       figure_edit_render_image(li, imgconfig); 
                    }); 
 
             return view; 
@@ -968,7 +970,14 @@ function figure_image_downloader(tgtdiv, url)
 
 }
 
-function figure_edit_render_image(containerdiv, image)
+function figure_edit_create_li() {
+     
+    var outli = $("<li><div class='imagecontainer'>"
+                  + "</div></li>"); 
+    return outli; 
+
+}
+function figure_edit_render_image(outli, image)
 {
     /* Create the div / etc for a single image
      * populate the caption, the visible checkbox
@@ -976,15 +985,16 @@ function figure_edit_render_image(containerdiv, image)
      * start the downloader 
      */
     
-    var outli = $("<li><div class='imagecontainer'><div class='image'> </div>   "
-                   + "<B>max</b> height : <input type='number' min='50' max='1000' step='50' value='100' name='max-width' >"
-                   + "width : <input type='number' min='50' max='1000' step='50' value='100' name='max-height'>"
-                   + "<div> <textarea placeholder='Caption for this subfigure' name='caption'></textarea></div>  "
-                   + "visible : <input type='checkbox' name='visible' value='option'  /> <a><span class='remove' > &times;  </span></a>"
-
-
-                   + "</div></li>")
+    $(".imagecontainer", outli).empty(); 
     
+    $(".imagecontainer", outli).append("<div class='image'> </div>   "
+                                       + "<B>max</b> height : <input type='number' min='50' max='1000' step='50' value='100' name='max-width' >"
+                                       + "width : <input type='number' min='50' max='1000' step='50' value='100' name='max-height'>"
+                                       + "<div> <textarea placeholder='Caption for this subfigure' name='caption'></textarea></div>  "
+                                       + "visible : <input type='checkbox' name='visible' value='option'  /> <a><span class='remove' > &times;  </span></a>"); 
+    
+
+    console.log("image = ", image, "outli=", outli);
     var id = image.id; 
     var caption = image.caption; 
     var visible = image.visible; 
@@ -1012,8 +1022,6 @@ function figure_edit_render_image(containerdiv, image)
     }
 
     $("input[name='visible']", outli).prop("checked", visible);
-
-    $(containerdiv).append(outli); 
 
     figure_image_downloader($(".image", outli), url); 
 
@@ -1065,27 +1073,48 @@ function figure_view_render_image(containerdiv, image)
     
 }
 
-function  figure_edit_file_upload_complete(id, filename, responseJSON)
-{
-    var max = { // defaults 
-        height : 300, 
-        width : 300
-    }; 
+
+var figure_edit_file_upload = {
+
+    complete : function(upload_id, fileName, responseJSON) {
+        var max = { // defaults 
+            height : 300, 
+            width : 300
+        }; 
+        
+        
+        var entrydiv = $(this.button).closest(".entry"); 
+
+        var imgli = $("ul.images[upload_id='" + upload_id + "']", entrydiv);  
+        figure_edit_render_image(imageli, {'id' : responseJSON.id, 
+                                           'visible' : true, 
+                                                'caption' : "", 
+                                                'maxsize' : max}); 
+        
+        
+    },
+    
+    progress : function(upload_id, fileName, loaded, total) {
+         
+
+    }, 
+    
+    submit : function(upload_id, fileName) {
+        var entrydiv = $(this.button).closest(".entry"); 
+
+        var imglist = $("ul.images", entrydiv); 
+
+        var li = figure_edit_create_li(); 
+
+        imglist.append(li); 
+        
+        $(li).attr("upload_id", upload_id); 
+
+    },
+
+    cancel : function(upload_id, fileName)  {
+
+    }
 
     
-    var entrydiv = $(this.element).closest(".entry"); 
-    
-    
-    // every time this is done, we append it to the proofs, and start a new renderer
-    
-    // add a div, append it to proofs
-    var containerdiv = $("ul.images", entrydiv);  
-    figure_edit_render_image(containerdiv, {'id' : responseJSON.id, 
-                                            'visible' : true, 
-                                            'caption' : "", 
-                                            'maxsize' : max}); 
-
-
-
-    
-}
+}; 

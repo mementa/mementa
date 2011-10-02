@@ -278,10 +278,10 @@ $(document).ready(
                                                                debug: true,
                                                                // path to server-side upload script
                                                                action: '/api/' + CURRENT_NOTEBOOK + '/upload', 
-                                                               onComplete : figure_edit_file_upload_complete,
-                                                               onProgress : figure_edit_file_upload_progress,
-                                                               onSubmit : figure_edit_file_upload_submit,
-                                                               onCancel : figure_edit_file_upload_cancel,
+                                                               onComplete : figure_edit_file_upload.complete,
+                                                               onProgress : figure_edit_file_upload.progress,
+                                                               onSubmit : figure_edit_file_upload.submit,
+                                                               onCancel : figure_edit_file_upload.cancel,
                           
 
                                                                
