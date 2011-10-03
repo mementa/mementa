@@ -6,7 +6,6 @@ function setup_page_dnd(entry_container, server)
     
     $("span.move", entry_container)
         .live('dragstart', function(evt)  {
-                  console.log("entry drag start", this); 
 
                   var dt = evt.dataTransfer;
                   var entrydom = $(this).closest(".entry")[0];
@@ -105,7 +104,8 @@ function setup_page_dnd(entry_container, server)
               });
     
     
-    function show_drop_target(pos) {
+    function show_drop_target(pos, relpos, height) {
+
         $(".entrydroptarget", entry_container)
             .each(function() {$(this).hide();}); ; 
         $(".entrydroptarget", entry_container).eq(pos).show();
@@ -120,12 +120,18 @@ function setup_page_dnd(entry_container, server)
                   }
 
                   var pos = parseFloat($(this).attr("entry-pos")); 
-                  var relpos = evt.offsetY / $(this).height(); 
-                  
+
+                  // it's shockingly hard to get relative-position-inside-elemement
+                  // in a cross-browser way
+                  var PAGE_OFFSET_VERTICAL = 40; 
+                  var offset = $(this).position(); 
+                  var relY = evt.pageY - offset.top - PAGE_OFFSET_VERTICAL; 
+                  var relpos = relY - $(this).height(); 
+
                   if (relpos < 0.5) {
-                      show_drop_target(pos);
+                      show_drop_target(pos, relpos, $(this).height());
                   } else {
-                      show_drop_target(pos+1);
+                      show_drop_target(pos+1, relpos, $(this).height());
                   }
                   
                   evt.preventDefault(); 
