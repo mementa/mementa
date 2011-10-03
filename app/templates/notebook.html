@@ -15,7 +15,8 @@
 
 <div class="container">
   <div class="page-header"> 
-  <H1> {{notebook.title}} <small> {{notebook.name}}
+  <H1> {{notebook.title}} <small> {{notebook.name}} </small>
+    {% if notebook.archived %} <span class='label'> Archived </span> {% endif %}
       <div class='users'>
         <small> authors: </small>
         {% for u in notebook_users %}

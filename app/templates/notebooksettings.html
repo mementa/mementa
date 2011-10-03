@@ -21,16 +21,35 @@
 
   <div class="row">
     <div class="span7">
-      <form>
+      <form class="form-stacked">
         <fieldset>
           <legend>Notebook Settings</legend>
           <div class="clearfix">
-            <label for="xlInput">Notebook Title</label>
+            <label for="title">Notebook Title</label>
             <div class="input">
               <input class="xlarge" id="title" name="title" size="30" type="text"  />
             </div>
           </div><!-- /clearfix -->
-
+ 
+          <div class="clearfix">
+            <label id="optionsRadio">Archive Status</label>
+            <div class="input">
+              <ul class="inputs-list">
+                <li>
+                  <label>
+                    <input type="radio" {% if not notebook.archived %} checked {%endif %} name="optionsArchived" value="false" />
+                    <span> This notebook is editable and visible </span>
+                  </label>
+                </li>
+                <li>
+                  <label>
+                    <input type="radio" {% if notebook.archived %} checked {%endif %} name="optionsArchived" value="true" />
+                    <span>This notebook is <b>archived</b>, and cannot be seen from the notebooks list </span>
+                  </label>
+                </li>
+              </ul>
+            </div>
+          </div><!-- /clearfix -->         
           <div class="actions">
             <input id="save_changes" type="submit" class="btn primary" value="Save changes">&nbsp;
           </div>

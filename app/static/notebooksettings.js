@@ -147,6 +147,7 @@ $(document).ready(
             var ul_rendered = render_user_list(ul, notebook.admins); 
             $("#userlist").html(ul_rendered); 
             $("#title").val(notebook.title); 
+            
 
         }
         var resp = $.ajax({url : configurl, 
@@ -161,13 +162,20 @@ $(document).ready(
             .click(function(elt) {
                        var form = $(this).closest("form"); 
                        var title = $("input[name='title']", form).val(); 
-                       console.log("setting title to", title); 
+                       var archived = false;
+                       console.log($("input[name='optionsArchived']:checked").val()); 
+                       if($("input[name='optionsArchived']:checked").val() == 'true') {
+                           console.log("setting archived to true"); 
+                           archived = true; 
+
+                       }
                        var resp = $.ajax({url : configurl, 
                                           type : "POST", 
-                                         contentType : "application/json", 
+                                          contentType : "application/json", 
                                           dataType: "json", 
-                                          data: JSON.stringify({'title' : title})}); 
-
+                                          data: JSON.stringify({'title' : title, 
+                                                                'archived' : archived})}); 
+                       
                       
                       resp.done(function(data) {
                                     render_page(data.notebook, data.users); 

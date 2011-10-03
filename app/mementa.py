@@ -121,7 +121,8 @@ def lookup_user(userid):
 @app.route('/')
 @login_required
 def home():
-    notebooks = g.sysdb.notebooks.find({'users':  dbref('users', session['user_id'])})
+    notebooks = g.sysdb.notebooks.find({'users':  dbref('users', session['user_id']),
+                                        'archived' : { "$ne" :  True}})
     nblist = []
     for n in notebooks:
         nblist.append({'name' : n['name'],
@@ -688,6 +689,7 @@ def api_notebookadmin_config(notebook):
     title:
     admin
     users
+    archived
     
     Always returns full doc
 
@@ -720,6 +722,14 @@ def api_notebookadmin_config(notebook):
         if 'title' in rd:
             raw_nb_doc['title'] = rd['title']
 
+        if 'archived' in rd:
+            if rd['archived']:
+                raw_nb_doc['archived'] = True
+            else:
+                raw_nb_doc['archived'] = False
+                
+        print "raw_nb_doc=", raw_nb_doc
+        print 'RD=', rd
         # check unique
         
         if 'users' in rd:

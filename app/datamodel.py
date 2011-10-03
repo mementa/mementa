@@ -28,7 +28,7 @@ def dbref(collection, oid, database=None):
     return bson.dbref.DBRef(collection, oid, database = database)
 
 
-def notebook_create(name, dbname, title, users = None, admins = None) :
+def notebook_create(name, dbname, title, users = None, admins = None, archived=False) :
     """
 
     """
@@ -50,7 +50,8 @@ def notebook_create(name, dbname, title, users = None, admins = None) :
            'dbname' : dbname,
            'title' : title,
            'users' :  users_ref,
-           'admins' : admins_ref}
+           'admins' : admins_ref,
+           'archived' : archived}
     
     return doc
 
