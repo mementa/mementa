@@ -253,20 +253,23 @@ $(document).ready(
                           if(config.entryclass == 'text') {
                               if(oldstate == 'view') {
                                   $(".textbody", element )
-                                      .ckeditor(function() { },
+                                      .ckeditor(function() { 
+                                                    var pos = $(element).position(); 
+                                                    console.log("Scrolling body to", pos.top);
+                                                    $("body").scrollTop(pos.top); 
+
+                                                },
                                                 {
 		                                            extraPlugins : 'autogrow',
                                                     toolbar_Custom : 
                                                     [
-	                                                    ['Bold', 'Italic', '-', 'Format', '-', 'NumberedList', 'BulletedList', '-', 'Link', 'Unlink']
+	                                                    ['Bold', 'Italic', '-', 'Format', '-', 'NumberedList', 'BulletedList', '-', 'Link', 'Unlink', '-', "button-pre"]
                                                     ], 
                                                     toolbar : 'Custom', 
-		                                         // Remove the Resize plugin as it does not make sense to use it in conjunction with the AutoGrow plugin.
-		                                         removePlugins : 'resize',
-                                                    contentsCss : "/static/vendor/bootstrap/bootstrap.min.css"
-});
-                       
-
+		                                            // Remove the Resize plugin as it does not make sense to use it in conjunction with the AutoGrow plugin.
+		                                            removePlugins : 'resize',
+                                                    contentsCss : "/static/vendor/bootstrap/bootstrap.min.css",
+                                                    extraPlugins : "button-pre"});
                        
                               }                                                       
                           }  else if (config.entryclass == 'figure') {
@@ -325,9 +328,13 @@ w
         server.setPageState(init_page_entry, init_page_rev); 
 
         // setup the handlers
-        $(".entry a.edit").live('click', function(e) {
-                                    dom_view_edit_click(this, docdb); 
-                                }); 
+        $(".entry a.edit")
+            .live('click', function(e) {
+                                            
+                      var resp = dom_view_edit_click(this, docdb); 
+
+                      
+                  }); 
 
         $(".entry a.remove").live('click', function(e) {
                                     dom_view_remove_click(this, server); 

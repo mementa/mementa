@@ -627,6 +627,8 @@ function state_view_to_edit(entrydiv, docdb)
     var entry_doc = docdb.getEntry(entry_id); 
     save_entry_config(entrydiv); 
 
+    var resp = $.Deferred(); 
+
     $.when(entry_doc)
         .done(function(ed) {
                  var rev_id = ed.head; 
@@ -636,10 +638,10 @@ function state_view_to_edit(entrydiv, docdb)
                                 var body = create_entrydiv_body_edit(rev_doc); 
                                 $(entrydiv).html(body); 
                                 set_state(entrydiv, 'edit'); 
-
+                                resp.resolve(entrydiv); 
                                })}); 
 
-
+    return resp.promise(); 
 
 }
 
@@ -890,7 +892,7 @@ function dom_add_entry_click(doc, server, docdb) {
 function dom_view_edit_click(entrydom_link, docdb)
 {
     var entrydom = $(entrydom_link).closest(".entry"); 
-    state_view_to_edit(entrydom, docdb); 
+    return state_view_to_edit(entrydom, docdb); 
     
 }
 
