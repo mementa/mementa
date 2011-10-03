@@ -571,6 +571,8 @@ w
                        console.log("uploader=", uploader);
                        uploader._onInputChange(evt.dataTransfer); 
 
+                       evt.stopPropagation();
+                       evt.preventDefault();
                        
                    }); 
         
