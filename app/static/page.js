@@ -192,7 +192,6 @@ $(document).ready(
                                $(this).data('old-page-rev', doc); 
                                $("#page_title_view").html(doc.title);
                                document.title = doc.title + " - Mementa";
-                               console.log("document.title =", document.title);
                                
                                var old_not_in_new = _.difference(oldpage_rev.tags, 
                                                                  doc.tags); 
@@ -257,11 +256,6 @@ $(document).ready(
                                   $(".textbody", element )
                                       .ckeditor(function() { 
                                                     var editor = this; 
-                                                    console.log("ckeditor init, this=", this); 
-                                                    // this.on('key', function(e) {
-                                                    //             console.log("keyboard event"); 
-                                                                
-                                                    //         }); 
 
                                                     editor.on('paste', function(evt){
                                                                   // FIXME: Remove quotes, sanitize URL, etc. 
@@ -289,8 +283,6 @@ $(document).ready(
 
 
                                                     var pos = $(element).position(); 
-                                                    console.log("Scrolling body to", pos.top);
-                                                    $("body").scrollTop(pos.top); 
 
                                                 },
                                                 {
@@ -579,7 +571,7 @@ w
 
         var insel = $("div.entry[state='edit'][entry-class='figure'] .control"); 
         insel.live('dragenter', function(evt) {
-                       console.log("dragenter", this, evt); 
+
                        $(".hover", this).show(); 
                        evt.stopPropagation();
                        evt.preventDefault();
@@ -588,7 +580,7 @@ w
 
         insel.live('dragover', noopHandler);
         $(".hover", insel).live('dragleave', function(evt) {
-                       console.log("dragleave", this, evt); 
+
                        $(this).hide(); 
                        evt.stopPropagation();
                        evt.preventDefault();
@@ -599,10 +591,10 @@ w
                        $(".hover", this).hide(); 
                        
                        var files = evt.dataTransfer.files; 
-                       console.log("You dropped", files); 
+
                        var entrydiv = $(this).closest(".entry"); 
                        var uploader = $("input[name='files']", entrydiv).data("uploader"); 
-                       console.log("uploader=", uploader);
+
                        uploader._onInputChange(evt.dataTransfer); 
 
                        evt.stopPropagation();
