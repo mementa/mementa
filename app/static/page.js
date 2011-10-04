@@ -254,6 +254,38 @@ $(document).ready(
                               if(oldstate == 'view') {
                                   $(".textbody", element )
                                       .ckeditor(function() { 
+                                                    var editor = this; 
+                                                    console.log("ckeditor init, this=", this); 
+                                                    // this.on('key', function(e) {
+                                                    //             console.log("keyboard event"); 
+                                                                
+                                                    //         }); 
+
+                                                    editor.on('paste', function(evt){
+                                                                  // FIXME: Remove quotes, sanitize URL, etc. 
+
+
+                                                                  var html = evt.data.html; 
+                                                                  var text = evt.data.text; 
+                                                                  if(html) {
+                                                                      if(isValidURL(html)) {
+                                                                          evt.editor.insertHtml('<a href="' + html + '">' + html + "</a>"); 
+                                                                      } else {
+                                                                          evt.editor.insertHtml(html); 
+                                                                      }
+
+                                                                  } else if (text) {
+                                                                      if(isValidURL(text)) {
+                                                                          evt.editor.insertHtml('<a href="' + text + '">' + text + "</a>"); 
+                                                                      } else {
+                                                                          evt.editor.insertText(text); 
+                                                                      }
+                                                                  }
+                                                                  evt.cancel(); 
+
+                                                              }); 
+
+
                                                     var pos = $(element).position(); 
                                                     console.log("Scrolling body to", pos.top);
                                                     $("body").scrollTop(pos.top); 
@@ -576,5 +608,7 @@ w
                        
                    }); 
         
+
+
     }); 
 
