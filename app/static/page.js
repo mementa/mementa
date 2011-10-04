@@ -190,7 +190,8 @@ $(document).ready(
 
                                $(this).data('old-page-rev', doc); 
                                $("#page_title_view").html(doc.title);
-
+                               document.title = doc.title + " - Mementa";
+                               console.log("document.title =", document.title);
                                
                                var old_not_in_new = _.difference(oldpage_rev.tags, 
                                                                  doc.tags); 
