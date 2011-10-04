@@ -104,6 +104,7 @@ function hide_tag_suggestions()
 
 $(document).ready(
     function () {
+        $.fn.cuteTime.settings.refresh = 10000;
 
         var notebook = CURRENT_NOTEBOOK; 
         // create the docdb
@@ -609,6 +610,7 @@ w
                        
                    }); 
         
+
 
 
     }); 

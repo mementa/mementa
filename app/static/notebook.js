@@ -7,5 +7,8 @@ $(document).ready(
         var server = new Server(entriesdiv, notebook); 
 
         setup_avatars(server, $("body")); 
+        $.fn.cuteTime.settings.refresh = 10000;
+
+        $('.date').cuteTime();
 
     }); 
