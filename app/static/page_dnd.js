@@ -51,6 +51,7 @@ function setup_page_dnd(entry_container, server)
     
     $("div.entrydroptarget", entry_container)
         .live("drop", function(evt) {
+
                   if(!$(document).data(PAGE_KEY)) {
                       return true; 
                   }
@@ -61,7 +62,7 @@ function setup_page_dnd(entry_container, server)
 
                   var source_pos = parseFloat(dt.getData("Text")); 
                   var dest_pos = parseFloat($(this).attr("pos")); 
-                      
+
                   move_entry(server, $(entry_container), source_pos, 
                              dest_pos); 
                   
@@ -74,16 +75,16 @@ function setup_page_dnd(entry_container, server)
     
     $("div.entry", entry_container)
         .live("drop", function(evt) {
+
                   if(!$(document).data(PAGE_KEY)) {
+                      console.log("Not a page drop");
                       return true; 
                   }
 
                   var dt = evt.dataTransfer;
-                  if(dt.getData("Type") !== "entry") {
-                      return; 
-                  }
                   var source_pos = parseFloat(dt.getData("Text")); 
                   var dest_pos = parseFloat($(this).attr("entry-pos")); 
+
                   move_entry(server, $("#entries"), source_pos, 
                              dest_pos); 
                   
@@ -126,8 +127,8 @@ function setup_page_dnd(entry_container, server)
                   var PAGE_OFFSET_VERTICAL = 40; 
                   var offset = $(this).position(); 
                   var relY = evt.pageY - offset.top - PAGE_OFFSET_VERTICAL; 
-                  var relpos = relY - $(this).height(); 
-
+                  var relpos = relY / $(this).height(); 
+                  //console.log("offset.top=", offset.top, "relY=", relY, "relpos=", relpos, " this.height=", $(this).height()); 
                   if (relpos < 0.5) {
                       show_drop_target(pos, relpos, $(this).height());
                   } else {
