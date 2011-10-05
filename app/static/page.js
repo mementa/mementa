@@ -12,6 +12,53 @@ function is_hidden_visible()
     return $("#showhidden").is(':checked');
 }
 
+function goto_entry(entryid, entrycontainerdiv)
+{
+ /* smooothly go to the indicated entry -- must be visible, etc. 
+  * 
+  * FIXME: say something if the entry is not visible
+  * SAY something if the entry is no longer on the page
+  * 
+  * Yeah, lots of fixmes
+  * 
+  * 
+  */
+    
+    var ents = $("div.entry[entryid='" + entryid + "']", entrycontainerdiv); 
+    
+    if(ents === []) {
+        console.log("There is no instance of that entry on this page!"); 
+    } else {
+        // get first one
+        var ent = ents[0]; 
+        if(get_entry_config(ent)['page-hidden']) { 
+            console.log("What should we do now, that entry is hidden!"); 
+            
+        } else {
+             
+            
+            $('html, body').animate({
+                                scrollTop: $(ent).offset().top - 40
+                            }, 1000);
+
+        }
+
+
+    }
+
+
+}
+
+function parse_hash(hashpart) {
+    /* assume the # has been removed */    
+    // right now only support entryid
+    
+    if(hashpart.indexOf("entry") >= 0) { 
+        return {entry : hashpart.substr(6)}; 
+    }
+    
+    return {}; 
+}
 
 function on_tags_changed(server, add) { 
     return function (event, tag) {
@@ -603,7 +650,30 @@ w
                    }); 
         
 
+        
 
+        $(window).bind('hashchange', function(evt) {
+                           
+                           var eid =  parse_hash(window.location.hash.substring(1)); 
+                           
+                           goto_entry(eid.entry, $("#entries")); 
+                           
+                           return true; 
+
+                       }); 
+
+        if(parse_hash(window.location.hash.substring(1)))  {
+            // This is a horrible hack! Because it takes a bit to load, have
+            // mathjax render things, etc. we wait a second
+            $.doTimeout(1000, function() {
+                            
+                            var eid =  parse_hash(window.location.hash.substring(1)); 
+                            
+                            goto_entry(eid.entry, $("#entries")); 
+                            
+                        }); 
+
+        }
 
     }); 
 

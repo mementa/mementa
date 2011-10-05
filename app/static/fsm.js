@@ -171,7 +171,7 @@ function create_entry_div(entryid, hidden, pinnedrev)
     
 }
 
-function create_entrydiv_body_view(rev_doc) {
+function create_entrydiv_body_view(rev_doc, entry_doc) {
     var class_content = 
         render.entry_rev_view[rev_doc['class']](rev_doc); 
     
@@ -182,12 +182,14 @@ function create_entrydiv_body_view(rev_doc) {
                           + "<a href='#' class='unhide'>unhide</a> &nbsp; &nbsp;"
                           + "<a href='#' class='remove'>remove</a> &nbsp; &nbsp;"
                           + "<span class='move' draggable='true'>reorder/move</span> &nbsp; &nbsp;"
+                          + "<a href='#' class='entry-permalink' >permalink</a> &nbsp; &nbsp;"
                           + "</div> <div class='notices'/> </div> </div>"); 
     
     var datestring = rev_doc.date.substr(0, rev_doc.date.length - 7) + "Z"; 
 
     $(".timestamp", entrydiv_body).html(datestring).cuteTime(); 
     $(".class-content", entrydiv_body).append(class_content); 
+    $("a.entry-permalink", entrydiv_body).attr("href", "#entry=" + entry_doc._id)
     $("img.avatar", entrydiv_body)
         .attr("src", "/api/user/" + rev_doc['author'] + "/avatar/48")
         .attr("user_id", rev_doc['author']); 
@@ -246,7 +248,7 @@ function entrydiv_reload_view(entrydiv, docdb, expected_config,
                                         
                                 }
                                                                 
-                                var body = create_entrydiv_body_view(revdoc);     
+                                var body = create_entrydiv_body_view(revdoc, entdoc);     
                                 $(entrydiv).html(body);
                                 update_entrydiv_view(entrydiv, revdoc); 
 
