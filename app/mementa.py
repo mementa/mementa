@@ -604,7 +604,10 @@ def api_entry_get_post(notebook, entryid):
             latest_rev_doc = nbdb.dereference(true_latest_rev_ref)
             latest_rev_json = dm.page_rev_to_json(latest_rev_doc)
 
-            return jsonify_error({"reason" : "Incorrect latest", 
+            entry_doc_json = dm.entry_to_json(latest_entry_doc)
+
+            return jsonify_error({"reason" : "Incorrect latest",
+                                  "latest_entry_doc": entry_doc_json, 
                                   "latest_revision_doc" : latest_rev_json},
                                  HTTP_ERROR_CLIENT_CONFLICT)
         
