@@ -145,11 +145,19 @@ function Server(associatedDOM, notebook) {
                       }); 
 
         resp.fail(function(jqxhr, textStatus, errorThrown) {
+
                       // FIXME this should return the out-of-date versions
                       if(textStatus == 'timeout') {
                           d.reject({reason: 'timeout'});                           
                       } else if (jqxhr.status == 409){
+                          // conflict
+                          var resp = $.parseJSON(jqxhr.responseText); 
                           d.reject({reason: 'conflict',} )
+                          var rev_doc = resp['latest_revision_doc']; 
+                          var entry = resp['latest_entry_doc']; 
+                          
+                          server.setPageState(entry, rev_doc); 
+
                       } else {
                           d.reject({reason : "unknown"}); 
                       }
