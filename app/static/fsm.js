@@ -816,6 +816,7 @@ function insert_entry_retry(server, pos, entryid, hidden, pinned, RETRYN)
     function attempt(tryattempt) {
         if(tryattempt == 0) {
             d.reject(); 
+            return; 
         } 
         
         var ps = server.getPageState(); 
