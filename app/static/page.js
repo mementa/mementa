@@ -342,6 +342,7 @@ $(document).ready(
 		                                            // Remove the Resize plugin as it does not make sense to use it in conjunction with the AutoGrow plugin.
 		                                            removePlugins : 'resize',
                                                     contentsCss : "/static/vendor/bootstrap/bootstrap.min.css",
+                                                    forcePasteAsPlainText : true,
                                                     extraPlugins : "button-pre"});
                        
                               }                                                       
