@@ -333,7 +333,6 @@ $(document).ready(
 
                                                 },
                                                 {
-		                                            extraPlugins : 'autogrow',
                                                     toolbar_Custom : 
                                                     [
 	                                                    ['Bold', 'Italic', '-', 'Format', '-', 'NumberedList', 'BulletedList', '-', 'Link', 'Unlink', '-', "button-pre"]
@@ -343,7 +342,7 @@ $(document).ready(
 		                                            removePlugins : 'resize',
                                                     contentsCss : "/static/vendor/bootstrap/bootstrap.min.css",
                                                     forcePasteAsPlainText : true,
-                                                    extraPlugins : "button-pre"});
+                                                    extraPlugins : "autogrow,button-pre"});
                        
                               }                                                       
                           }  else if (config.entryclass == 'figure') {
