@@ -193,7 +193,7 @@ function create_entrydiv_body_view(rev_doc, entry_doc) {
     $("img.avatar", entrydiv_body)
         .attr("src", "/api/user/" + rev_doc['author'] + "/avatar/48")
         .attr("user_id", rev_doc['author']); 
-    _.map(['hello', 'world', 'tag'], function(tag) {
+    _.map(rev_doc.tags, function(tag) {
               $(".tags", entrydiv_body).append("<span class='label'>" + tag + "</span> &nbsp;"); 
           }); 
     
@@ -291,7 +291,7 @@ function create_entrydiv_body_edit(rev_doc) {
                           + "    <div class='class-content'> </div>"
                           + "    <div class='control'> "
                           + "<div class='buttons'><a href='#' class='btn save primary'>save</a> <a href='#' class='btn cancel'>cancel </a> </div>"
-                         + "  <div class='tags'>  <ul class='tags'><li>test</li></ul></div>"
+                         + "  <div class='tags'> tags:  <ul class='tags'><li>test</li></ul></div>"
                           + "</div> "
                           + "<div class='notices'/> </div></div>"); 
     
@@ -690,6 +690,10 @@ function state_edit_to_savepending(entrydiv, server, docdb)
     // we think we are editing, even if rev might have been updated in the meantime. 
     var edited_revid = saved_config.revid; 
     doccontent['parent'] = edited_revid; 
+    
+    // tags
+    var curtags = $("ul.tags").tagit("assignedTags"); 
+    doccontent['tags'] = curtags; 
     
     var CONFLICT_MAXTRIES = 4; 
 
