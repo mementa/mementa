@@ -5,10 +5,10 @@ ul.tagit {
     margin-right: inherit;
 }
 ul.tagit li {
-	display: block;
-	float: left;
+	display: inline-block;
 	margin: 2px 5px 2px 0;
 }
+
 ul.tagit li.tagit-choice {
 	padding: .2em 18px .2em .5em;
     position: relative;
