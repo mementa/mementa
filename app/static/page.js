@@ -405,33 +405,48 @@ w
             .live('click', function(e) {
                                             
                       var resp = dom_view_edit_click(this, docdb); 
-
+                      e.preventDefault(); 
                       
                   }); 
 
-        $(".entry a.remove").live('click', function(e) {
-                                    dom_view_remove_click(this, server); 
-                                }); 
+        $(".entry a.remove")
+            .live('click', function(e) {
+                      dom_view_remove_click(this, server); 
+                      e.preventDefault(); 
+                      
+                  }); 
 
 
-        $(".entry a.hide").live('click', function(e) {
-                                    dom_view_hide_click(this, server, docdb, true); 
-                                }); 
+        $(".entry a.hide")
+            .live('click', function(e) {
+                      dom_view_hide_click(this, server, docdb, true); 
+                      e.preventDefault(); 
+                      
+                  }); 
 
-        $(".entry a.unhide").live('click', function(e) {
-                                    dom_view_hide_click(this, server, docdb, false); 
-                                }); 
+        $(".entry a.unhide")
+            .live('click', function(e) {
+                      dom_view_hide_click(this, server, docdb, false); 
+                      e.preventDefault(); 
+                      
+                  }); 
 
         
-        $(".entry a.save").live('click', function(e) {
-                                    var entrydiv = $(this).closest("entry"); 
+        $(".entry a.save")
+            .live('click', function(e) {
+                      var entrydiv = $(this).closest("entry"); 
+                      
+                      dom_edit_save_click(this, server, docdb); 
+                      e.preventDefault(); 
 
-                                    dom_edit_save_click(this, server, docdb); 
-                                }); 
+                  }); 
 
-        $(".entry a.cancel").live('click', function(e) {
-                                    dom_edit_cancel_click(this, docdb); 
-                                }); 
+        $(".entry a.cancel")
+            .live('click', function(e) {
+                      dom_edit_cancel_click(this, docdb); 
+                      e.preventDefault(); 
+                      
+                  }); 
         
         $("#pagetitle")
             .hoverIntent(
@@ -446,17 +461,19 @@ w
 
         
         $(".pagetitle a.edit")
-            .click(function() {
+            .click(function(e) {
                        $(".pagetitle div.view").hide(); 
                        $(".pagetitle div.edit").show(); 
                        $("#page_title_edit").html(server.getPageState().rev.title).focus(); 
-
+                       e.preventDefault(); 
                    }); 
         
         $("#page_title_cancel")
-            .click(function() {
+            .click(function(e) {
                        $(".pagetitle div.edit").hide(); 
                        $(".pagetitle div.view").show(); 
+                       e.preventDefault(); 
+
                    }); 
 
         
@@ -519,17 +536,21 @@ w
 
         
         $("#page_archive_click")
-            .click(function() {
+            .click(function(e) {
                        save_page_archive(5, true); 
+                       e.preventDefault(); 
+
                    }); 
         
         $("#page_unarchive_click")
-            .click(function() {
+            .click(function(e) {
                        save_page_archive(5, false); 
+                       e.preventDefault(); 
+
                    }); 
         
         $("#showhidden")
-            .click(function() {
+            .click(function(e) {
 
                        if(is_hidden_visible()) {
                            $(".entry[state='view'][page-hidden]").removeClass("hidden");                                    
@@ -537,11 +558,13 @@ w
                            $(".entry[state='view'][page-hidden]").addClass("hidden");                                    
                            
                        }
-            
+
+                       e.preventDefault(); 
+
         });
 
         $("#button_add_entry_text")
-            .click(function() { 
+            .click(function(e) { 
                        var resp = dom_add_entry_click(
                            {
                                'class' : 'text', 
@@ -550,11 +573,12 @@ w
                            }, server, docdb); 
                        // fixme : this is where we would wait for resp
                        // to finish and then set that entry editable or something
+                      e.preventDefault(); 
 
                        }); 
 
         $("#button_add_entry_figure")
-            .click(function() { 
+            .click(function(e) { 
                        var resp = dom_add_entry_click(
                            {
                                'class' : 'figure', 
@@ -564,18 +588,23 @@ w
                            }, server, docdb); 
                        // fixme : this is where we would wait for resp
                        // to finish and then set that entry editable or something
-
+                       e.preventDefault(); 
+                       
                        }); 
 
         
         $(".entry[state='view']")
-            .live("dblclick", function(ent) {
+            .live("dblclick", function(e) {
                       dom_view_edit_click(this, docdb); 
+                      e.preventDefault(); 
+
                   }); 
         
         $(".alert-message a.close")
-            .live("click", function(evenet) {
+            .live("click", function(e) {
                       $(this).closest(".alert-message").remove(); 
+                      e.preventDefault(); 
+                      
                   }); 
 
         $(".entry")
@@ -589,12 +618,14 @@ w
                       }}); 
         
         $(".entry[state='edit'][entry-class='figure'] li span.remove")
-            .live("click", function(elt) {
+            .live("click", function(e) {
                       $(this).closest("li").remove(); 
+                      e.preventDefault(); 
+                      
                   }); 
 
         $(".entry[state='edit'][entry-class='figure'] .imagecontainer input[name='visible']")
-            .live("click", function(elt) {
+            .live("click", function(e) {
                       if($(this).is(":checked")) {
                           $(this).closest("li").addClass("visible"); 
                       } else {
@@ -603,6 +634,7 @@ w
                           
 
                       }
+
                       
                   }); 
         
