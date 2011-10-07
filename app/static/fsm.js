@@ -182,7 +182,7 @@ function create_entrydiv_body_view(rev_doc, entry_doc) {
                           + "<a href='#' class='unhide'>unhide</a> &nbsp; &nbsp;"
                           + "<a href='#' class='remove'>remove</a> &nbsp; &nbsp;"
                           + "<span class='move' draggable='true'>reorder/move</span> &nbsp; &nbsp;"
-                          + "<a href='#' class='entry-permalink' >permalink</a> &nbsp; &nbsp;"
+                          + "<a href='#' class='entry-permalink' >permalink</a> &nbsp; &nbsp; <span class='tags'> </span>"
                           + "</div> <div class='notices'/> </div> </div>"); 
     
     var datestring = rev_doc.date.substr(0, rev_doc.date.length - 7) + "Z"; 
@@ -193,6 +193,10 @@ function create_entrydiv_body_view(rev_doc, entry_doc) {
     $("img.avatar", entrydiv_body)
         .attr("src", "/api/user/" + rev_doc['author'] + "/avatar/48")
         .attr("user_id", rev_doc['author']); 
+    _.map(['hello', 'world', 'tag'], function(tag) {
+              $(".tags", entrydiv_body).append("<span class='label'>" + tag + "</span> &nbsp;"); 
+          }); 
+    
     return entrydiv_body; 
 
 
@@ -278,18 +282,27 @@ function create_entrydiv_body_edit(rev_doc) {
     
     // update author information
     var entrydiv_body = $("<div class='entry-body'>"
+
                           + "<div class='meta'>"
                           + "<img class='avatar'/>"
                           + "</div>"
+
                           + "<div class='right-body'>"
-                          + "    <div class='class-content'/>"
-                          + "    <div class='control'><a href='#' class='btn save primary'>save</a> <a href='#' class='btn cancel'>cancel </a></div> "
+                          + "    <div class='class-content'> </div>"
+                          + "    <div class='control'> "
+                          + "<div class='buttons'><a href='#' class='btn save primary'>save</a> <a href='#' class='btn cancel'>cancel </a> </div>"
+                         + "  <div class='tags'>  <ul class='tags'><li>test</li></ul></div>"
+                          + "</div> "
                           + "<div class='notices'/> </div></div>"); 
     
     $(".class-content", entrydiv_body).append(class_content); 
     $("img.avatar", entrydiv_body)
         .attr("src", "/api/user/" + rev_doc['author'] + "/avatar/48"); 
 
+    _.map(rev_doc.tags, function(tag) {
+              $("ul.tags", entrydiv_body).append("<li>" + tag + "</li>");            
+          }); 
+    
     return entrydiv_body; 
 
 

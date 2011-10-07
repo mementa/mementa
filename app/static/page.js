@@ -298,6 +298,19 @@ $(document).ready(
                           }
 
                       } else if (state == 'edit') {
+
+                          /// for all entries! 
+
+                          var curtags = $("ul.tags", element).tagit(
+                              { onTagAdded: undefined, 
+                                 onTagRemoved : undefined,
+                                 allowSpaces: true, 
+                                 allowInput : true, 
+                                 // tagSource : testfunc, 
+                                 removeConfirmation: true }); 
+
+
+
                           if(config.entryclass == 'text') {
                               if(oldstate == 'view') {
                                   $(".textbody", element )
@@ -700,9 +713,9 @@ w
             $.doTimeout(1000, function() {
                             
                             var eid =  parse_hash(window.location.hash.substring(1)); 
-                            
-                            goto_entry(eid.entry, $("#entries")); 
-                            
+                            if(eid.entry) {
+                                goto_entry(eid.entry, $("#entries")); 
+                            }
                         }); 
 
         }
