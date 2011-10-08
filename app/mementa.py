@@ -64,6 +64,56 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+def check_api_auth(username, password):
+    u = g.sysdb.users.find_one({'username' : username})
+
+    successful = False
+    if u:
+        # check password
+        sp = saltpassword(password, app.config['PASSWORDSALT'])
+
+        if u['password'] == sp:
+            # successful login
+            successful = True
+        if 'apitoken' in u and u['apitoken'] == password:
+            successful = True
+
+        if successful : 
+            session['username'] = username
+            session['user_id'] = u['_id']
+            session['name'] = u['name']
+            
+            
+            return True
+    return False
+
+
+def api_or_login_required(f):
+    """
+    Checks if logged in, first with basic auth, then with session, and if not
+    returns 409 (does not redirect to login)
+
+    Used for API calls. 
+
+    """
+    def authenticate():
+        """Sends a 401 response that enables basic auth"""
+        return Response(
+        'Could not verify your access level for that URL.\n'
+        'You have to login with proper credentials', 401,
+        {'WWW-Authenticate': 'Basic realm="Login Required"'})
+    
+
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'username' not in session or session['username'] is None:
+            auth = request.authorization
+            if not auth or check_api_auth(auth.username, auth.password):
+                return authenticate()
+        return f(*args, **kwargs)
+    
+    return decorated_function
+
 def check_notebook_acl(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -394,9 +444,9 @@ def page(notebook, entryid):
 
 
 
-    
+
 @app.route("/api/<notebook>/entry/new", methods=["POST"])
-@login_required
+@api_or_login_required
 @check_notebook_acl
 def api_entry_new(notebook):
     """
@@ -482,7 +532,7 @@ def api_entry_new(notebook):
                     'revision' : rev_json})
 
 @app.route('/api/<notebook>/entry/<entryid>',  methods = ['GET', 'POST'])
-@login_required
+@api_or_login_required
 @check_notebook_acl
 def api_entry_get_post(notebook, entryid):
     """
@@ -627,7 +677,7 @@ def api_entry_get_post(notebook, entryid):
                         "revision" : dm.rev_to_json[entry_doc['class']](latest_page_rev)})
     
 @app.route('/api/notebookadmin/new', methods=['POST'])
-@login_required
+@api_or_login_required
 def api_notebookadmin_new():
     """
     Create a new notebook, with this user as the admin
@@ -682,7 +732,7 @@ def api_notebookadmin_new():
             return 'name already exists', HTTP_ERROR_CLIENT_CONFLICT
 
 @app.route('/api/<notebook>/config', methods=['GET', 'POST'])
-@login_required
+@api_or_login_required
 @check_notebook_acl
 def api_notebookadmin_config(notebook):
     """
@@ -777,7 +827,7 @@ def api_notebookadmin_config(notebook):
 
 
 @app.route('/api/<notebook>/rev/<revid>')
-@login_required
+@api_or_login_required
 @check_notebook_acl
 def api_rev_get(notebook, revid):
     """
@@ -858,7 +908,7 @@ def list_entries_query(db, req):
     
 
 @app.route('/api/<notebook>/list/entries')
-@login_required
+@api_or_login_required
 @check_notebook_acl
 def list_entries(notebook):
     """
@@ -880,7 +930,7 @@ def list_entries(notebook):
     return jsonify({'results' : results_data})
 
 @app.route('/api/user/<userid>/avatar/<size>')
-@login_required
+@api_or_login_required
 def user_get_avatar(userid, size=80):
     """
     """
@@ -897,7 +947,7 @@ def user_get_avatar(userid, size=80):
     return redirect(url)
 
 @app.route('/api/user/<userid>')
-@login_required
+@api_or_login_required
 def user_get_info(userid):
     """
     """
@@ -912,7 +962,7 @@ def user_get_info(userid):
 
 
 @app.route("/api/<notebook>/tags/all/<N>")
-@login_required
+@api_or_login_required
 @check_notebook_acl
 def get_top_n_tags(notebook, N):
     nbdb = g.dbconn[get_nb_dbname(notebook)]
@@ -923,7 +973,7 @@ def get_top_n_tags(notebook, N):
     return jsonify({'tagcounts': js})
 
 @app.route("/api/<notebook>/tags/count/<tag>")
-@login_required
+@api_or_login_required
 @check_notebook_acl
 def get_tag_count(notebook, tag):
     
@@ -934,7 +984,7 @@ def get_tag_count(notebook, tag):
                     'count' : c})
 
 @app.route("/api/<notebook>/tags/subset/<beginstr>/<N>")
-@login_required
+@api_or_login_required
 @check_notebook_acl
 def get_top_n_tags_str(notebook, beginstr, N):
     
@@ -947,7 +997,7 @@ def get_top_n_tags_str(notebook, beginstr, N):
 
 
 @app.route("/api/users/search/<searchstring>")
-@login_required
+@api_or_login_required
 def user_search_string(searchstring):
     """
     Search through the users and return any records that contain this string
@@ -1003,7 +1053,7 @@ def page_new(notebook):
     return redirect("/notebook/%s/page/%s" % (notebook, entid))
 
 @app.route("/api/<notebook>/upload", methods=['GET', 'POST'])
-@login_required
+@api_or_login_required
 @check_notebook_acl
 def upload(notebook):
     """
@@ -1042,7 +1092,7 @@ def upload(notebook):
                                session = session)
         
 @app.route("/api/<notebook>/files/<fileid>", methods=['GET'])
-@login_required
+@api_or_login_required
 @check_notebook_acl
 def files(notebook, fileid):
     if "." in fileid:
