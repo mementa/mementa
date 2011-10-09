@@ -165,14 +165,14 @@ def lookup_user(userid):
         ref = dbref('users', userid)
 
     doc = g.sysdb.dereference(ref)
-
+    
 
     return {'_id' : str(ref.id),
             'username' : doc['username'],
-            'name' : doc['name'],
-            'email' : doc['email'],
-            'avatar' : doc['avatar'],
-            'twitter' : doc['twitter']}
+            'name' : doc.get('name', ""),
+            'email' : doc.get('email', ""),
+            'avatar' : doc.get('avatar', ""),
+            'twitter' : doc.get('twitter', "")}
     
 
 @app.route('/')
@@ -961,6 +961,8 @@ def list_entries(notebook):
 @api_or_login_required
 def user_get_avatar(userid, size=80):
     """
+    Currently a proxy method, because eventually we might want to support
+    other avatars (twitter, google, etc.)
     """
 
     size = int(size)
