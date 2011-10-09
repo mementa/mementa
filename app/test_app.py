@@ -17,6 +17,8 @@ user_password = "testing"
 
 NBBASENAME = "testapp"
 
+PASSWORDSALT = "SALTY-P-WORDS"
+
 def generate_oid(i):
     return "0"*22 + "%02d" % i
     
@@ -24,14 +26,13 @@ def generate_oid(i):
 def create_users(conn):
 
 
-
     users = ['eric', 'cap', 'vimal', 'chicken']
     user_oids = {}
     
     for u in users:
-
+        
         pw_hash = mementa.saltpassword(user_password,
-                                       mementa.PASSWORDSALT)
+                                       PASSWORDSALT)
         
         user = dm.user_create(u, pw_hash)
         
@@ -43,20 +44,18 @@ def create_users(conn):
 
 
 @contextmanager
-def newnotebook(self, name):
-    print "Creating nb name=", name
+def newnotebook(self):
+
     rv = self.post_json("/api/notebookadmin/new",
-                        {'name' : name,
-                         'title' : "title-" + name})
-    print rv.data
+                        {'title' : "title-test"})
+
+    name = json.loads(rv.data)['name']
+
     assert_equal(rv.status_code, 200)
-    
-    assert_equal(json.loads(rv.data)['name'], name)
 
     # add users
-
     
-    yield 
+    yield name
 
     self.notebooks.append(name)
     
@@ -70,8 +69,8 @@ class MementaTestCase(unittest.TestCase):
     def setUp(self):
         mementa.app.config['DB_SYSTEM_DATABASE'] = "LALALA"
         mementa.app.config['TESTING'] = True
-        
-
+        mementa.app.config['PASSWORDSALT'] = PASSWORDSALT
+        mementa.app.config['SECRET_KEY'] = "AABBCCDD"
         self.conn = pymongo.Connection()
         self.sysdb = self.conn[mementa.app.config['DB_SYSTEM_DATABASE']]
         dbutils.create_system_indices(self.sysdb)
@@ -84,6 +83,7 @@ class MementaTestCase(unittest.TestCase):
 
         
         self.app = mementa.app.test_client()
+
         self.notebooks = []
         
     def tearDown(self):
@@ -124,18 +124,12 @@ class MementaTestCase(unittest.TestCase):
 
         body = "11, 22, 33, 44"
         title = "This is a title"
-        name = NBBASENAME + "testnotebook1"
         rv = self.post_json("/api/notebookadmin/new",
-                            {'name' : name, 
+                            {
                              'title' : title})
-        
-        assert_equal(json.loads(rv.data)['name'], name)
-        rv = self.post_json("/api/notebookadmin/new",
-                            {'name' : name, 
-                             'title' : title})
-        
-        assert_equal(rv.status_code, 409)
 
+        name = json.loads(rv.data)['name']
+        
         # now check get-notebook code
 
         rv = self.get_json("/api/%s/config" % name)
@@ -151,10 +145,11 @@ class MementaTestCase(unittest.TestCase):
 
         body = "11, 22, 33, 44"
         title = "This is a title"
-        name = NBBASENAME + "testnotebook1"
+
         rv = self.post_json("/api/notebookadmin/new",
-                            {'name' : name, 
-                             'title' : title})
+                            {'title' : title})
+                             
+        name = json.loads(rv.data)['name']
         
 
         rv = self.get_json("/api/%s/config" % name)
@@ -189,8 +184,7 @@ class MementaTestCase(unittest.TestCase):
     def test_create_text_entry(self):
         self.login(self.user_name, self.user_password)
 
-        nbname = NBBASENAME + "testnotebook1"
-        with newnotebook(self, nbname):
+        with newnotebook(self) as nbname:
             body = "11, 22, 33, 44"
             title = "This is a title"
             rv = self.post_json("/api/%s/entry/new" % nbname,
@@ -210,8 +204,7 @@ class MementaTestCase(unittest.TestCase):
     def test_create_figure_entry(self):
         self.login(self.user_name, self.user_password)
 
-        nbname = NBBASENAME + "testfigcreate"
-        with newnotebook(self, nbname):
+        with newnotebook(self) as  nbname:
             title = "This is a title"
             caption = "new caption"
             print "POSTING JSON"
@@ -240,8 +233,7 @@ class MementaTestCase(unittest.TestCase):
         
         self.login(self.user_name, self.user_password)
 
-        nbname = NBBASENAME + "testnotebook2" 
-        with newnotebook(self, nbname):
+        with newnotebook(self) as nbname:
             # create empty page
             title = "Empty Page"
             rv = self.post_json("/api/%s/entry/new" % nbname,
@@ -287,9 +279,8 @@ class MementaTestCase(unittest.TestCase):
         # 
 
         self.login(self.user_name, self.user_password)
-        nbname = NBBASENAME + "testpagemutate"
         
-        with newnotebook(self, nbname) : 
+        with newnotebook(self) as nbname : 
             # create empty page
             title = "Empty Page One"
             rv = self.post_json("/api/%s/entry/new" % nbname,
@@ -334,8 +325,7 @@ class MementaTestCase(unittest.TestCase):
 
         self.login(self.user_name, self.user_password)
 
-        nbname = NBBASENAME + "test1"
-        with newnotebook(self, nbname):
+        with newnotebook(self) as nbname:
             # create empty page
             title = "Test text entry"
             body = "test body"
@@ -391,8 +381,7 @@ class MementaTestCase(unittest.TestCase):
 
         self.login(self.user_name, self.user_password)
 
-        nbname = NBBASENAME + "test1figure"
-        with newnotebook(self, nbname):
+        with newnotebook(self) as nbname:
             # create empty page
             title = "Test text entry"
             caption = "test caption"
@@ -470,11 +459,10 @@ class MementaTestCase(unittest.TestCase):
 
         """
 
-        nbname = NBBASENAME + "testnb3"
 
         self.login(self.user_name, self.user_password)
 
-        with newnotebook(self, nbname):
+        with newnotebook(self) as nbname:
             # take the notebook and add the users
             uoids = [str(u) for n, u in self.user_oids.iteritems()]
             
@@ -573,11 +561,10 @@ class MementaTestCase(unittest.TestCase):
 
         # create the page with one entry
         # 
-        nbname = NBBASENAME + "testnb3"
 
         self.login(self.user_name, self.user_password)
 
-        with newnotebook(self, nbname):
+        with newnotebook(self) as nbname:
 
 
             def get_tag_counts(tlist):
