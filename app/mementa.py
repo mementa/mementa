@@ -1,5 +1,5 @@
 from functools import wraps
-from flask import Flask, session, redirect, url_for, escape, request, g, render_template, jsonify, make_response
+from flask import Flask, session, redirect, url_for, escape, request, g, render_template, jsonify, make_response, Response
 import simplejson as json
 import pymongo
 import gridfs
@@ -15,6 +15,8 @@ import dbutils
 import figure
 import sys
 import gitversion
+import base64
+import os
 
 # most of these should change for real deployment
 
@@ -36,7 +38,11 @@ app = Flask(__name__)
 app.config.from_object(__name__)
 
 
-
+def random_api_key():
+    API_KEY_LENGTH = 32
+    entropy = os.urandom(API_KEY_LENGTH)
+    return base64.b16encode(entropy)
+    
 def jsonify_error(d, e) :
     x = jsonify(d)
     x.status_code = e
@@ -66,16 +72,17 @@ def login_required(f):
 
 def check_api_auth(username, password):
     u = g.sysdb.users.find_one({'username' : username})
+    
 
     successful = False
     if u:
         # check password
         sp = saltpassword(password, app.config['PASSWORDSALT'])
-
+        
         if u['password'] == sp:
             # successful login
             successful = True
-        if 'apitoken' in u and u['apitoken'] == password:
+        if 'apikey' in u and u['apikey'] == password:
             successful = True
 
         if successful : 
@@ -83,8 +90,8 @@ def check_api_auth(username, password):
             session['user_id'] = u['_id']
             session['name'] = u['name']
             
-            
             return True
+
     return False
 
 
@@ -108,7 +115,7 @@ def api_or_login_required(f):
     def decorated_function(*args, **kwargs):
         if 'username' not in session or session['username'] is None:
             auth = request.authorization
-            if not auth or check_api_auth(auth.username, auth.password):
+            if not auth or not check_api_auth(auth.username, auth.password):
                 return authenticate()
         return f(*args, **kwargs)
     
@@ -343,6 +350,7 @@ def settings():
             else:
                 saltpw = saltpassword(pw1, app.config['PASSWORDSALT'])
                 user['password'] = saltpw
+                user['apikey'] = random_api_key()
 
                 g.sysdb.users.update({'_id' : user['_id'], },
                                   user)
@@ -369,6 +377,7 @@ def settings():
                                    action='settings',
                                    success = True,
                                    version = app.config['VERSION_GIT_DESCRIBE'])
+
 
         else:
             print "UNKNOWN FORM" # FIXME throw real error
@@ -695,7 +704,7 @@ def api_notebookadmin_new():
     nbns = g.sysdb.notebooks.find({'name' : {'$regex': "^" + NBNAME_PREFIX}}, sort = [("name", pymongo.DESCENDING)], limit=1)
     startpos = 0
     for nbn in nbns:
-        print "NBN =", nbn
+
         existing_name = nbn['name']
         existing_num_str = existing_name[2:]
         existing_num = int(existing_num_str)
@@ -719,7 +728,6 @@ def api_notebookadmin_new():
                                  admins = admins)
 
         try:
-            print "Trying to create notebook", doc
 
             g.sysdb.notebooks.insert(doc, safe=True)
 
@@ -728,8 +736,29 @@ def api_notebookadmin_new():
             return jsonify({'name' :name})
 
         except pymongo.errors.DuplicateKeyError, e:
-            print "There was an error!" 
             return 'name already exists', HTTP_ERROR_CLIENT_CONFLICT
+
+
+@app.route('/api/notebookadmin/', methods=['GET'])
+@api_or_login_required
+def api_notebookadmin_list():
+    """
+    List all the notebooks available to this user
+    
+    """
+
+    if request.mimetype != "application/json":
+        return "Invalid request type, must be application/json", HTTP_ERROR_CLIENT_BADREQUEST
+
+    notebooks = g.sysdb.notebooks.find({'users' :  dbref('users', session['user_id']),
+                                        'archived' : { "$ne" :  True}})
+    nblist = []
+    for n in notebooks:
+        nblist.append({'name' : n['name'],
+                       'title' : n['title']})
+
+    return jsonify({"notebooks" : nblist})
+
 
 @app.route('/api/<notebook>/config', methods=['GET', 'POST'])
 @api_or_login_required
@@ -781,8 +810,7 @@ def api_notebookadmin_config(notebook):
             else:
                 raw_nb_doc['archived'] = False
                 
-        print "raw_nb_doc=", raw_nb_doc
-        print 'RD=', rd
+
         # check unique
         
         if 'users' in rd:
@@ -1070,14 +1098,9 @@ def upload(notebook):
         filename = request.headers["X-File-Name"]
         import mimetypes
         mimetype = mimetypes.guess_type(filename)
-        print ("MIME TYPE=", mimetype[0])
 
         f = gf.new_file(content_type=mimetype[0])
         
-        print "headers=", request.headers
-        print "UPLOADING"
-        print "request.files=", request.files
-        print "Len data=", len(request.data)
 
         f.write(request.data)
         f.close()

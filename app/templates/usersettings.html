@@ -11,6 +11,7 @@
 
   <H1> User settings for {{user.username}}</h1>
   
+
   <form method="POST"> 
     <fieldset> 
       <legend>User Settings</legend> 
@@ -69,44 +70,60 @@
       </div> 
     </fieldset>
   </form>
-  <form method="POST"> 
-    <fieldset> 
-      <legend> Change Password</legend> 
+  <div class='row'> 
+    <div class='span8'>
+      <form method="POST"> 
+        <fieldset> 
+          <legend> Change Password</legend> 
+          
+          <div class="clearfix"> 
+            <label for="password">Password</label> 
+            <div class="input"> 
+              <input class="xlarge" id="password" name="password" size="30" type="password" /> 
+            </div> 
+          </div><!-- /clearfix --> 
+          
+          <div class="clearfix"> 
+            <label for="password2">Re-enter Password</label> 
+            <div class="input"> 
+              <input class="xlarge" id="password2" name="password2" size="30" type="password" /> 
+            </div> 
+          </div><!-- /clearfix --> 
+          {% if action == 'password' %}
+          {% if success %}
+          <div class="alert-message success" data-alert="alert"> 
+            <a class="close" href="#">&times;</a> 
+            <p><strong>Successfully updated password</strong></p>
+          </div> 
+          {% else %}
+          <div class="alert-message error" data-alert="alert"> 
+            <a class="close" href="#">&times;</a> 
+            <p><strong>Passwords didn't match</strong></p>
+          </div> 
+          {% endif %}
+          {% endif %}
+          <div class="actions"> 
+            <input type='hidden' name='form' value='password'/>
+            <button type="submit" class="btn primary" name="change_password">Change Password</button>&nbsp;
+          </div> 
+          
+        </fieldset>
+      </form>
+    </div> 
+    
+    <div class='span8'>
+      {% if user.apikey %}
+      Your api key is<p>
+      <small><code>{{user.apikey}}</code></small>
+       {% else %}
+       Update your password to generate an API key. 
+      {%endif %}
+       <p>
+      
+       Use the API key to give access to your account to third party tools. Be careful, anyone with this key can access all of your mementa data! 
 
-      <div class="clearfix"> 
-        <label for="password">Password</label> 
-        <div class="input"> 
-          <input class="xlarge" id="password" name="password" size="30" type="password" /> 
-        </div> 
-      </div><!-- /clearfix --> 
-
-      <div class="clearfix"> 
-        <label for="password2">Re-enter Password</label> 
-        <div class="input"> 
-          <input class="xlarge" id="password2" name="password2" size="30" type="password" /> 
-        </div> 
-      </div><!-- /clearfix --> 
-      {% if action == 'password' %}
-      {% if success %}
-      <div class="alert-message success" data-alert="alert"> 
-        <a class="close" href="#">&times;</a> 
-        <p><strong>Successfully updated password</strong></p>
-      </div> 
-      {% else %}
-      <div class="alert-message error" data-alert="alert"> 
-        <a class="close" href="#">&times;</a> 
-        <p><strong>Passwords didn't match</strong></p>
-      </div> 
-      {% endif %}
-      {% endif %}
-      <div class="actions"> 
-        <input type='hidden' name='form' value='password'/>
-        <button type="submit" class="btn primary" name="change_password">Change Password</button>&nbsp;
-      </div> 
-
-    </fieldset>
-  </form>
-
+    </div> 
+  </div>
 </div>
 
 {% endblock %}
