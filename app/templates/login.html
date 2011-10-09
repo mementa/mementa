@@ -1,3 +1,4 @@
+
 {% extends "mementa.html" %}
 
 {% block javascript_includes %}
@@ -27,25 +28,19 @@
                size="30" type="password" /> 
       </div> 
     </div>
-    <div class="clearfix"> 
-      <div class="input"> 
-        <input type="checkbox" name="optionsCheckboxes" value="option2" /> 
-        Keep me logged in for two weeks [NOT IMPLEMENTED]
 
-      </div> 
-    </div>
     {% if loginfail %}
     <div class='alert-message error'>Login failed, username or password incorrect!</div>
     {%endif%}
 
     <div class="actions"> 
-      <button type="submit" class="btn primary" value="Login">Login</button>&nbsp;<button type="reset" class="btn">Login with Google ID</button> 
+      <button type="submit" class="btn primary" value="Login">Login</button>&nbsp;
+      <!-- <button type="reset" class="btn">Login with Google ID</button>  -->
     </div> 
     </fieldset>
     <input type='hidden' name='nexturl' value='{{nexturl}}'/>
   </form>  
 </div>
-
 
 {% endblock %}
 
