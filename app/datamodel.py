@@ -133,6 +133,14 @@ def text_entry_revision_create(title, body, **kargs) :
             'body' : body,
             'class' : "text"}
 
+def code_entry_revision_create(title, code, source, language,**kargs) :
+
+    return {'title' : title,
+            'code' : code,
+            'source' : source,
+            'language' : language,
+            'class' : "code"}
+
 def figure_entry_revision_create(title, caption, maxsize = None,
                                  gallery = False,
                                  images = None):
@@ -242,6 +250,23 @@ def entry_text_rev_to_json(text):
             
     return new_entry_json    
 
+def entry_code_rev_to_json(text):
+    new_entry_json = {}
+    for k, v in text.iteritems():
+        if k == "author":
+            new_entry_json['author'] = str(v.id)
+        elif k == "parent":
+            if v:
+                new_entry_json['parent'] = str(v.id)
+        elif k == "_id":
+            new_entry_json['_id'] = str(v)
+        elif k == "date":
+            new_entry_json['date'] = v.isoformat()
+        else:
+            new_entry_json[k] = v
+            
+    return new_entry_json    
+
 def entry_figure_rev_to_json(text):
     new_entry_json = {}
     for k, v in text.iteritems():
@@ -279,6 +304,7 @@ def entry_to_json(entry_doc):
    
 rev_to_json = {'page' : page_rev_to_json,
                'text' : entry_text_rev_to_json,
+               'code' : entry_code_rev_to_json,
                'figure' : entry_figure_rev_to_json}
 
 
@@ -292,7 +318,18 @@ def entry_text_json_to_rev(jsond) :
     rev = text_entry_revision_create(title, body)
     
     return rev
- 
+
+def entry_code_json_to_rev(jsond) :
+    
+    title = jsond['title']
+    code = jsond['code']
+    source = jsond['source']
+    language = jsond['language']
+    
+    rev = code_entry_revision_create(title, code, source, language)
+    
+    return rev
+
 def entry_figure_json_to_rev(jsond) :
     print "entry_figure_json_to_rev", jsond
     title = jsond['title']
@@ -338,4 +375,5 @@ def notebook_to_json(nb):
 
 json_to_rev = {'text' : entry_text_json_to_rev,
                'figure' : entry_figure_json_to_rev,
+               'code' : entry_code_json_to_rev,
                'page' : page_json_to_rev}

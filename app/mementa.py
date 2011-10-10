@@ -595,8 +595,12 @@ def api_entry_get_post(notebook, entryid):
                                                   rd.get('maxsize', None),
                                                   gallery = rd.get("gallery", False),
                                                   images = rd['images'])
-            print "UPDATING WITH figure rev=", rev            
-                                                         
+
+        elif dclass == 'code' :
+            rev = dm.code_entry_revision_create(rd['title'],
+                                                rd['code'],
+                                                rd['source'],
+                                                rd['language'])
         
         elif dclass == 'page':
             rev = dm.page_entry_revision_create(rd['title'],
@@ -889,6 +893,8 @@ def list_entries_query(db, req):
             query['class'] = {"$ne" : "page"}
         elif req['class'] == 'text':
             query['class'] = "text"
+        elif req['class'] == 'code':
+            query['class'] = "code"
         elif req['class'] == 'figure':
             query['class'] = "figure"
 

@@ -200,6 +200,8 @@ class MementaTestCase(unittest.TestCase):
             rv_json = json.loads(rv.data)
             assert_equal(rv_json['revision']['body'], body)
             pass
+
+
     
     def test_create_figure_entry(self):
         self.login(self.user_name, self.user_password)
@@ -224,6 +226,30 @@ class MementaTestCase(unittest.TestCase):
             rv_json = json.loads(rv.data)
             assert_equal(rv_json['revision']['caption'], caption)
             pass
+
+    def test_create_code_entry(self):
+        self.login(self.user_name, self.user_password)
+
+        with newnotebook(self) as nbname:
+            title = "Code title"
+            code = '10 print "Hello world"\n 20 GOTO 10'
+            language = 'basic'
+            rv = self.post_json("/api/%s/entry/new" % nbname,
+                               {'class' : 'code',
+                                'title' : title,
+                                'code' : code,
+                                'language' : language,
+                                'source' : "http://www.google.com"})
+            
+
+            rv_json = json.loads(rv.data)
+            assert_equal(rv_json['revision']['code'], code)
+            assert_equal(rv_json['revision']['title'], title)
+                         
+            rv = self.app.get("/api/%s/entry/%s" % (nbname, rv_json['entry']['_id']))
+            rv_json = json.loads(rv.data)
+            assert_equal(rv_json['revision']['code'], code)
+
 
     def test_create_page(self):
         """
