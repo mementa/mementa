@@ -297,6 +297,17 @@ $(document).ready(
 
                           }
 
+                          if((config.entryclass == 'code')) {
+                              var code = $("pre.code", element).data('code'); 
+                              console.log("About to run on ", code); 
+                              var node = $("pre.code", element); 
+                              $(node).addClass("cm-s-default");
+                              var language = $("input[name='language']", element).val(); 
+
+                              CodeMirror.runMode(code, language, node[0]);
+
+                          }
+
                       } else if (state == 'edit') {
 
                           /// for all entries! 
@@ -383,6 +394,12 @@ $(document).ready(
                                               uploader._onInputChange(this); 
 w
                                           }); 
+                          } else if (config.entryclass == 'code') {
+                              var myCodeMirror = CodeMirror.fromTextArea($("textarea", element)[0])
+                              $(element).data("codemirror", myCodeMirror); 
+
+
+
                           }
                       }
                       
@@ -590,6 +607,23 @@ w
 
                        }); 
 
+        $("#button_add_entry_code")
+            .click(function(e) { 
+                       var resp = dom_add_entry_click(
+                           {
+                               'class' : 'code', 
+                               title : "dummy title", 
+                               code: "Temp body;", 
+                               caption: "", 
+                               language: "python", 
+                               source: "woowoo"
+                           }, server, docdb); 
+                       // fixme : this is where we would wait for resp
+                       // to finish and then set that entry editable or something
+                      e.preventDefault(); 
+
+                       }); 
+
         $("#button_add_entry_figure")
             .click(function(e) { 
                        var resp = dom_add_entry_click(
@@ -719,6 +753,9 @@ w
                         }); 
 
         }
+
+        CodeMirror.defaults.lineNumbers = true; 
+
 
     }); 
 

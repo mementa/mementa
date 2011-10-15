@@ -6,7 +6,6 @@ entry, revision, time, content
 
 Now, should a "save" return successful, this entry will be deleted
 
-
 Questions we need to answer: 
 
 For a given revision, do we want to store autosave data? 
@@ -32,3 +31,17 @@ if save is successful:
 delete autosave
 
 
+----------------------------------------------------------
+
+Load data
+
+is there an autosave ? present widgets: 
+
+widget behavior: 
+most recent
+autosave one
+autosave two
+
+edit-cancel : preserve autosaves
+
+successful save: delete all autosaves

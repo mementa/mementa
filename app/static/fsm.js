@@ -20,13 +20,23 @@ var render = {
                        figure_view_render_image(imglist, elt); 
                    }); 
             return view; 
-        }
+        },
+
+        code: function(rev_doc) {
+
+            var div_html = $.mustache("<div> <h2>{{{title}}}</h2> <pre class='code'>{{{code}}}</pre> <input type='hidden' name='language' value='{{language}}'></input>"
+                                + "<div class='caption'> {{caption}} </div></div>", rev_doc);
+            var div = $(div_html); 
+            $("pre.code", div).data('code', rev_doc.code); 
+            return div; 
+
+        }, 
 
     }, 
 
     entry_rev_edit : { 
         text: function(rev_doc) {
-            return $($.mustache("<div> <input name='title' value='{{{title}}}' class='xlarge' size='70' placeholder='optional title for figure'/> <div class='toolbar'> </div> <textarea class='textbody'> {{{body}}} </textarea> "
+            return $($.mustache("<div> <input name='title' value='{{{title}}}' class='xlarge' size='70' placeholder='optional title for entry'/> <div class='toolbar'> </div> <textarea class='textbody'>{{{body}}}</textarea> "
                                 + "</div>", rev_doc)); 
         },
 
@@ -48,8 +58,25 @@ var render = {
                    }); 
 
             return view; 
-        }
+        },
 
+        code: function(rev_doc) {
+            var div = $.mustache("<div> <input name='title' value='{{{title}}}' class='xlarge' size='70' placeholder='optional title for code'/> <textarea class='code'>{{{code}}}</textarea> <textarea class='caption'>{{caption}}</textarea> language <select name='language'></select>"
+                                + "</div>", rev_doc); 
+            
+            var divobj = $(div); 
+            // populate selector
+            _.map(['python', 'r', 'javascript', 'other'], function(lang) {
+                      var selected = lang == rev_doc.language; 
+                      $("select[name='language']", divobj).append($('<option>', { value : lang, 
+                                                                        selected: selected})
+                                              .text(lang)); 
+
+                  }); 
+            return divobj; 
+
+
+        },
 
     },
 
@@ -104,7 +131,27 @@ var render = {
                 gallery : false
             }; 
 
-        }
+        }, 
+
+        code: function(entrydiv) {
+            var title = $("input[name='title']", entrydiv).val(); 
+
+            var codemirrorinst = $(entrydiv).data("codemirror"); 
+            var code = codemirrorinst.getValue(); 
+            
+            var language = $("select[name='language']", entrydiv).val(); 
+            var caption = $("textarea.caption", entrydiv).val(); 
+
+            console.log("language=", language);
+            return {
+                title : title, 
+                code : code, 
+                language: language, 
+                source: "", 
+                caption: caption
+            }; 
+        }, 
+
     }
 
     

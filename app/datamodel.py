@@ -133,12 +133,13 @@ def text_entry_revision_create(title, body, **kargs) :
             'body' : body,
             'class' : "text"}
 
-def code_entry_revision_create(title, code, source, language,**kargs) :
+def code_entry_revision_create(title, code, source, language, caption):
 
     return {'title' : title,
             'code' : code,
             'source' : source,
             'language' : language,
+            'caption' : caption, 
             'class' : "code"}
 
 def figure_entry_revision_create(title, caption, maxsize = None,
@@ -325,8 +326,8 @@ def entry_code_json_to_rev(jsond) :
     code = jsond['code']
     source = jsond['source']
     language = jsond['language']
-    
-    rev = code_entry_revision_create(title, code, source, language)
+    caption = jsond['caption']
+    rev = code_entry_revision_create(title, code, source, language, caption)
     
     return rev
 

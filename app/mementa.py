@@ -600,7 +600,8 @@ def api_entry_get_post(notebook, entryid):
             rev = dm.code_entry_revision_create(rd['title'],
                                                 rd['code'],
                                                 rd['source'],
-                                                rd['language'])
+                                                rd['language'],
+                                                rd['caption'])
         
         elif dclass == 'page':
             rev = dm.page_entry_revision_create(rd['title'],
