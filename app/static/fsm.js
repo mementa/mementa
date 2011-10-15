@@ -291,7 +291,7 @@ function create_entrydiv_body_edit(rev_doc) {
                           + "    <div class='class-content'> </div>"
                           + "    <div class='control'> "
                           + "<div class='buttons'><a href='#' class='btn save primary'>save</a> <a href='#' class='btn cancel'>cancel </a> </div>"
-                         + "  <div class='tags'> tags:  <ul class='tags'><li>test</li></ul></div>"
+                          + "  <div class='tags'> tags:  <ul class='tags'></ul></div>"
                           + "</div> "
                           + "<div class='notices'/> </div></div>"); 
     
