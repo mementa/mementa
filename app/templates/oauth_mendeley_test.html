@@ -1,0 +1,16 @@
+{% extends "mementa.html" %}
+
+
+{% block content %} 
+
+<h1>Mendeley Connection Test </h1>
+
+This should be some of your documents:
+
+<ul>
+{% for docinfo in docs%}
+    <li><b>{{docinfo.title}}</b> </li>
+{% endfor %} 
+</ul>
+{% endblock %}
+

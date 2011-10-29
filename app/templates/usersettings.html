@@ -18,7 +18,7 @@
   </ul>
   
   <div class="tab-content"> 
-    <div id="profile"> 
+    <div id="profile" class='active'> 
       <form method="POST"> 
         <fieldset> 
           <legend>User Settings</legend> 
@@ -144,7 +144,8 @@
           
         <span class="label success">Connected!</span> You are currently connected to Twitter as <code>{{user.oauth.twitter.screen_name}}</code>. <p><p>
           
-
+          <a href="/oauth/twitter/test" class='btn'> Test Twitter Connection </a> 
+        
           <a href="/oauth/twitter/unauthorize" class='btn'> Disconnect from Twitter </a>
           
         {% else %}
@@ -162,6 +163,7 @@
         <span class="label success">Connected!</span> You are currently connected to Github as <code>{{user.oauth.github.login}}</code>. <p><p>
           
 
+          <a href="/oauth/github/test" class='btn'> Test Github Connection </a> 
           <a href="/oauth/github/unauthorize" class='btn'> Disconnect from Github </a>
           
         {% else %}
@@ -178,6 +180,7 @@
           
         <span class="label success">Connected!</span> You are currently connected to Mendeley . <p><p>
           
+          <a href="/oauth/mendeley/test" class='btn'> Test Mendeley Connection </a> 
 
           <a href="/oauth/mendeley/unauthorize" class='btn'> Disconnect from Mendeley </a>
           

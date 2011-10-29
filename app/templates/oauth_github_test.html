@@ -1,0 +1,15 @@
+{% extends "mementa.html" %}
+
+
+{% block content %} 
+
+<h1> Github Connection Test </h1>
+
+These are your repositories, both public and private!
+<ul>
+{% for repo in repos%}
+    <li><b>{{repo.name}}</b> : {{repo.description}}</li>
+{% endfor %} 
+</ul>
+{% endblock %}
+

@@ -1305,6 +1305,43 @@ def oauth_github_callback():
     
     return redirect(request.args['next'])
 
+@app.route("/oauth/github/test")
+@login_required
+def oauth_github_test():
+
+    h = httplib2.Http()
+    servicename = 'github'
+
+    oauth_config = app.config['OAUTHCONFIG']
+    if servicename not in  oauth_config:
+        raise Exception("Github not configured for oauth")
+    
+    ut = g.sysdb.users.find_one({'_id': session["user_id"]},
+                                {'oauth.github' : 1})
+    
+    service_config = oauth_config[servicename]
+
+
+    ot = ut['oauth']['github']
+    URL = "https://api.github.com/user/repos"
+
+    URL = URL + "?" + urllib.urlencode({'access_token' : ot['access_token']})
+    print "REQUESTING", URL
+    
+    resp, content = h.request(URL)
+
+    # now where to redirect to?
+    
+    repo_list = json.loads(content)
+    print "repo_list=", repo_list
+
+    return render_template("oauth_github_test.html",
+                           session = session,
+                           repos = repo_list, 
+                           notebook = None, 
+                           version=app.config['VERSION_GIT_DESCRIBE'])
+
+
 @app.route("/oauth/twitter/authorize")
 @login_required
 def oauth_twitter_authorize():
@@ -1417,6 +1454,44 @@ def oauth_twitter_callback():
     
     return redirect(request.args['next'])
 
+@app.route("/oauth/twitter/test")
+@login_required
+def oauth_twitter_test():
+    """Test the twitter interface by making a profile API call
+
+    
+    """
+    servicename = 'twitter'
+
+    oauth_config = app.config['OAUTHCONFIG']
+    if servicename not in  oauth_config:
+        raise Exception("Twitter not configured for oauth")
+
+
+    ut = g.sysdb.users.find_one({'_id': session["user_id"]},
+                                {'oauth.twitter' : 1})
+    
+    service_config = oauth_config[servicename]
+    consumer_key = service_config['consumer_key']
+    consumer_secret = service_config['consumer_secret']
+    consumer = oauth.Consumer(consumer_key, consumer_secret)
+
+    ot = ut['oauth']['twitter']
+    token = oauth.Token(ot['oauth_token'],
+                        ot['oauth_token_secret'])
+
+    client = oauth.Client(consumer, token)
+
+    RESOURCE_URL = "http://api.twitter.com/1/statuses/home_timeline.json"
+
+    resp = client.request(RESOURCE_URL)
+    tweets = json.loads(resp[1])
+    return render_template("oauth_twitter_test.html",
+                           session = session,
+                           tr = tweets, 
+                           notebook = None, 
+                           version=app.config['VERSION_GIT_DESCRIBE'])
+       
 
 @app.route("/oauth/mendeley/authorize")
 @login_required
@@ -1535,6 +1610,56 @@ def oauth_mendeley_callback():
 
     # fixme 
     return redirect(url_for('settings', _external=True))
+
+@app.route("/oauth/mendeley/test")
+@login_required
+def oauth_mendeley_test():
+    """
+    Test the mendeley interface
+    
+    """
+    servicename = 'mendeley'
+
+    oauth_config = app.config['OAUTHCONFIG']
+    if servicename not in  oauth_config:
+        raise Exception("Mendeley not configured for oauth")
+
+
+    ut = g.sysdb.users.find_one({'_id': session["user_id"]},
+                                {'oauth.mendeley' : 1})
+    
+    service_config = oauth_config[servicename]
+    consumer_key = service_config['consumer_key']
+    consumer_secret = service_config['consumer_secret']
+    consumer = oauth.Consumer(consumer_key, consumer_secret)
+
+    ot = ut['oauth']['mendeley']
+    token = oauth.Token(ot['oauth_token'],
+                        ot['oauth_token_secret'])
+
+    client = oauth.Client(consumer, token)
+
+    RESOURCE_URL = "http://api.mendeley.com/oapi/library/"
+
+    resp = client.request(RESOURCE_URL)
+    library = json.loads(resp[1])
+
+    # now get ids of first 5
+    doc_info =[]
+    for doc_id in library['document_ids'][:5]:
+        URL = "http://api.mendeley.com/oapi/library/documents/%s/" % doc_id
+        resp = client.request(URL)
+        data = json.loads(resp[1])
+
+        doc_info.append(data)
+    print doc_info
+    
+    
+    return render_template("oauth_mendeley_test.html",
+                           session = session,
+                           docs = doc_info, 
+                           notebook = None, 
+                           version=app.config['VERSION_GIT_DESCRIBE'])
 
 
 if __name__ == '__main__':
