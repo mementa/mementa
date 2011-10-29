@@ -66,6 +66,13 @@ def user_create(username, password, name=None, email=None,
              ('gravitar', gravatarhash),
              ('url', arbitrary URL)
 
+    oauth : {
+              oauth authorizations, by service name
+              each of these is somewhat specific to the service,
+              esp. what data has been extraced, what the keys are, etc.
+              
+
+               }   
     """
 
     

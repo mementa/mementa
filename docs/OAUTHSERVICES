@@ -1,4 +1,17 @@
 
+
+
 Mendeley for papers (Oauth 1, three-legged)
 Github for commits (OAuth 2)
-Twitter for login (OAuth 1, three-legged)
+Twitter for login, etc.  (OAuth 1, three-legged)
+
+Oauth questions: 
+1. where do the secrets live? 
+2. Config settings
+3. for each user we store the keys in the user record
+
+
+/oauth/service/authorize
+/oauth/service/unauthorize
+/oauth/service/callback
+

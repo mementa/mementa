@@ -1,6 +1,7 @@
 {% extends "mementa.html" %}
 
 {% block javascript_includes %}
+<script type="text/javascript" src="/static/vendor/bootstrap/js/bootstrap-tabs.js"></script>    
 <script type="text/javascript" src="/static/usersettings.js"></script>    
 
 {% endblock %}
@@ -11,119 +12,182 @@
 
   <H1> User settings for {{user.username}}</h1>
   
-
-  <form method="POST"> 
-    <fieldset> 
-      <legend>User Settings</legend> 
-      <div class="row">
-        <div class="span6 columns">
-          
-          <div class="clearfix"> 
-            <label for="name">Name</label> 
-            <div class="input"> 
-              <input class="xlarge" id="name" name="name" size="30" type="text" value="{{user.name}}" /> 
-            </div> 
-          </div><!-- /clearfix --> 
-          
-          <div class="clearfix"> 
-            <label for="email">e-mail</label> 
-            <div class="input"> 
-              <input class="xlarge" id="email" name="email" size="30" type="text" value="{{user.email}}"/> 
-            </div> 
-          </div><!-- /clearfix --> 
-          
-          <div class="clearfix"> 
-            <label for="twitter">Twitter Handle</label> 
-            <div class="input"> 
-              <div class="input-prepend"> 
-                <span class="add-on">@</span> 
-                <input class="medium" id="twitter" name="twitter" size="16" type="text" value="{{user.twitter}}"/> 
-              </div> 
-            </div> 
-          </div><!-- /clearfix --> 
-        </div>
-        <div class="span4 columns offset2">
-          Mementa uses <a href="http://www.gravatar.com">Gravatar </a> for user images, which 
-          are keyed to your e-mail address. Based on the entered e-mail address, your avatar is:
-          <img src="" id="gravatar_img" />
-        </div>
-        
-        
-      </div>
-      {% if action == 'settings' %} 
-      {% if success %} 
-      <div class="alert-message success fade in" data-alert="alert"> 
-        <a class="close" href="#">&times;</a> 
-        <p><strong>Successfully updated settings</strong></p>
-      </div> 
-      {% else %} 
-      <div class="alert-message error fade in" data-alert="alert"> 
-        <a class="close" href="#">&times;</a> 
-        <p><strong>Error updating  settings</strong></p>
-      </div> 
-      {% endif %}
-      {% endif%}      
-      <div class="actions"> 
-        <input type='hidden' name='form' value='settings'/>
-        <button type="submit" class="btn primary">Save Changes</button name="save_changes">&nbsp;<button type="reset" class="btn">Cancel</button> 
-        
-      </div> 
-    </fieldset>
-  </form>
-  <div class='row'> 
-    <div class='span8'>
+  <ul class='tabs' data-tabs="tabs"> 
+    <li class='active'> <a href="#profile"> Profile </a> </li>
+    <li> <a href="#services"> Other Services </a> </li>
+  </ul>
+  
+  <div class="tab-content"> 
+    <div id="profile"> 
       <form method="POST"> 
         <fieldset> 
-          <legend> Change Password</legend> 
-          
-          <div class="clearfix"> 
-            <label for="password">Password</label> 
-            <div class="input"> 
-              <input class="xlarge" id="password" name="password" size="30" type="password" /> 
-            </div> 
-          </div><!-- /clearfix --> 
-          
-          <div class="clearfix"> 
-            <label for="password2">Re-enter Password</label> 
-            <div class="input"> 
-              <input class="xlarge" id="password2" name="password2" size="30" type="password" /> 
-            </div> 
-          </div><!-- /clearfix --> 
-          {% if action == 'password' %}
-          {% if success %}
-          <div class="alert-message success" data-alert="alert"> 
+          <legend>User Settings</legend> 
+          <div class="row">
+            <div class="span6 columns">
+              
+              <div class="clearfix"> 
+                <label for="name">Name</label> 
+                <div class="input"> 
+                  <input class="xlarge" id="name" name="name" size="30" type="text" value="{{user.name}}" /> 
+                </div> 
+              </div><!-- /clearfix --> 
+              
+              <div class="clearfix"> 
+                <label for="email">e-mail</label> 
+                <div class="input"> 
+                  <input class="xlarge" id="email" name="email" size="30" type="text" value="{{user.email}}"/> 
+                </div> 
+              </div><!-- /clearfix --> 
+              
+              <div class="clearfix"> 
+                <label for="twitter">Twitter Handle</label> 
+                <div class="input"> 
+                  <div class="input-prepend"> 
+                    <span class="add-on">@</span> 
+                    <input class="medium" id="twitter" name="twitter" size="16" type="text" value="{{user.twitter}}"/> 
+                  </div> 
+                </div> 
+              </div><!-- /clearfix --> 
+            </div>
+            <div class="span4 columns offset2">
+              Mementa uses <a href="http://www.gravatar.com">Gravatar </a> for user images, which 
+              are keyed to your e-mail address. Based on the entered e-mail address, your avatar is:
+              <img src="" id="gravatar_img" />
+            </div>
+            
+            
+          </div>
+          {% if action == 'settings' %} 
+          {% if success %} 
+          <div class="alert-message success fade in" data-alert="alert"> 
             <a class="close" href="#">&times;</a> 
-            <p><strong>Successfully updated password</strong></p>
+            <p><strong>Successfully updated settings</strong></p>
           </div> 
-          {% else %}
-          <div class="alert-message error" data-alert="alert"> 
+          {% else %} 
+          <div class="alert-message error fade in" data-alert="alert"> 
             <a class="close" href="#">&times;</a> 
-            <p><strong>Passwords didn't match</strong></p>
+            <p><strong>Error updating  settings</strong></p>
           </div> 
           {% endif %}
-          {% endif %}
+          {% endif%}      
           <div class="actions"> 
-            <input type='hidden' name='form' value='password'/>
-            <button type="submit" class="btn primary" name="change_password">Change Password</button>&nbsp;
+            <input type='hidden' name='form' value='settings'/>
+            <button type="submit" class="btn primary">Save Changes</button name="save_changes">&nbsp;<button type="reset" class="btn">Cancel</button> 
+            
           </div> 
-          
         </fieldset>
       </form>
-    </div> 
-    
-    <div class='span8'>
-      {% if user.apikey %}
-      Your api key is<p>
-      <small><code>{{user.apikey}}</code></small>
-       {% else %}
-       Update your password to generate an API key. 
-      {%endif %}
-       <p>
-      
-       Use the API key to give access to your account to third party tools. Be careful, anyone with this key can access all of your mementa data! 
+      <div class='row'> 
+        <div class='span8'>
+          <form method="POST"> 
+            <fieldset> 
+              <legend> Change Password</legend> 
+              
+              <div class="clearfix"> 
+                <label for="password">Password</label> 
+                <div class="input"> 
+                  <input class="xlarge" id="password" name="password" size="30" type="password" /> 
+                </div> 
+              </div><!-- /clearfix --> 
+              
+              <div class="clearfix"> 
+                <label for="password2">Re-enter Password</label> 
+                <div class="input"> 
+                  <input class="xlarge" id="password2" name="password2" size="30" type="password" /> 
+                </div> 
+              </div><!-- /clearfix --> 
+              {% if action == 'password' %}
+              {% if success %}
+              <div class="alert-message success" data-alert="alert"> 
+                <a class="close" href="#">&times;</a> 
+                <p><strong>Successfully updated password</strong></p>
+              </div> 
+              {% else %}
+              <div class="alert-message error" data-alert="alert"> 
+                <a class="close" href="#">&times;</a> 
+                <p><strong>Passwords didn't match</strong></p>
+              </div> 
+              {% endif %}
+              {% endif %}
+              <div class="actions"> 
+                <input type='hidden' name='form' value='password'/>
+                <button type="submit" class="btn primary" name="change_password">Change Password</button>&nbsp;
+              </div> 
+              
+            </fieldset>
+          </form>
+        </div> 
+        
+        <div class='span8'>
+          {% if user.apikey %}
+          Your api key is<p>
+            <small><code>{{user.apikey}}</code></small>
+            {% else %}
+            Update your password to generate an API key. 
+            {%endif %}
+          <p>
+            
+            Use the API key to give access to your account to third party tools. Be careful, anyone with this key can access all of your mementa data! 
+            
+        </div> 
+      </div>
+    </div>
+    <div id="services">
+      <div class="page-header">
+        <h2> Twitter </h2>
+      </div>
 
-    </div> 
+        Connecting to <a href="http://www.twitter.com">Twitter</a> 
+      will let you do cool stuff in the future. <p><p>
+
+      {% if 'twitter' in user.oauth %}   
+          
+        <span class="label success">Connected!</span> You are currently connected to Twitter as <code>{{user.oauth.twitter.screen_name}}</code>. <p><p>
+          
+
+          <a href="/oauth/twitter/unauthorize" class='btn'> Disconnect from Twitter </a>
+          
+        {% else %}
+          <a href="/oauth/twitter/authorize" class='btn'> Connect to Twitter </a>
+        
+        {% endif %}
+
+      <div class="page-header">
+        <h2> Github </h2>
+      </div>
+        Connecting to <a href="http://www.github.com">Github</a> lets you easily add git commits as entries in your notebooks. <p>
+          
+        {% if 'github' in user.oauth %}   
+          
+        <span class="label success">Connected!</span> You are currently connected to Github as <code>{{user.oauth.github.login}}</code>. <p><p>
+          
+
+          <a href="/oauth/github/unauthorize" class='btn'> Disconnect from Github </a>
+          
+        {% else %}
+          <a href="/oauth/github/authorize" class='btn'> Connect to Github </a>
+        
+        {% endif %}
+
+      <div class="page-header">
+        <h2> Mendeley </h2>
+        Connecting to <a href="http://www.mendeley.com">Mendeley</a> 
+      will let you do cool stuff in the future. <p><p>
+
+      {% if 'mendeley' in user.oauth %}   
+          
+        <span class="label success">Connected!</span> You are currently connected to Mendeley as <code>{{user.oauth.mendeley.screen_name}}</code>. <p><p>
+          
+
+          <a href="/oauth/mendeley/unauthorize" class='btn'> Disconnect from Mendeley </a>
+          
+        {% else %}
+          <a href="/oauth/mendeley/authorize" class='btn'> Connect to Mendeley </a>
+        
+        {% endif %}
+      </div>
+
+    </div>
   </div>
 </div>
-
 {% endblock %}
