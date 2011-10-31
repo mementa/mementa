@@ -607,16 +607,14 @@ w
 
                        }); 
 
-        $("#button_add_entry_code")
+        $("#button_add_entry_markdown")
             .click(function(e) { 
                        var resp = dom_add_entry_click(
                            {
-                               'class' : 'code', 
+                               'class' : 'markdown', 
                                title : "dummy title", 
-                               code: "Temp body;", 
-                               caption: "", 
-                               language: "python", 
-                               source: "woowoo"
+                               body: "Temp body;", 
+
                            }, server, docdb); 
                        // fixme : this is where we would wait for resp
                        // to finish and then set that entry editable or something

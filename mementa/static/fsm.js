@@ -22,14 +22,10 @@ var render = {
             return view; 
         },
 
-        code: function(rev_doc) {
+        markdown: function(rev_doc) {
 
-            var div_html = $.mustache("<div> <h2>{{{title}}}</h2> <pre class='code'>{{{code}}}</pre> <input type='hidden' name='language' value='{{language}}'></input>"
-                                + "<div class='caption'> {{caption}} </div></div>", rev_doc);
-            var div = $(div_html); 
-            $("pre.code", div).data('code', rev_doc.code); 
-            return div; 
-
+            return $($.mustache("<div> <h2>{{{title}}}</h2> <div class='body'> {{{body}}} </div> "
+                                + "</div>", rev_doc)); 
         }, 
 
     }, 
@@ -60,22 +56,9 @@ var render = {
             return view; 
         },
 
-        code: function(rev_doc) {
-            var div = $.mustache("<div> <input name='title' value='{{{title}}}' class='xlarge' size='70' placeholder='optional title for code'/> <textarea class='code'>{{{code}}}</textarea> <textarea class='caption'>{{caption}}</textarea> language <select name='language'></select>"
-                                + "</div>", rev_doc); 
-            
-            var divobj = $(div); 
-            // populate selector
-            _.map(['python', 'r', 'javascript', 'other'], function(lang) {
-                      var selected = lang == rev_doc.language; 
-                      $("select[name='language']", divobj).append($('<option>', { value : lang, 
-                                                                        selected: selected})
-                                              .text(lang)); 
-
-                  }); 
-            return divobj; 
-
-
+        markdown: function(rev_doc) {
+            return $($.mustache("<div> <input name='title' value='{{{title}}}' class='xlarge' size='70' placeholder='optional title for entry'/> <div class='toolbar'> </div> <textarea class='textbody'>{{{body}}}</textarea> "
+                                + "</div>", rev_doc)); 
         },
 
     },
@@ -133,23 +116,18 @@ var render = {
 
         }, 
 
-        code: function(entrydiv) {
+        markdown: function(entrydiv) {
             var title = $("input[name='title']", entrydiv).val(); 
+            // this is for testing only -- in reality, we want to get
+            // the content from the editor. We should really architect this better
 
-            var codemirrorinst = $(entrydiv).data("codemirror"); 
-            var code = codemirrorinst.getValue(); 
-            
-            var language = $("select[name='language']", entrydiv).val(); 
-            var caption = $("textarea.caption", entrydiv).val(); 
+            var body; 
 
-            console.log("language=", language);
+            body = $( '.textbody', entrydiv ).val( ); 
+
             return {
                 title : title, 
-                code : code, 
-                language: language, 
-                source: "", 
-                caption: caption
-            }; 
+                body : body}; 
         }, 
 
     }

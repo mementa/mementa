@@ -140,14 +140,11 @@ def text_entry_revision_create(title, body, **kargs) :
             'body' : body,
             'class' : "text"}
 
-def code_entry_revision_create(title, code, source, language, caption):
+def markdown_entry_revision_create(title, body):
 
     return {'title' : title,
-            'code' : code,
-            'source' : source,
-            'language' : language,
-            'caption' : caption, 
-            'class' : "code"}
+            'body' : body,
+            'class' : "markdown"}
 
 def figure_entry_revision_create(title, caption, maxsize = None,
                                  gallery = False,
@@ -258,7 +255,7 @@ def entry_text_rev_to_json(text):
             
     return new_entry_json    
 
-def entry_code_rev_to_json(text):
+def entry_markdown_rev_to_json(text):
     new_entry_json = {}
     for k, v in text.iteritems():
         if k == "author":
@@ -312,7 +309,7 @@ def entry_to_json(entry_doc):
    
 rev_to_json = {'page' : page_rev_to_json,
                'text' : entry_text_rev_to_json,
-               'code' : entry_code_rev_to_json,
+               'markdown' : entry_markdown_rev_to_json,
                'figure' : entry_figure_rev_to_json}
 
 
@@ -327,14 +324,14 @@ def entry_text_json_to_rev(jsond) :
     
     return rev
 
-def entry_code_json_to_rev(jsond) :
+def entry_markdown_json_to_rev(jsond) :
     
     title = jsond['title']
-    code = jsond['code']
+    markdown = jsond['markdown']
     source = jsond['source']
     language = jsond['language']
     caption = jsond['caption']
-    rev = code_entry_revision_create(title, code, source, language, caption)
+    rev = markdown_entry_revision_create(title, markdown, source, language, caption)
     
     return rev
 
@@ -383,5 +380,5 @@ def notebook_to_json(nb):
 
 json_to_rev = {'text' : entry_text_json_to_rev,
                'figure' : entry_figure_json_to_rev,
-               'code' : entry_code_json_to_rev,
+               'markdown' : entry_markdown_json_to_rev,
                'page' : page_json_to_rev}
