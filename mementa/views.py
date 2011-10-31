@@ -24,160 +24,8 @@ import oauth2 as oauth
 
 
 # most of these should change for real deployment
-
-DEBUG = True
-
-DB_SYSTEM_DATABASE = 'testsystemdb'
-DB_HOST = "127.0.0.1"
-DB_PORT = 27017
-DB_URL = "mongodb://127.0.0.1:27017"
-
-FIGURE_TEMP_DIR = "/tmp"
-
-HTTP_ERROR_CLIENT_CONFLICT = 409
-HTTP_ERROR_CLIENT_BADREQUEST = 400
-HTTP_ERROR_FORBIDDEN = 403
-VERSION_GIT_DESCRIBE = gitversion.describe()
-
-app = Flask(__name__)
-app.config.from_object(__name__)
-
-
-def random_api_key():
-    API_KEY_LENGTH = 32
-    entropy = os.urandom(API_KEY_LENGTH)
-    return base64.b16encode(entropy)
-    
-def jsonify_error(d, e) :
-    x = jsonify(d)
-    x.status_code = e
-
-    return x
-
-@app.before_request
-def before_request():
-    
-    mongoconn = pymongo.Connection(app.config['DB_URL'])
-    g.dbconn = mongoconn
-    g.sysdb = mongoconn[app.config['DB_SYSTEM_DATABASE']]
-
-def saltpassword(password, salt):
-    m = hashlib.sha512()
-    m.update(password)
-    m.update(salt)
-    return m.hexdigest()
-
-def login_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if 'username' not in session or session['username'] is None:
-            return redirect(url_for('login', next=request.url))
-        return f(*args, **kwargs)
-    return decorated_function
-
-def check_api_auth(username, password):
-    u = g.sysdb.users.find_one({'username' : username})
-    
-
-    successful = False
-    if u:
-        # check password
-        sp = saltpassword(password, app.config['PASSWORDSALT'])
-        
-        if u['password'] == sp:
-            # successful login
-            successful = True
-        if 'apikey' in u and u['apikey'] == password:
-            successful = True
-
-        if successful : 
-            session['username'] = username
-            session['user_id'] = u['_id']
-            session['name'] = u['name']
-            
-            return True
-
-    return False
-
-
-def api_or_login_required(f):
-    """
-    Checks if logged in, first with basic auth, then with session, and if not
-    returns 409 (does not redirect to login)
-
-    Used for API calls. 
-
-    """
-    def authenticate():
-        """Sends a 401 response that enables basic auth"""
-        return Response(
-        'Could not verify your access level for that URL.\n'
-        'You have to login with proper credentials', 401,
-        {'WWW-Authenticate': 'Basic realm="Login Required"'})
-    
-
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if 'username' not in session or session['username'] is None:
-            auth = request.authorization
-            if not auth or not check_api_auth(auth.username, auth.password):
-                return authenticate()
-        return f(*args, **kwargs)
-    
-    return decorated_function
-
-def check_notebook_acl(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        notebook = kwargs['notebook']
-        nbdb = g.dbconn[get_nb_dbname(notebook)]
-        if not has_notebook_permission(session['user_id'], notebook):
-            return "You don't have permission to access that notebook", HTTP_ERROR_FORBIDDEN            
-        return f(*args, **kwargs)
-    return decorated_function
-
-
-
-def has_notebook_permission(userid, notebook_name):
-    # FIXME linear search? 
-    n = get_notebook(notebook_name)
-    for u in n['users']:
-        if u.id == userid:
-            return True
-    return False
-
-def has_notebook_admin(userid, notebook_name):
-    # FIXME lienar searcH? 
-    n = get_notebook(notebook_name)
-    for u in n['admins']:
-        if u.id == userid:
-            return True
-    return False
-
-def get_nb_dbname(notebookname):
-    return "notebook:" + notebookname
-
-def lookup_user(userid):
-    """
-    FIXME: cache this eventually
-
-    Take in a userid and return doc
-     
-     """
-    if isinstance(userid, bson.dbref.DBRef):
-        ref = userid
-    else:
-        ref = dbref('users', userid)
-
-    doc = g.sysdb.dereference(ref)
-    
-
-    return {'_id' : str(ref.id),
-            'username' : doc['username'],
-            'name' : doc.get('name', ""),
-            'email' : doc.get('email', ""),
-            'avatar' : doc.get('avatar', ""),
-            'twitter' : doc.get('twitter', "")}
+from mementa import app
+from utils import *
     
 
 @app.route('/')
@@ -295,10 +143,6 @@ def listusers():
     ## return str(users)
     pass
 
-def get_notebook(name):
-
-    d = g.sysdb.notebooks.find({'name' : name})
-    return d[0]
 
 
 @app.route("/notebook/<notebook>/settings", methods=['GET', 'POST'])
@@ -331,7 +175,6 @@ def settings():
     if request.method == "GET":
         userref = dbref("users", session["user_id"])
         user = g.sysdb.dereference(userref)
-        print user
         return render_template("usersettings.html", user=user,
                                session = session,
                                version = app.config['VERSION_GIT_DESCRIBE'])
@@ -1290,13 +1133,12 @@ def oauth_github_callback():
 
     
     req_url = "https://api.github.com/user?access_token=%s" % access_token
-    print "requesting", req_url
+
     resp, content = h.request(req_url)
 
     # now where to redirect to?
     
     user_info = json.loads(content)
-    print str(access_token) + user_info['login']
 
     g.sysdb.users.update({"_id" : session["user_id"]},
                       {"$set" : {"oauth.github":  {'login' : user_info['login'],
@@ -1326,14 +1168,12 @@ def oauth_github_test():
     URL = "https://api.github.com/user/repos"
 
     URL = URL + "?" + urllib.urlencode({'access_token' : ot['access_token']})
-    print "REQUESTING", URL
     
     resp, content = h.request(URL)
 
     # now where to redirect to?
     
     repo_list = json.loads(content)
-    print "repo_list=", repo_list
 
     return render_template("oauth_github_test.html",
                            session = session,
@@ -1391,7 +1231,7 @@ def oauth_twitter_authorize():
         session['oauth_request_tokens'] = {}
         
     session['oauth_request_tokens'] = request_token
-    print "stored tokens", session['oauth_request_tokens']
+
     return redirect(url)
 
 
@@ -1427,7 +1267,7 @@ def oauth_twitter_callback():
     consumer = oauth.Consumer(consumer_key, consumer_secret)
 
     request_token = session['oauth_request_tokens']
-    print "retireved tokens",     session['oauth_request_tokens']
+
     del session['oauth_request_tokens']
     
     token = oauth.Token(request_token['oauth_token'],
@@ -1652,8 +1492,6 @@ def oauth_mendeley_test():
         data = json.loads(resp[1])
 
         doc_info.append(data)
-    print doc_info
-    
     
     return render_template("oauth_mendeley_test.html",
                            session = session,

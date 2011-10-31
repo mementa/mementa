@@ -1,6 +1,6 @@
 import sys
 sys.path.append('/home/dotcloud/current')
-from app.mementa import app as application
+from mementa import app as application
 
 # read the config data
 import json
