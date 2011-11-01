@@ -242,11 +242,9 @@
     // and 8) and ONLY on button clicks.  Keyboard shortcuts work
     // normally since the focus never leaves the textarea.
     function PanelCollection(postfix) {
-        console.log($("#wmd-preview")); 
         this.buttonBar = doc.getElementById("wmd-button-bar" + postfix);
         this.preview = doc.getElementById("wmd-preview" + postfix);
         this.input = doc.getElementById("wmd-input" + postfix);
-        console.log("Created PanelCollection", this); 
     };
 
     // Returns true if the DOM element is visible, false if it's hidden.
@@ -775,7 +773,6 @@
 
         // Adds event listeners to elements
         var setupEvents = function (inputElem, listener) {
-            console.log("PreviewManager.setupEvents", inputElem); 
             util.addEvent(inputElem, "input", listener);
             inputElem.onpaste = listener;
             inputElem.ondrop = listener;
@@ -804,7 +801,6 @@
         };
 
         var makePreviewHtml = function () {
-            console.log("makePreviewHtml panels=", panels); 
 
             // If there is no registered preview panel
             // there is nothing to do.
@@ -812,8 +808,6 @@
                 return;
 
             var text = panels.input.value;
-
-            console.log("makePreviewHtml", text); 
 
             if (text && text == oldInputText) {
                 return; // Input text hasn't changed.
