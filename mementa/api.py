@@ -177,18 +177,15 @@ def api_entry_get_post(notebook, entryid):
                                                   gallery = rd.get("gallery", False),
                                                   images = rd['images'])
 
-        elif dclass == 'code' :
-            rev = dm.code_entry_revision_create(rd['title'],
-                                                rd['code'],
-                                                rd['source'],
-                                                rd['language'],
-                                                rd['caption'])
+        elif dclass == 'markdown' :
+            rev = dm.markdown_entry_revision_create(rd['title'],
+                                                    rd['body'])
         
         elif dclass == 'page':
             rev = dm.page_entry_revision_create(rd['title'],
                                                 rd['entries'])
         else:
-            raise Exception("Unknown entry class")
+            raise Exception("Unknown entry class '%s'" % dclass)
         
         author = dbref("users", session["user_id"])
         tags = rd.get("tags", [])
@@ -475,8 +472,8 @@ def list_entries_query(db, req):
             query['class'] = {"$ne" : "page"}
         elif req['class'] == 'text':
             query['class'] = "text"
-        elif req['class'] == 'code':
-            query['class'] = "code"
+        elif req['class'] == 'markdown':
+            query['class'] = "markdown"
         elif req['class'] == 'figure':
             query['class'] = "figure"
 

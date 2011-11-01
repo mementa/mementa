@@ -23,9 +23,15 @@ var render = {
         },
 
         markdown: function(rev_doc) {
+            
+            var converter = new Markdown.Converter();
+            
+            var html = converter.makeHtml(rev_doc.body); 
+            var res =  $($.mustache("<div> <h2>{{{title}}}</h2> <div class='body'></div> "
+                                    + "</div>", rev_doc)); 
+            $(".body", res).html(html); 
+            return res; 
 
-            return $($.mustache("<div> <h2>{{{title}}}</h2> <div class='body'> {{{body}}} </div> "
-                                + "</div>", rev_doc)); 
         }, 
 
     }, 
@@ -57,7 +63,12 @@ var render = {
         },
 
         markdown: function(rev_doc) {
-            return $($.mustache("<div> <input name='title' value='{{{title}}}' class='xlarge' size='70' placeholder='optional title for entry'/> <div class='toolbar'> </div> <textarea class='textbody'>{{{body}}}</textarea> "
+            return $($.mustache("<div > "
+                                + "<input name='title' value='{{{title}}}' class='xlarge' size='70' placeholder='optional title for entry'/>  "
+                                + "<div class='editpane'> "
+                                + "<div id='wmd-button-bar'></div>"
+                                + "<textarea id='wmd-input' class='textbody' cols=75>{{{body}}}</textarea> </div>"
+                                + "<div id='wmd-preview' class='wmd-panel wmd-preview'></div>"
                                 + "</div>", rev_doc)); 
         },
 

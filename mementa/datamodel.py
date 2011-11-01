@@ -327,11 +327,8 @@ def entry_text_json_to_rev(jsond) :
 def entry_markdown_json_to_rev(jsond) :
     
     title = jsond['title']
-    markdown = jsond['markdown']
-    source = jsond['source']
-    language = jsond['language']
-    caption = jsond['caption']
-    rev = markdown_entry_revision_create(title, markdown, source, language, caption)
+    body = jsond['body']
+    rev = markdown_entry_revision_create(title, body)
     
     return rev
 

@@ -289,7 +289,8 @@ $(document).ready(
                               
                           }                                       
 
-                          if((config.entryclass == 'text') || (config.entryclass == 'figure')) {
+                          if((config.entryclass == 'text') || (config.entryclass == 'figure')
+                            || (config.entryclass == 'markdown')) {
                               var id = $(element).attr('id'); 
                               if(MathJax) { // conditional because the CDN might fail to load
                                   MathJax.Hub.Queue(["Typeset",MathJax.Hub, id]);                                                                
@@ -297,14 +298,8 @@ $(document).ready(
 
                           }
 
-                          if((config.entryclass == 'code')) {
-                              var code = $("pre.code", element).data('code'); 
-                              console.log("About to run on ", code); 
-                              var node = $("pre.code", element); 
-                              $(node).addClass("cm-s-default");
-                              var language = $("input[name='language']", element).val(); 
-
-                              CodeMirror.runMode(code, language, node[0]);
+                          if((config.entryclass == 'markdown')) {
+                              
 
                           }
 
@@ -394,12 +389,13 @@ $(document).ready(
                                               uploader._onInputChange(this); 
 w
                                           }); 
-                          } else if (config.entryclass == 'code') {
-                              var myCodeMirror = CodeMirror.fromTextArea($("textarea", element)[0])
-                              $(element).data("codemirror", myCodeMirror); 
-
-
-
+                          } else if (config.entryclass == 'markdown') {
+                              console.log("running!"); 
+                              var converter = new Markdown.Converter();
+                              var editor = new Markdown.Editor(converter); 
+                              $("textarea", element).autoGrow(); 
+                              editor.run(); 
+                              
                           }
                       }
                       
@@ -751,8 +747,6 @@ w
                         }); 
 
         }
-
-        CodeMirror.defaults.lineNumbers = true; 
 
 
     }); 
