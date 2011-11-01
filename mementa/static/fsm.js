@@ -66,9 +66,9 @@ var render = {
             return $($.mustache("<div > "
                                 + "<input name='title' value='{{{title}}}' class='xlarge' size='70' placeholder='optional title for entry'/>  "
                                 + "<div class='editpane'> "
-                                + "<div id='wmd-button-bar'></div>"
-                                + "<textarea id='wmd-input' class='textbody' cols=75>{{{body}}}</textarea> </div>"
-                                + "<div id='wmd-preview' class='wmd-panel wmd-preview'></div>"
+                                + "<div class='toolbar'></div>"
+                                + "<textarea  class='textbody' cols=75>{{{body}}}</textarea> </div>"
+                                + "<div  class='preview wmd-panel wmd-preview'></div>"
                                 + "</div>", rev_doc)); 
         },
 

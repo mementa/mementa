@@ -394,7 +394,11 @@ w
                               var converter = new Markdown.Converter();
                               var editor = new Markdown.Editor(converter); 
                               $("textarea", element).autoGrow(); 
-                              editor.run(); 
+                              
+                              var input_elt = $("textarea", element)[0];
+                              var preview_elt = $("div.preview", element)[0]; 
+                              var toolbar_elt = $("div.toolbar", element)[0]; 
+                              editor.run(input_elt, preview_elt, toolbar_elt); 
                               
                           }
                       }
