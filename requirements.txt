@@ -12,3 +12,5 @@ simplejson==2.1.6
 virtualenv==1.5.1
 wsgiref==0.1.2
 Flask-Cache
+httplib2
+oauth2
